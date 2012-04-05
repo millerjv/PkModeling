@@ -15,7 +15,7 @@ endif()
 # - Usually identique to the directory name)
 # - You shouldn't call 'project(...)'. See SlicerConfig.cmake for more details.
 #-----------------------------------------------------------------------------
-set(EXTENSION_NAME MultiVolumeExplorer)
+set(EXTENSION_NAME PkModeling)
 
 #-----------------------------------------------------------------------------
 # Prerequisites
@@ -42,24 +42,10 @@ if(NOT Slicer_SOURCE_DIR)
 
 endif()
 
-
 # Add subdirectories
+ass_subdirectory(PkSolver)
 add_subdirectory(CLI)
 
-#-----------------------------------------------------------------------------
-# Build
-#-----------------------------------------------------------------------------
-# JVM - NEED TO CHANGE THIS TO A CALL FOR CLI MODULES
-slicerMacroBuildQtModule(
-  NAME ${EXTENSION_NAME}
-  EXPORT_DIRECTIVE ${qt_module_export_directive}
-  INCLUDE_DIRECTORIES ${qt_module_include_directories}
-  SRCS ${qt_module_SRCS}
-  MOC_SRCS ${qt_module_MOC_SRCS}
-  UI_SRCS ${qt_module_UI_SRCS}
-  TARGET_LIBRARIES ${qt_module_target_libraries}
-  RESOURCES ${qt_module_resources}
-  )
 
 #-----------------------------------------------------------------------------
 # Testing
