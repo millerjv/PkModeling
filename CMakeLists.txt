@@ -26,7 +26,6 @@ if(NOT Slicer_SOURCE_DIR)
   set(EXTENSION_STATUS "Beta")
   set(EXTENSION_DESCRIPTION "This is an example of Qt loadable module built as an extension")
   set(EXTENSION_DEPENDS CLIExtensionTemplate) # Specified as a space separated list or 'NA' if any
-
   find_package(Slicer REQUIRED)
 
   # Additional C/CXX flags - Should be defined before including Slicer_USE_FILE
@@ -42,16 +41,23 @@ if(NOT Slicer_SOURCE_DIR)
 
 endif()
 
+# Configure XML description
+set(SignalIntensitiesToConcentrationValuesCLI_NAME SignalIntensitiesToConcentrationValues)
+configure_file(
+  ${SignalIntensitiesToConcentrationValuesCLI_NAME}.xml.in
+  ${CMAKE_CURRENT_BINARY_DIR}/${SignalIntensitiesToConcentrationValuesCLI_NAME}.xml
+  @ONLY
+  )
+  
 # Add subdirectories
-ass_subdirectory(PkSolver)
+add_subdirectory(PkSolver)
 add_subdirectory(CLI)
-
 
 #-----------------------------------------------------------------------------
 # Testing
 #-----------------------------------------------------------------------------
 if(BUILD_TESTING)
-  add_subdirectory(Testing)
+  add_subdirectory(Testing)  
 endif()
 
 #-----------------------------------------------------------------------------

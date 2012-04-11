@@ -15,7 +15,7 @@
 #include "itkExtractImageFilter.h"
 #include "itkImageRegionIterator.h"
 #include "itkS0ForTimeSeriesInQulume.h"
-#include "PkSolver.h"
+#include "../PkSolver/PkSolver.h"
 
 namespace itk
 {
