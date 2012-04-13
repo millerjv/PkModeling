@@ -21,11 +21,11 @@ set(EXTENSION_NAME PkModeling)
 #-----------------------------------------------------------------------------
 set(EXTENSION_HOMEPAGE "https://github.com/millerjv/PkModeling/wiki/PkModeling")
 set(EXTENSION_CATEGORY "Examples")
-set(EXTENSION_ICONURL "")
+set(EXTENSION_ICONURL " ")
 set(EXTENSION_STATUS "Beta")
 set(EXTENSION_CONTRIBUTORS "Yingxuan Zhu (GE), Jim Miller (GE), Ming-ching Chang (GE), Mahnaz Maddah (SRI)")
 set(EXTENSION_DESCRIPTION "PkModeling is a Slicer4 Extension that provides pharmacokinetic modeling for dynamic contrast enhanced MRI (DCE MRI).")
-set(EXTENSION_SCREENSHOTURLS "")
+set(EXTENSION_SCREENSHOTURLS " ")
 set(EXTENSION_ACKNOWLEDGEMENTS "This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149. Information on the National Centers for Biomedical Computing can be obtained from http://nihroadmap.nih.gov/bioinformatics .")
 set(EXTENSION_MAJOR_VERSION 0)
 set(EXTENSION_MINOR_VERSION 1)
@@ -51,14 +51,6 @@ if(NOT Slicer_SOURCE_DIR)
   include(SlicerEnableExtensionTesting)
 endif()
 
-# Configure XML description
-set(SignalIntensitiesToConcentrationValuesCLI_NAME SignalIntensitiesToConcentrationValues)
-configure_file(
-  ${SignalIntensitiesToConcentrationValuesCLI_NAME}.xml.in
-  ${CMAKE_CURRENT_BINARY_DIR}/${SignalIntensitiesToConcentrationValuesCLI_NAME}.xml
-  @ONLY
-  )
-  
 # Add subdirectories
 add_subdirectory(PkSolver)
 add_subdirectory(CLI)

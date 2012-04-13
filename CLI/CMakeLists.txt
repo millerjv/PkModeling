@@ -1,10 +1,14 @@
+# Configure XML description
 set(SignalIntensitiesToConcentrationValuesCLI_NAME SignalIntensitiesToConcentrationValues)
-
-set(PkSolverFolder_NAME ${CMAKE_CURRENT_SOURCE_DIR}/../PkSolver)
-
+configure_file(
+  ${SignalIntensitiesToConcentrationValuesCLI_NAME}.xml.in
+  ${CMAKE_CURRENT_BINARY_DIR}/${SignalIntensitiesToConcentrationValuesCLI_NAME}.xml
+  @ONLY
+  )
+  
 # Additional includes
 set(cli_module_include_directories
-   ${ITK_LIBRARIES} PkSolverLib
+   ${ITK_LIBRARIES} PkSolver
   )
 
 # Additional source files
@@ -14,21 +18,13 @@ set(cli_module_SRCS
 	itkS0ForTimeSeriesInQulume.hxx
 	itkSignalIntensityToConcentration.h
         itkSignalIntensityToConcentration.hxx
-	${PkSolverFolder_NAME}/PkSolver.cxx
-	${PkSolverFolder_NAME}/PkSolver.h
   )
   
 # Additional Target libraries
 set(cli_module_target_libraries
-  ${ITK_LIBRARIES}
+  ${ITK_LIBRARIES} PkSolver
   )
 
-# Configure XML description
-#configure_file(
- # ${SignalIntensitiesToConcentrationValuesCLI_NAME}.xml.in
- # ${CMAKE_CURRENT_BINARY_DIR}/${SignalIntensitiesToConcentrationValuesCLI_NAME}.xml
- # @ONLY
- # )
 
 #-----------------------------------------------------------------------------
 # Build
