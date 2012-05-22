@@ -1,6 +1,6 @@
 /*=========================================================================
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $SignalIntensitiesToConcentrationValues: itkS0ForTimeSeriesInQulume.hxx$
+  Module:    $SignalIntensitiesToConcentrationValues: itkS0CalculationFilter.hxx$
   Language:  C++
   Date:      $Date: 2012/03/7 $
   Version:   $Revision: 1.0 $
@@ -12,15 +12,15 @@ Output: Volume, x*y*z
 Parameter: S0GradThresh, Threshold for gradient magnitude of S0
 =========================================================================*/
 
-#ifndef _itkS0ForTimeSeriesInQulume_hxx
-#define _itkS0ForTimeSeriesInQulume_hxx
-#include "itkS0ForTimeSeriesInQulume.h"
+#ifndef _itkS0CalculationFilter_hxx
+#define _itkS0CalculationFilter_hxx
+#include "itkS0CalculationFilter.h"
 
 namespace itk
 {
 
 template <class TInputImage, class TOutputImage>
-S0ForTimeSeriesInQulume<TInputImage, TOutputImage>::S0ForTimeSeriesInQulume()
+S0CalculationFilter<TInputImage, TOutputImage>::S0CalculationFilter()
 {		
 	m_S0GradThresh = 15.0f;
 	this->Superclass::SetNumberOfRequiredInputs(1);
@@ -29,7 +29,7 @@ S0ForTimeSeriesInQulume<TInputImage, TOutputImage>::S0ForTimeSeriesInQulume()
 }
 
 template <class TInputImage, class TOutputImage>
-void S0ForTimeSeriesInQulume<TInputImage, TOutputImage>
+void S0CalculationFilter<TInputImage, TOutputImage>
 ::BeforeThreadedGenerateData()
 {
 	m_inputVectorVolume = this->GetInput();
@@ -37,7 +37,7 @@ void S0ForTimeSeriesInQulume<TInputImage, TOutputImage>
 }
 
 template <class TInputImage, class TOutputImage>
-void S0ForTimeSeriesInQulume<TInputImage, TOutputImage>
+void S0CalculationFilter<TInputImage, TOutputImage>
 #if ITK_VERSION_MAJOR < 4
 ::ThreadedGenerateData( const typename Superclass::OutputImageRegionType & outputRegionForThread, int itkNotUsed(threadId) )
 #else
@@ -66,7 +66,7 @@ void S0ForTimeSeriesInQulume<TInputImage, TOutputImage>
 
 /** Standard "PrintSelf" method */
 template <class TInputImage, class TOutput>
-void S0ForTimeSeriesInQulume<TInputImage, TOutput>
+void S0CalculationFilter<TInputImage, TOutput>
 ::PrintSelf( std::ostream& os, Indent indent ) const
 {
   Superclass::PrintSelf( os, indent ); 

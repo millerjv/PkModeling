@@ -18,199 +18,14 @@
 #include <itkLevenbergMarquardtOptimizer.h>
 #include "PkSolver.h"
 #include <math.h>
+#include "itkTimeProbesCollectorBase.h"
 
 namespace itk
 {	
 //
 // Support routines/classes used internally in the PkSolver
 // 
-
-class LMCostFunction: public itk::MultipleValuedCostFunction
-{
-public:
-  typedef LMCostFunction                    Self;
-  typedef itk::MultipleValuedCostFunction   Superclass;
-  typedef itk::SmartPointer<Self>           Pointer;
-  typedef itk::SmartPointer<const Self>     ConstPointer;
-  itkNewMacro( Self );
-
-  enum { SpaceDimension =  3 };
-  unsigned int RangeDimension; 
-
-  typedef Superclass::ParametersType              ParametersType;
-  typedef Superclass::DerivativeType              DerivativeType;
-  typedef Superclass::MeasureType                 MeasureType, ArrayType;
-  typedef Superclass::ParametersValueType         ValueType;
-
-  float m_hematocrit;
-
-  LMCostFunction():
-  m_Measure(300)
-  {
-  }
-
-  void set_hematocrit (const float hematocrit) {
-    m_hematocrit = hematocrit;
-  }
-
-  void SetNumberOfValues(const unsigned int NumberOfValues)
-  {
-    RangeDimension = NumberOfValues;
-  }
-
-  void SetCb (const float* cb, int sz) //BloodConcentrationCurve.
-  {
-    double *tmp;
-    tmp = new double[sz];
-    Cb.set_size(sz);
-    for( int i = 0; i < sz; ++i )
-      tmp[i] = cb[i];
-    Cb.set(tmp);
-    delete [] tmp;
-  }
-
-
-  void SetCv (const float* cv, int sz) //Self signal Y
-  {    
-    double *tmp;
-    tmp = new double[sz];
-    Cv.set_size (sz);
-    for (int i = 0; i < sz; ++i)
-      tmp[i] = cv[i];
-    Cv.set(tmp);
-    delete [] tmp;
-  }
- 
-  void SetTime (const float* cx, int sz) //Self signal X
-  {
-    double *tmp;
-    tmp = new double[sz];
-    Time.set_size (sz);
-    for( int i = 0; i < sz; ++i )
-      tmp[i] = cx[i];
-    Time.set(tmp);
-    delete [] tmp;
-  }
-
-  MeasureType GetValue( const ParametersType & parameters) const
-  {
-    m_Measure.SetSize(RangeDimension);
-    ValueType Ktrans = parameters[0];
-    ValueType Ve = parameters[1];
-    ValueType f_pv = parameters[2];
-    ///const ValueType hematocrit = 0.4; //go to XML todo
-    //const ValueType w = 0.001;
-
-    ArrayType VeTerm;
-    VeTerm = -Ktrans/Ve*Time;
-    ValueType deltaT = Time(1) - Time(0);
-    m_Measure = Cv - (1/(1.0-m_hematocrit)*(Ktrans*deltaT*Convolution(Cb,Exponential(VeTerm)) + f_pv*Cb));
-
-    return m_Measure; 
-  }
-
-  //Not going to be used
-  void GetDerivative( const ParametersType & parameters,
-    DerivativeType  & derivative ) const
-  {   
-  }
-
-  unsigned int GetNumberOfParameters(void) const
-  {
-    return SpaceDimension;
-  }
-
-  unsigned int GetNumberOfValues(void) const
-  {
-    return RangeDimension;
-  }
-
-
-private:
-
-  mutable MeasureType       m_Measure;
-  mutable DerivativeType    m_Derivative;
-
-  ArrayType Cv, Cb, Time;
-
-  ArrayType Convolution(ArrayType X, ArrayType Y) const
-  {
-    ArrayType Z;
-    Z.set_size(X.size());
-    ArrayType temp;
-    temp = vnl_convolve(X,Y);
-    Z = temp.extract(X.size(),0);
-    return Z;
-  };
-
-  ArrayType Exponential(ArrayType X) const
-  {
-    ArrayType Z;
-    Z.set_size(X.size());
-    for (unsigned int i=0; i<X.size(); i++)
-    {
-      Z[i] = exp(X(i));
-    }
-    return Z;
-  };
-
-  int constraintFunc(ValueType x) const
-  {
-    if (x<0||x>1)
-      return 1;
-    else
-      return 0;
-
-  };
-
-
-};
-
-class CommandIterationUpdateLevenbergMarquardt : public itk::Command 
-{
-public:
-  typedef  CommandIterationUpdateLevenbergMarquardt   Self;
-  typedef  itk::Command                               Superclass;
-  typedef itk::SmartPointer<Self>                     Pointer;
-  itkNewMacro( Self );
-protected:
-  CommandIterationUpdateLevenbergMarquardt() 
-  {
-    m_IterationNumber=0;
-  }
-public:
-  typedef itk::LevenbergMarquardtOptimizer   OptimizerType;
-  typedef   const OptimizerType   *          OptimizerPointer;
-
-  void Execute(itk::Object *caller, const itk::EventObject & event)
-  {
-    Execute( (const itk::Object *)caller, event);
-  }
-
-  void Execute(const itk::Object * object, const itk::EventObject & event)
-  {
-    //std::cout << "Observer::Execute() " << std::endl;
-    OptimizerPointer optimizer = 
-      dynamic_cast< OptimizerPointer >( object );
-    if( m_FunctionEvent.CheckEvent( &event ) )
-    {
-     // std::cout << m_IterationNumber++ << "   ";
-     // std::cout << optimizer->GetCachedValue() << "   ";
-     // std::cout << optimizer->GetCachedCurrentPosition() << std::endl;
-    }
-    else if( m_GradientEvent.CheckEvent( &event ) )
-    {
-      std::cout << "Gradient " << optimizer->GetCachedDerivative() << "   ";
-    }
-
-  }
-private:
-  unsigned long m_IterationNumber;
-
-  itk::FunctionEvaluationIterationEvent m_FunctionEvent;
-  itk::GradientEvaluationIterationEvent m_GradientEvent;
-};
-
+static itk::TimeProbesCollectorBase probe;
 
 //
 // Implementation of the PkSolver API
@@ -302,6 +117,100 @@ bool pk_solver (const int signalSize, const float* timeAxis,
   return true;
 }
 
+bool pk_solver_boost (const int signalSize, const float* timeAxis, 
+                      const float* PixelConcentrationCurve, 
+                      const float* BloodConcentrationCurve, 
+                      float& Ktrans, float& Ve, float& Fpv,
+                      const float fTol, const float gTol, const float xTol,
+                      const float epsilon, const int maxIter,
+                      itk::LevenbergMarquardtOptimizer::Pointer optimizer,
+                      LMCostFunction::Pointer costFunction
+                      )
+{
+    //std::cout << "in pk solver" << std::endl;
+    // probe.Start("pk_solver");
+    // Note the unit: timeAxis should be in minutes!! This could be related to the following parameters!!
+    // fTol      =  1e-4;  // Function value tolerance
+    // gTol      =  1e-4;  // Gradient magnitude tolerance 
+    // xTol      =  1e-5;  // Search space tolerance
+    // epsilon   =  1e-9;    // Step
+    // maxIter   =   200;  // Maximum number of iterations
+    //std::cerr << "In pkSolver!" << std::endl;
+    // Levenberg Marquardt optimizer  
+        
+    //////////////
+    LMCostFunction::ParametersType initialValue(LMCostFunction::SpaceDimension); ///...
+        initialValue[0] = 0.1;     //Ktrans //...
+       initialValue[1] = 0.5;     //ve //...
+       initialValue[2] = 0.1;     //f_pv //...
+        
+        costFunction->SetCb (BloodConcentrationCurve, signalSize); //BloodConcentrationCurve
+        costFunction->SetCv (PixelConcentrationCurve, signalSize); //Signal Y
+        costFunction->SetTime (timeAxis, signalSize); //Signal X
+        costFunction->GetValue (initialValue); //...
+
+        try {
+            optimizer->SetCostFunction( costFunction.GetPointer() ); 
+        }
+        catch ( itk::ExceptionObject & e ) {
+            std::cout << "Exception thrown ! " << std::endl;
+            std::cout << "An error ocurred during Optimization" << std::endl;
+            std::cout << e << std::endl;
+            return false;
+        }   
+        
+        itk::LevenbergMarquardtOptimizer::InternalOptimizerType * vnlOptimizer = optimizer->GetOptimizer();//...
+        
+        vnlOptimizer->set_f_tolerance( fTol ); //...
+        vnlOptimizer->set_g_tolerance( gTol ); //...
+        vnlOptimizer->set_x_tolerance( xTol ); //...
+        vnlOptimizer->set_epsilon_function( epsilon ); //...
+        vnlOptimizer->set_max_function_evals( maxIter ); //...
+        
+        // We start not so far from the solution 
+        
+        optimizer->SetInitialPosition( initialValue ); //...       
+        
+        try {
+            //  probe.Start("optimizer");
+            optimizer->StartOptimization();
+            //   probe.Stop("optimizer");
+        }
+        catch( itk::ExceptionObject & e ) {
+            std::cerr << "Exception thrown ! " << std::endl;
+            std::cerr << "An error ocurred during Optimization" << std::endl;
+            std::cerr << "Location    = " << e.GetLocation()    << std::endl;
+            std::cerr << "Description = " << e.GetDescription() << std::endl;
+            return false;
+        }
+        //std::cerr << "after optimizer!" << std::endl;
+        itk::LevenbergMarquardtOptimizer::ParametersType finalPosition;
+        finalPosition = optimizer->GetCurrentPosition();
+        
+        //Solution: remove the scale of 100  
+        Ktrans = finalPosition[0];
+        Ve = finalPosition[1];
+        Fpv = finalPosition[2];  
+		if(Ve<0) Ve = 0;
+		if(Ve>1) Ve = 1;
+		if(Ktrans<0) Ktrans = 0;
+		if(Ktrans>100) Ktrans = 100;
+		
+		//if((Fpv>1)||(Fpv<0)) Fpv = 0;
+        //  probe.Stop("pk_solver");
+        return true;
+    }
+
+void pk_report()
+{
+     probe.Report();
+}
+
+void pk_clear()
+{
+    probe.Clear();
+}
+
 #define PI 3.1415926535897932384626433832795
 #define IS_NAN(x) ((x) != (x))
 
@@ -349,6 +258,81 @@ bool convert_signal_to_concentration (const unsigned int signalSize,
   }
 
   return true;
+}
+
+float area_under_curve(const int signalSize, 
+					   const float* timeAxis,
+					   const float* concentration, 
+					   int BATIndex, 
+					   float aucTimeInterval)
+{	
+	float auc = 0.0f;
+    if(BATIndex>=signalSize) return auc;
+	//std::cerr << std::endl << "BATIndex:"<<BATIndex << std::endl;	
+	
+	int lastIndex = BATIndex;
+	//std::cerr << std::endl << "timeAxis[0]:"<< timeAxis[0] << std::endl;	
+	float targetTime = timeAxis[BATIndex]+aucTimeInterval; 
+	//std::cerr << std::endl << "targetTime:"<< targetTime << std::endl;	
+	float tempTime = timeAxis[BATIndex+1];
+	//std::cerr << std::endl << "tempTime:"<< tempTime << std::endl;	
+
+	//find the last index
+	while((tempTime<targetTime)&&(lastIndex<(signalSize-2)))
+	{	
+		lastIndex+=1;		
+		tempTime = timeAxis[lastIndex+1] ;
+		//std::cerr << std::endl << "tempTime"<<tempTime << std::endl;
+	}	
+		
+	if ((lastIndex-BATIndex)==0) return auc = aucTimeInterval*concentration[BATIndex];
+
+	//extract time and concentration
+	float * concentrationValues = new float[lastIndex-BATIndex+2]();
+	float * timeValues = new float[lastIndex-BATIndex+2]();
+
+	//find the extra time and concentration value for auc
+	float y1, y2, x1, x2, slope, b, targetX, targetY;
+	y2 = concentration[lastIndex+1];
+	y1 = concentration[lastIndex];
+	x2 = timeAxis[lastIndex+1];
+	x1 = timeAxis[lastIndex];
+	slope = (y2-y1)/(x2-x1);
+	b = y1-slope*x1;
+	targetX = timeAxis[BATIndex] + aucTimeInterval;
+	targetY = slope*targetX+b;
+	if(targetX>timeAxis[signalSize-1])
+	{
+		targetX = timeAxis[lastIndex+1];
+		targetY = concentration[lastIndex+1];
+	}
+	concentrationValues[lastIndex-BATIndex+1] = targetY; //put the extra value at the end
+	timeValues[lastIndex-BATIndex+1] = targetX; //put the extra time value at the end
+	
+//	printf("lastIndex is %f\n", (float)lastIndex);
+	for(int i=0; i<(lastIndex-BATIndex+1); ++i)
+	{
+		concentrationValues[i] = concentration[i+BATIndex];
+		timeValues[i] = timeAxis[i+BATIndex];
+		//printf("lastIndex is %f,%f\n", (float) concentrationValues[i],(float)timeValues[i]);
+	}	
+
+	//get auc
+	auc = intergrate(concentrationValues,timeValues,(lastIndex-BATIndex+2));
+
+	delete [] concentrationValues, timeValues;
+	return auc;
+}
+
+float intergrate(float* yValues, float * xValues, int size)
+{
+	float area= 0.0f;
+	for(int i=1; i<size;++i)
+	{
+		area+=(xValues[i]-xValues[i-1])*(yValues[i]+yValues[i-1])/2;
+	//	std::cerr << std::endl << "area:" << area<<","<<yValues[i] << std::endl;
+	}
+	return area;
 }
 
 void compute_derivative (const int signalSize,
@@ -575,17 +559,24 @@ float compute_s0_individual_curve (const int signalSize, const float* SignalY, c
   
   int count = 0;
   double sum = 0;
-  for (int i=0; i<FirstPeak; i++) {
+  for (int i=0; i<ArrivalTime; i++) { //updated to i<ArrivalTime by Yingxuan Zhu on 5/5/2012, original i<FirstPeak;	  
     sum += SignalY[i];
     if (SignalGradient[i] < S0GradThresh) {
       S0 += SignalY[i];
       count++;
     }
+	//std::cerr<<"sum, S0:"<<sum<<","<<S0<<"\n"<<std::endl;
   }
-  if (count)
-    S0 /= count;
+  if(ArrivalTime>0)
+  {
+	if (count)
+		S0 /= count;
+	else
+		S0 = sum / (ArrivalTime); //updated to sum/(ArrivalTime) by Yingxuan Zhu on 5/5/2012, original sum/(FirstPeak-1);	
+  }
   else
-    S0 = sum / (FirstPeak-1);
+	  S0 = SignalY[0]; //ArrivalTime is 0;
+
   delete [] SignalGradient;
   return float (S0);
 

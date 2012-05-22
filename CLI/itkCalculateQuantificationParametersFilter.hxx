@@ -1,12 +1,12 @@
-#ifndef _itkCalculateQuantificationParameters_hxx
-#define _itkCalculateQuantificationParameters_hxx
+#ifndef _itkCalculateQuantificationParametersFilter_hxx
+#define _itkCalculateQuantificationParametersFilter_hxx
 #endif
 
 #include "itkImageRegionConstIterator.h"
 #include "itkImageRegionIterator.h"
 #include "vnl/vnl_math.h"
 #include "itkCastImageFilter.h"
-#include "itkCalculateQuantificationParameters.h"
+#include "itkCalculateQuantificationParametersFilter.h"
 
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkImageFileWriter.h"
@@ -21,7 +21,7 @@ namespace itk
 {
 
 template <class TInputImage, class TOutputImage>
-CalculateQuantificationParameters<TInputImage,TOutputImage>::CalculateQuantificationParameters()
+CalculateQuantificationParametersFilter<TInputImage,TOutputImage>::CalculateQuantificationParametersFilter()
 {	
 	m_T1Pre = 0.0f;
 	m_TR = 0.0f;
@@ -47,7 +47,7 @@ CalculateQuantificationParameters<TInputImage,TOutputImage>::CalculateQuantifica
 }
 
 template<class TInputImage, class TOutputImage>
-void CalculateQuantificationParameters<TInputImage,TOutputImage>
+void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>
 ::CallCopyOutputRegionToInputRegion(QulumeRegionType &destRegion, const VolumeRegionType &srcRegion)
 {
   ExtractImageFilterRegionCopierType extractImageRegionCopier;
@@ -55,7 +55,7 @@ void CalculateQuantificationParameters<TInputImage,TOutputImage>
 }
 
 template< class TInputImage, class TOutputImage >
-void CalculateQuantificationParameters< TInputImage, TOutputImage >
+void CalculateQuantificationParametersFilter< TInputImage, TOutputImage >
 ::GenerateInputRequestedRegion()
 throw( InvalidRequestedRegionError )
 {
@@ -64,7 +64,7 @@ throw( InvalidRequestedRegionError )
   Superclass::GenerateInputRequestedRegion();
 
   // This filter needs all of the input
-  typename CalculateQuantificationParameters<TInputImage,TOutputImage>::QulumePointerType image =
+  typename CalculateQuantificationParametersFilter<TInputImage,TOutputImage>::QulumePointerType image =
     const_cast< QulumeType * >( this->GetInput(0) );
   if ( image )
     {
@@ -73,33 +73,33 @@ throw( InvalidRequestedRegionError )
 }
 
 template< class TInputImage, class TOutputImage >
-void CalculateQuantificationParameters< TInputImage, TOutputImage >::SetInputQulume(const TInputImage* qulume)
+void CalculateQuantificationParametersFilter< TInputImage, TOutputImage >::SetInputQulume(const TInputImage* qulume)
 {
   SetNthInput(0, const_cast<TInputImage*>(qulume));
 }
  
 template< class TInputImage, class TOutputImage >
-void CalculateQuantificationParameters< TInputImage, TOutputImage >::SetInputVolume(const TOutputImage* volume)
+void CalculateQuantificationParametersFilter< TInputImage, TOutputImage >::SetInputVolume(const TOutputImage* volume)
 {
   SetNthInput(1, const_cast<TOutputImage*>(volume));
 }
  
 template< class TInputImage, class TOutputImage >
-typename TInputImage::ConstPointer CalculateQuantificationParameters< TInputImage, TOutputImage >::GetInputQulume()
+typename TInputImage::ConstPointer CalculateQuantificationParametersFilter< TInputImage, TOutputImage >::GetInputQulume()
 {
   return static_cast< const TInputImage * >
          ( this->ProcessObject::GetInput(0) );
 }
  
 template< class TInputImage, class TOutputImage >
-typename TOutputImage::ConstPointer CalculateQuantificationParameters< TInputImage, TOutputImage >::GetInputVolume()
+typename TOutputImage::ConstPointer CalculateQuantificationParametersFilter< TInputImage, TOutputImage >::GetInputVolume()
 {
   return static_cast< const TOutputImage * >
          ( this->ProcessObject::GetInput(1) );
 }
 
 template <class TInputImage, class TOutputImage>
-void CalculateQuantificationParameters<TInputImage,TOutputImage>
+void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>
 ::GenerateOutputInformation()
 {
   // do not call the superclass' implementation of this method since
@@ -132,7 +132,7 @@ void CalculateQuantificationParameters<TInputImage,TOutputImage>
 
 
 template <class TInputImage, class TOutputImage>
-void CalculateQuantificationParameters<TInputImage,TOutputImage>::BeforeThreadedGenerateData()
+void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>::BeforeThreadedGenerateData()
 {
 //	PkSolver::pk_clear();
 	m_inputQulume = this->GetInputQulume();
@@ -207,7 +207,7 @@ void CalculateQuantificationParameters<TInputImage,TOutputImage>::BeforeThreaded
 }
 
 template <class TInputImage, class TOutputImage>
-void CalculateQuantificationParameters<TInputImage,TOutputImage>
+void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>
 #if ITK_VERSION_MAJOR < 4
 ::ThreadedGenerateData( const typename Superclass::OutputImageRegionType & outputRegionForThread, int itkNotUsed(threadId) )
 #else
@@ -234,11 +234,7 @@ void CalculateQuantificationParameters<TInputImage,TOutputImage>
 	//set up optimizer
     itk::LevenbergMarquardtOptimizer::Pointer  optimizer = itk::LevenbergMarquardtOptimizer::New(); ///...    
     PkSolver::LMCostFunction::Pointer costFunction = PkSolver::LMCostFunction::New(); ///...    
-    //PkSolver::LMCostFunction::ParametersType initialValue(PkSolver::LMCostFunction::SpaceDimension); ///...
-    //initialValue[0] = 0.1;     //Ktrans //...
-    //initialValue[1] = 0.5;     //ve //...
-    //initialValue[2] = 0.1;     //f_pv //...
-    
+        
     //std::cerr <<"costFunction\n"<<std::endl;
     costFunction->SetNumberOfValues (m_timeSize); //...
    // std::cerr <<"m_timeSize\n"<<std::endl;
@@ -255,12 +251,7 @@ void CalculateQuantificationParameters<TInputImage,TOutputImage>
     optimizer->AddObserver( itk::IterationEvent(), observer ); //...
     optimizer->AddObserver( itk::FunctionEvaluationIterationEvent(), observer );//...    
     // end set up optimizer
-    
-    //float * tempConcentration = new float[m_timeSize]();
-    
-  //  std::cout << "m_timeSize:"<<m_timeSize << std::endl;
-	//typename VectorVolumeType::IndexType vectorVolumeIndex;		
-
+  
 	while (!inputVectorVolumeIter.IsAtEnd())
     {		
 			
@@ -283,14 +274,7 @@ void CalculateQuantificationParameters<TInputImage,TOutputImage>
                                  tempKtrans, tempVe, tempFpv, 
                                  m_fTol,m_gTol,m_xTol,
                                  m_epsilon,m_maxIter,
-                                 optimizer,costFunction);
-      /*PkSolver::pk_solver_opt(m_timeSize, m_timeAxis, 
-                              const_cast<float *>(vectorVoxel.GetDataPointer()),m_averageAIFCon, 
-                              tempKtrans, tempVe, tempFpv,
-							  m_fTol,m_gTol,m_xTol,
-							  m_epsilon,m_maxIter,
-                              PkSolverOpt);
-*/
+                                 optimizer,costFunction);      
 		PkSolver::compute_bolus_arrival_time (m_timeSize, const_cast<float *>(vectorVoxel.GetDataPointer()), BATIndex, FirstPeakIndex, tempMaxSlope);
 		tempAUC = (PkSolver::area_under_curve(m_timeSize, m_timeAxis, const_cast<float *>(vectorVoxel.GetDataPointer()), BATIndex, m_AUCTimeInterval))/m_aifAUC;
 		
@@ -353,7 +337,7 @@ void CalculateQuantificationParameters<TInputImage,TOutputImage>
 }
 
 template <class TInputImage, class TOutputImage>
-void CalculateQuantificationParameters<TInputImage,TOutputImage>::AfterThreadedGenerateData()
+void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>::AfterThreadedGenerateData()
 {
     std::cerr << "prepare for output" << std::endl;
     this->SetNthOutput(0,m_ktransVolume);
@@ -370,7 +354,7 @@ void CalculateQuantificationParameters<TInputImage,TOutputImage>::AfterThreadedG
     
 template <class TInputImage, class TOutputImage>
 void
-CalculateQuantificationParameters<TInputImage, TOutputImage>::CalculateAverageAIF(VectorVolumePointerType inputVectorVolume, VolumeConstPointerType inputVolume,float*& averageAIF)
+CalculateQuantificationParametersFilter<TInputImage, TOutputImage>::CalculateAverageAIF(VectorVolumePointerType inputVectorVolume, VolumeConstPointerType inputVolume,float*& averageAIF)
 {	
 	VectorVolumeIterType inputVectorVolumeIter(inputVectorVolume, inputVectorVolume->GetRequestedRegion());
 	VolumeConstIterType inputVolumeIter(inputVolume, inputVolume->GetRequestedRegion());
@@ -434,8 +418,8 @@ CalculateQuantificationParameters<TInputImage, TOutputImage>::CalculateAverageAI
 }
 
 template <class TInputImage, class TOutputImage>
-typename CalculateQuantificationParameters<TInputImage, TOutputImage>::VectorVolumePointerType 
-CalculateQuantificationParameters<TInputImage, TOutputImage>::QulumeToVectorVolume(QulumePointerType inputQulume)
+typename CalculateQuantificationParametersFilter<TInputImage, TOutputImage>::VectorVolumePointerType 
+CalculateQuantificationParametersFilter<TInputImage, TOutputImage>::QulumeToVectorVolume(QulumePointerType inputQulume)
 {		
 	std::cout << std::endl << "Qulume To VectorVolume" << std::endl;
 	typename ImageToVectorImageFilterType::Pointer imageToVectorImageFilter = ImageToVectorImageFilterType::New();
@@ -479,7 +463,7 @@ CalculateQuantificationParameters<TInputImage, TOutputImage>::QulumeToVectorVolu
 }
 
 template <class TInputImage, class TOutputImage>
-void CalculateQuantificationParameters<TInputImage,TOutputImage>
+void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>
 ::SetTimeAxis(vcl_vector<float> inputTimeAxis)
 {
 	//std::cerr << "in set time axis" << std::endl;
@@ -493,7 +477,7 @@ void CalculateQuantificationParameters<TInputImage,TOutputImage>
 }
 
 template <class TInputImage, class TOutputImage>
-float* CalculateQuantificationParameters<TInputImage,TOutputImage>
+float* CalculateQuantificationParametersFilter<TInputImage,TOutputImage>
 ::GetTimeAxis()
 {
 	return m_timeAxis;
@@ -501,7 +485,7 @@ float* CalculateQuantificationParameters<TInputImage,TOutputImage>
 
 
 template <class TInputImage, class TOutputImage>
-void CalculateQuantificationParameters<TInputImage,TOutputImage>
+void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>
 ::PrintSelf( std::ostream& os, Indent indent ) const
 {
   Superclass::PrintSelf( os, indent );

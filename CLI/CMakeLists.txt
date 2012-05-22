@@ -1,8 +1,8 @@
 # Configure XML description
-set(SignalIntensitiesToConcentrationValuesCLI_NAME SignalIntensitiesToConcentrationValues)
+set(PKM PkModeling)
 configure_file(
-  ${SignalIntensitiesToConcentrationValuesCLI_NAME}.xml.in
-  ${CMAKE_CURRENT_BINARY_DIR}/${SignalIntensitiesToConcentrationValuesCLI_NAME}.xml
+  ${PKM}.xml.in
+  ${CMAKE_CURRENT_BINARY_DIR}/${PKM}.xml
   @ONLY
   )
   
@@ -13,11 +13,13 @@ set(cli_module_include_directories
 
 # Additional source files
 set(cli_module_SRCS
-	SignalIntensitiesToConcentrationValues.cxx
-	itkS0ForTimeSeriesInQulume.h
-	itkS0ForTimeSeriesInQulume.hxx
-	itkSignalIntensityToConcentration.h
-        itkSignalIntensityToConcentration.hxx
+	PkModeling.cxx
+	itkS0CalculationFilter.h
+	itkS0CalculationFilter.hxx
+	itkConvertSignalIntensitiesToConcentrationValuesFilter.h
+    itkConvertSignalIntensitiesToConcentrationValuesFilter.hxx
+	itkCalculateQuantificationParametersFilter.h
+	itkCalculateQuantificationParametersFilter.hxx
   )
   
 # Additional Target libraries
@@ -30,7 +32,7 @@ set(cli_module_target_libraries
 # Build
 #-----------------------------------------------------------------------------
 slicerMacroBuildCLI(
-  NAME ${SignalIntensitiesToConcentrationValuesCLI_NAME}
+  NAME ${PKM}
   INCLUDE_DIRECTORIES ${cli_module_include_directories}  
   ADDITIONAL_SRCS ${cli_module_SRCS}
   TARGET_LIBRARIES ${cli_module_target_libraries}  

@@ -1,13 +1,12 @@
 /*=========================================================================
-
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkOtsuStatistics.h,v $
+  Module:    $RCSfile: itkCalculateQuantificationParametersFilter.h,v $
   Language:  C++
-  Date:      $Date: 2008/02/7 14:28:51 $
+  Date:      $Date: 2012/05/01 14:28:51 $
   Version:   $Revision: 0.0 $
 =========================================================================*/
-#ifndef __itkCalculateQuantificationParameters_h
-#define __itkCalculateQuantificationParameters_h
+#ifndef __itkCalculateQuantificationParametersFilter_h
+#define __itkCalculateQuantificationParametersFilter_h
 
 #include "itkImageToImageFilter.h"
 #include "itkImage.h"
@@ -22,10 +21,10 @@
 
 namespace itk
 {
-/** \class CalculateQuantificationParameters */
+/** \class CalculateQuantificationParametersFilter */
 
 template <class TInputImage, class TOutputImage>
-class ITK_EXPORT CalculateQuantificationParameters : public ImageToImageFilter<TInputImage, TOutputImage>
+class ITK_EXPORT CalculateQuantificationParametersFilter : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Convenient typedefs for simplifying declarations. */
@@ -57,7 +56,7 @@ public:
   
   
   /** Standard class typedefs. */
-  typedef CalculateQuantificationParameters                      Self;
+  typedef CalculateQuantificationParametersFilter                      Self;
   typedef ImageToImageFilter<QulumeType,VolumeType>		  Superclass;
   typedef SmartPointer<Self>                                  Pointer;
   typedef SmartPointer<const Self>                            ConstPointer;
@@ -66,7 +65,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( CalculateQuantificationParameters, ImageToImageFilter );
+  itkTypeMacro( CalculateQuantificationParametersFilter, ImageToImageFilter );
   
   /** Set and get the number of DWI channels. */    
   itkGetMacro( T1Pre, float);
@@ -119,8 +118,8 @@ public:
   //////////////////////////
   
 protected:
-  CalculateQuantificationParameters();
-  ~CalculateQuantificationParameters(){};
+  CalculateQuantificationParametersFilter();
+  ~CalculateQuantificationParametersFilter(){};
   void PrintSelf(std::ostream& os, Indent indent) const;
   void BeforeThreadedGenerateData();
   #if ITK_VERSION_MAJOR < 4
@@ -143,9 +142,9 @@ protected:
   typename TOutputImage::ConstPointer GetInputVolume();
   
   void CalculateAverageAIF(VectorVolumePointerType inputVectorVolume, VolumeConstPointerType inputVolume,float*& averageAIF); 
-  typename CalculateQuantificationParameters<TInputImage, TOutputImage>::VectorVolumePointerType QulumeToVectorVolume(QulumePointerType inputQulume);
+  typename CalculateQuantificationParametersFilter<TInputImage, TOutputImage>::VectorVolumePointerType QulumeToVectorVolume(QulumePointerType inputQulume);
 private:
-  CalculateQuantificationParameters(const Self &);   // purposely not implemented
+  CalculateQuantificationParametersFilter(const Self &);   // purposely not implemented
   void operator=(const Self &);  // purposely not implemented
 
   float m_T1Pre;
@@ -164,10 +163,7 @@ private:
   float* m_TimeMinute;
     int m_timeSize;
     float* m_averageAIFCon;
-    float m_aifAUC;
-    //int m_BATIndex;
-	//int m_FirstPeakIndex;	
-    //float m_tempMaxSlope;
+    float m_aifAUC;    
   typename QulumeType::ConstPointer m_inputQulume;
   typename VolumeType::ConstPointer m_inputVolume;
   VectorVolumePointerType m_inputVectorVolume;
@@ -180,7 +176,7 @@ private:
 }; // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkCalculateQuantificationParameters.hxx"
+#include "itkCalculateQuantificationParametersFilter.hxx"
 #endif
 
 #endif

@@ -31,8 +31,8 @@
 #include "itkPluginUtilities.h"
 
 #include "itkTimeProbesCollectorBase.h"
-
-#include "itkCalculateQuantificationParameters.h"
+#include "itkConvertSignalIntensitiesToConcentrationValuesFilter.h"
+#include "itkCalculateQuantificationParametersFilter.h"
 
 #define TESTMODE_ERROR_TOLERANCE 0.1
 
@@ -62,9 +62,12 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
 	typedef T2														VolumePixelType; 
 	typedef itk::Image<VolumePixelType, VolumeDimension>			VolumeType; 
 	typedef itk::ImageFileReader<VolumeType>						VolumeReaderType;
-		
-	typedef itk::ImageFileWriter< VolumeType>						  VolumeWriterType;	
-	typedef itk::ImageFileWriter< QulumeType>						  QulumeWriterType;	
+	
+	typedef itk::Image<float,QulumeDimension>							OutputQulumeType;
+	typedef itk::Image<float,VolumeDimension>							OutputVolumeType;
+
+	typedef itk::ImageFileWriter< OutputVolumeType>						  VolumeWriterType;	
+	//typedef itk::ImageFileWriter< QulumeType>						  QulumeWriterType;	
 	
 	//Read Qulume
 	typename QulumeType::Pointer inputQulume = QulumeType::New();
@@ -80,10 +83,23 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
 	maskVolumeReader->Update();
 	maskVolume = maskVolumeReader->GetOutput();
 	
+	//Convert to concentration
+	typedef itk::ConvertSignalIntensitiesToConcentrationValuesFilter<QulumeType,OutputQulumeType> ConvertFilterType;
+	ConverterFilterType::Pointer converter = ConverterFilterType::New();	
+	converter->SetAIFMask(maskVolume);
+	converter->SetT1PreBlood(T1PreBloodValue);	
+	converter->SetInput(inputQulume);		
+	converter->SetT1PreTissue(T1PreTissueValue);
+	converter->SetTR(TRValue);
+	converter->SetFA(FAValue);
+	converter->SetRGD_relaxivity(RelaxivityValue);
+	converter->SetS0GradThresh(S0GradValue);	
+	converter->Update();
+
 	//Calculate parameters	
-    typedef itk::CalculateQuantificationParameters<QulumeType, VolumeType>		QuantifierType;
+    typedef itk::CalculateQuantificationParametersFilter<QulumeType, VolumeType>		QuantifierType;
 	typename QuantifierType::Pointer quantifier = QuantifierType::New();		
-	quantifier->SetInputQulume(inputQulume);	
+	quantifier->SetInputQulume(converter->GetOutput());	
 	quantifier->SetInputVolume(maskVolume);	
 	quantifier->SetAUCTimeInterval(AUCTimeInterval);	
 	quantifier->SetTimeAxis(TimeAxis);
@@ -124,59 +140,6 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
 	aucwriter->Update();
 	return EXIT_SUCCESS;
  } // end of anonymous namespace
-//template <class T>
-//int DoIt( int argc, char * argv[], const T& targ)
-//{
-//	std::cout << std::endl << "in DoIt" << std::endl;
-//  PARSE_ARGS;
-//
-//  itk::ImageIOBase::IOPixelType     pixelType;
-//  itk::ImageIOBase::IOComponentType componentType;
-//
-//  try
-//    {
-//    itk::GetImageType(InputMaskFile, pixelType, componentType);
-//
-//    // This filter handles all types
-//
-//    switch( componentType )
-//      {
-//      case itk::ImageIOBase::CHAR:
-//      case itk::ImageIOBase::UCHAR:
-//      case itk::ImageIOBase::SHORT:
-//        return DoIt2( argc, argv, targ, static_cast<short>(0) );
-//        break;
-//      case itk::ImageIOBase::USHORT:
-//      case itk::ImageIOBase::INT:
-//        return DoIt2( argc, argv, targ, static_cast<int>(0) );
-//        break;
-//      case itk::ImageIOBase::UINT:
-//      case itk::ImageIOBase::ULONG:
-//        return DoIt2( argc, argv, targ, static_cast<unsigned long>(0) );
-//        break;
-//      case itk::ImageIOBase::LONG:
-//        return DoIt2( argc, argv, targ, static_cast<long>(0) );
-//        break;
-//      case itk::ImageIOBase::FLOAT:
-//        return DoIt2( argc, argv, targ, static_cast<float>(0) );
-//        break;
-//      case itk::ImageIOBase::DOUBLE:
-//        return DoIt2( argc, argv, targ, static_cast<float>(0) );
-//        break;
-//      case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
-//      default:
-//        std::cout << "unknown component type" << std::endl;
-//        break;
-//      }
-//    }
-//  catch( itk::ExceptionObject & excep )
-//    {
-//    std::cerr << argv[0] << ": exception caught !" << std::endl;
-//    std::cerr << excep << std::endl;
-//    return EXIT_FAILURE;
-//    }
-//  return EXIT_FAILURE;
-//}
 
 }
 

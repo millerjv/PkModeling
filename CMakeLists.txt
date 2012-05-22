@@ -20,7 +20,7 @@ set(EXTENSION_NAME PkModeling)
 # Extension metadata
 #-----------------------------------------------------------------------------
 set(EXTENSION_HOMEPAGE "https://github.com/millerjv/PkModeling/wiki/PkModeling")
-set(EXTENSION_CATEGORY "Examples")
+set(EXTENSION_CATEGORY "Quantification")
 set(EXTENSION_ICONURL " ")
 set(EXTENSION_STATUS "Beta")
 set(EXTENSION_CONTRIBUTORS "Yingxuan Zhu (GE), Jim Miller (GE), Ming-ching Chang (GE), Mahnaz Maddah (SRI)")

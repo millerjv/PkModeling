@@ -1,26 +1,26 @@
 /*=========================================================================
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $SignalIntensitiesToConcentrationValues: itkS0ForTimeSeriesInQulume.h$
+  Module:    $S0CalculationFilter: itkS0CalculationFilter.h$
   Language:  C++
   Date:      $Date: 2012/03/7 $
   Version:   $Revision: 1.0 $
 =========================================================================*/
-#ifndef __itkS0ForTimeSeriesInQulume_h
-#define __itkS0ForTimeSeriesInQulume_h
+#ifndef __itkS0CalculationFilter_h
+#define __itkS0CalculationFilter_h
 
 #include "itkImageToImageFilter.h"
 #include "itkImage.h"
 #include "itkVectorImage.h"
 #include "itkImageToVectorImageFilter.h"
 #include "itkImageRegionIterator.h"
-#include "../PkSolver/PkSolver.h"
+//#include "../PkSolver/PkSolver.h"
 
 namespace itk
 {
-/** \class S0ForTimeSeriesInQulume */
+/** \class S0CalculationFilter */
 
 template <class TInputImage, class TOutputImage>
-class S0ForTimeSeriesInQulume : public ImageToImageFilter<TInputImage, TOutputImage>
+class S0CalculationFilter : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Convenient typedefs for simplifying declarations. */
@@ -42,7 +42,7 @@ public:
   typedef itk::VariableLengthVector<float>                       InternalVectorVoxelType;
     
   /** Standard class typedefs. */
-  typedef S0ForTimeSeriesInQulume                      Self;
+  typedef S0CalculationFilter                      Self;
   typedef ImageToImageFilter<InputImageType, OutputImageType> Superclass;
   typedef SmartPointer<Self>                                  Pointer;
   typedef SmartPointer<const Self>                            ConstPointer;
@@ -51,15 +51,15 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( S0ForTimeSeriesInQulume, ImageToImageFilter );
+  itkTypeMacro( S0CalculationFilter, ImageToImageFilter );
   
   /** Set and get the number of DWI channels. */      
   itkGetMacro( S0GradThresh, float);
   itkSetMacro( S0GradThresh, float);
 
 protected:
-  S0ForTimeSeriesInQulume();
-  virtual ~S0ForTimeSeriesInQulume() {}
+  S0CalculationFilter();
+  virtual ~S0CalculationFilter() {}
   void PrintSelf(std::ostream& os, Indent indent) const; 
   void BeforeThreadedGenerateData();
   #if ITK_VERSION_MAJOR < 4
@@ -69,7 +69,7 @@ protected:
   #endif  
      
 private:
-  S0ForTimeSeriesInQulume(const Self &);   // purposely not implemented
+  S0CalculationFilter(const Self &);   // purposely not implemented
   void operator=(const Self &);  // purposely not implemented
     
   float m_S0GradThresh;   
@@ -80,7 +80,7 @@ private:
 }; // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkS0ForTimeSeriesInQulume.hxx"
+#include "itkS0CalculationFilter.hxx"
 #endif
 
 #endif
