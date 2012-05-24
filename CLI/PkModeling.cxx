@@ -49,115 +49,114 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
 {
   //
   // Command line processing
-  //	
-	PARSE_ARGS;
+  //
+  PARSE_ARGS;
 
-	const   unsigned int QulumeDimension = 4;
-	typedef T1															QulumePixelType; 
-	typedef itk::Image<QulumePixelType, QulumeDimension>				QulumeType; 
-	typedef typename QulumeType::RegionType										QulumeRegionType;
-	typedef itk::ImageFileReader<QulumeType>								QulumeReaderType;   
-	
-	const   unsigned int VolumeDimension = 3;
-	typedef T2														VolumePixelType; 
-	typedef itk::Image<VolumePixelType, VolumeDimension>			VolumeType; 
-	typedef itk::ImageFileReader<VolumeType>						VolumeReaderType;
-	
-	typedef itk::Image<float,QulumeDimension>							OutputQulumeType;
-	typedef itk::Image<float,VolumeDimension>							OutputVolumeType;
+  const   unsigned int QulumeDimension = 4;
+  typedef T1                                           QulumePixelType;
+  typedef itk::Image<QulumePixelType, QulumeDimension> QulumeType;
+  typedef typename QulumeType::RegionType              QulumeRegionType;
+  typedef itk::ImageFileReader<QulumeType>             QulumeReaderType;
 
-	typedef itk::ImageFileWriter< OutputVolumeType>						  VolumeWriterType;	
-	//typedef itk::ImageFileWriter< QulumeType>						  QulumeWriterType;	
-	
-	//Read Qulume
-	typename QulumeType::Pointer inputQulume = QulumeType::New();
-	typename QulumeReaderType::Pointer qulumeReader = QulumeReaderType::New();
-	qulumeReader->SetFileName(InputFourDNrrdFile.c_str());	
-	qulumeReader->Update();
-	inputQulume = qulumeReader->GetOutput();
-	
-	//Read mask
-	typename VolumeType::Pointer maskVolume = VolumeType::New();
-	typename VolumeReaderType::Pointer maskVolumeReader = VolumeReaderType::New();	
-	maskVolumeReader->SetFileName(InputMaskFile.c_str());	
-	maskVolumeReader->Update();
-	maskVolume = maskVolumeReader->GetOutput();
-	
-	/*if(ISInputMask!=0)
-	{
-		std::cerr<<"Read mask!"<<std::endl;
-		typename MaskReaderType::Pointer maskReader = MaskReaderType::New();
-		maskReader->SetFileName(InputMaskNrrdFile.c_str());	
-		maskReader->Update();	
-		intensityToConcentrationConverter->SetAIFMask(maskReader->GetOutput());
-		intensityToConcentrationConverter->SetT1PreBlood(T1PreBloodValue);
-	}*/
+  const   unsigned int VolumeDimension = 3;
+  typedef T2                                           VolumePixelType;
+  typedef itk::Image<VolumePixelType, VolumeDimension> VolumeType;
+  typedef itk::ImageFileReader<VolumeType>             VolumeReaderType;
 
-	//Convert to concentration
-	typedef itk::ConvertSignalIntensitiesToConcentrationValuesFilter<QulumeType,OutputQulumeType> ConvertFilterType;
-	typename ConvertFilterType::Pointer converter = ConvertFilterType::New();	
-	converter->SetAIFMask(maskVolume);
-	converter->SetT1PreBlood(T1PreBloodValue);	
-	converter->SetInput(inputQulume);		
-	converter->SetT1PreTissue(T1PreTissueValue);
-	converter->SetTR(TRValue);
-	converter->SetFA(FAValue);
-	converter->SetRGD_relaxivity(RelaxivityValue);
-	converter->SetS0GradThresh(S0GradValue);	
-	converter->Update();
+  typedef itk::Image<float,QulumeDimension> OutputQulumeType;
+  typedef itk::Image<float,VolumeDimension> OutputVolumeType;
 
-	//Calculate parameters	
-	typedef itk::CastImageFilter<VolumeType, OutputVolumeType> MaskCastFilterType;
-	typename MaskCastFilterType::Pointer maskCastFilter = MaskCastFilterType::New();
-	maskCastFilter->SetInput(maskVolume);
-	maskCastFilter->Update();
-    typedef itk::CalculateQuantificationParametersFilter<OutputQulumeType, OutputVolumeType>		QuantifierType;
-	typename QuantifierType::Pointer quantifier = QuantifierType::New();		
-	quantifier->SetInputQulume(const_cast<OutputQulumeType *>(converter->GetOutput()));	
+  typedef itk::ImageFileWriter< OutputVolumeType> VolumeWriterType;
+  //typedef itk::ImageFileWriter< QulumeType>						  QulumeWriterType;
 
-	quantifier->SetInputVolume(maskCastFilter->GetOutput());	
-	quantifier->SetAUCTimeInterval(AUCTimeInterval);	
-	quantifier->SetTimeAxis(TimeAxis);
-	quantifier->SetfTol(FTolerance);
-	quantifier->SetgTol(GTolerance);
-	quantifier->SetxTol(XTolerance);
-	quantifier->Setepsilon(Epsilon);
-	quantifier->SetmaxIter(MaxIter);
-	quantifier->Sethematocrit(Hematocrit);	
-	quantifier->Update();
-	
-	//For test
-	/*std::cerr << std::endl << "in DoIt2: 3" << std::endl;
-	QulumeType::RegionType qulumeRegion = inputQulume->GetLargestPossibleRegion();
+  //Read Qulume
+  typename QulumeType::Pointer inputQulume = QulumeType::New();
+  typename QulumeReaderType::Pointer qulumeReader = QulumeReaderType::New();
+  qulumeReader->SetFileName(InputFourDNrrdFile.c_str() );
+  qulumeReader->Update();
+  inputQulume = qulumeReader->GetOutput();
+
+  //Read mask
+  typename VolumeType::Pointer maskVolume = VolumeType::New();
+  typename VolumeReaderType::Pointer maskVolumeReader = VolumeReaderType::New();
+  maskVolumeReader->SetFileName(InputMaskFile.c_str() );
+  maskVolumeReader->Update();
+  maskVolume = maskVolumeReader->GetOutput();
+
+  /*if(ISInputMask!=0)
+  {
+    std::cerr<<"Read mask!"<<std::endl;
+    typename MaskReaderType::Pointer maskReader = MaskReaderType::New();
+    maskReader->SetFileName(InputMaskNrrdFile.c_str());
+    maskReader->Update();
+    intensityToConcentrationConverter->SetAIFMask(maskReader->GetOutput());
+    intensityToConcentrationConverter->SetT1PreBlood(T1PreBloodValue);
+  }*/
+
+  //Convert to concentration
+  typedef itk::ConvertSignalIntensitiesToConcentrationValuesFilter<QulumeType,OutputQulumeType> ConvertFilterType;
+  typename ConvertFilterType::Pointer converter = ConvertFilterType::New();
+  converter->SetAIFMask(maskVolume);
+  converter->SetT1PreBlood(T1PreBloodValue);
+  converter->SetInput(inputQulume);
+  converter->SetT1PreTissue(T1PreTissueValue);
+  converter->SetTR(TRValue);
+  converter->SetFA(FAValue);
+  converter->SetRGD_relaxivity(RelaxivityValue);
+  converter->SetS0GradThresh(S0GradValue);
+  converter->Update();
+
+  //Calculate parameters
+  typedef itk::CastImageFilter<VolumeType, OutputVolumeType> MaskCastFilterType;
+  typename MaskCastFilterType::Pointer maskCastFilter = MaskCastFilterType::New();
+  maskCastFilter->SetInput(maskVolume);
+  maskCastFilter->Update();
+  typedef itk::CalculateQuantificationParametersFilter<OutputQulumeType, OutputVolumeType> QuantifierType;
+  typename QuantifierType::Pointer quantifier = QuantifierType::New();
+  quantifier->SetInputQulume(const_cast<OutputQulumeType *>(converter->GetOutput() ) );
+
+  quantifier->SetInputVolume(maskCastFilter->GetOutput() );
+  quantifier->SetAUCTimeInterval(AUCTimeInterval);
+  quantifier->SetTimeAxis(TimeAxis);
+  quantifier->SetfTol(FTolerance);
+  quantifier->SetgTol(GTolerance);
+  quantifier->SetxTol(XTolerance);
+  quantifier->Setepsilon(Epsilon);
+  quantifier->SetmaxIter(MaxIter);
+  quantifier->Sethematocrit(Hematocrit);
+  quantifier->Update();
+
+  //For test
+  /*std::cerr << std::endl << "in DoIt2: 3" << std::endl;
+  QulumeType::RegionType qulumeRegion = inputQulume->GetLargestPossibleRegion();
     QulumeType::SizeType size = qulumeRegion.GetSize();
-	printf("Input Qulume Size: %d %d %d %d. \n", (int)size[0], (int)size[1], (int)size[2], (int)size[3]);
-	*/
+  printf("Input Qulume Size: %d %d %d %d. \n", (int)size[0], (int)size[1], (int)size[2], (int)size[3]);
+  */
 
-	//get output	
-	typename VolumeWriterType::Pointer ktranswriter = VolumeWriterType::New();
-	ktranswriter->SetInput(const_cast<OutputVolumeType *>(quantifier->GetOutput()));
-	ktranswriter->SetFileName(OutputKtransFile.c_str());
-	ktranswriter->Update();
+  //get output
+  typename VolumeWriterType::Pointer ktranswriter = VolumeWriterType::New();
+  ktranswriter->SetInput(const_cast<OutputVolumeType *>(quantifier->GetOutput() ) );
+  ktranswriter->SetFileName(OutputKtransFile.c_str() );
+  ktranswriter->Update();
 
-	typename VolumeWriterType::Pointer vewriter = VolumeWriterType::New();
-	vewriter->SetInput(quantifier->GetOutput(1));
-	vewriter->SetFileName(OutputVeFile.c_str());
-	vewriter->Update();
+  typename VolumeWriterType::Pointer vewriter = VolumeWriterType::New();
+  vewriter->SetInput(quantifier->GetOutput(1) );
+  vewriter->SetFileName(OutputVeFile.c_str() );
+  vewriter->Update();
 
-	typename VolumeWriterType::Pointer maxSlopewriter = VolumeWriterType::New();
-	maxSlopewriter->SetInput(quantifier->GetOutput(2));
-	maxSlopewriter->SetFileName(OutputMaxSlopeFile.c_str());
-	maxSlopewriter->Update();
+  typename VolumeWriterType::Pointer maxSlopewriter = VolumeWriterType::New();
+  maxSlopewriter->SetInput(quantifier->GetOutput(2) );
+  maxSlopewriter->SetFileName(OutputMaxSlopeFile.c_str() );
+  maxSlopewriter->Update();
 
-	typename VolumeWriterType::Pointer aucwriter = VolumeWriterType::New();
-	aucwriter->SetInput(quantifier->GetOutput(3));
-	aucwriter->SetFileName(OutputAUCFile.c_str());
-	aucwriter->Update();
-	return EXIT_SUCCESS;
- } // end of anonymous namespace
+  typename VolumeWriterType::Pointer aucwriter = VolumeWriterType::New();
+  aucwriter->SetInput(quantifier->GetOutput(3) );
+  aucwriter->SetFileName(OutputAUCFile.c_str() );
+  aucwriter->Update();
+  return EXIT_SUCCESS;
+}  // end of anonymous namespace
 
 }
-
 
 int main( int argc, char * argv[] )
 {
@@ -173,9 +172,9 @@ int main( int argc, char * argv[] )
 
   try
     {
-    
-		itk::GetImageType(InputFourDNrrdFile, pixelType, componentType);
-		//std::cout << std::endl << "in try" << std::endl;
+
+    itk::GetImageType(InputFourDNrrdFile, pixelType, componentType);
+    //std::cout << std::endl << "in try" << std::endl;
     // This filter handles all types
 
     switch( componentType )
@@ -216,3 +215,4 @@ int main( int argc, char * argv[] )
     }
   return EXIT_SUCCESS;
 }
+

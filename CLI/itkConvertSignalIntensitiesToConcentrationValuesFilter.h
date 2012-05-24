@@ -28,47 +28,47 @@ class ConvertSignalIntensitiesToConcentrationValuesFilter : public ImageToImageF
 {
 public:
   /** Convenient typedefs for simplifying declarations. */
-  typedef TInputImage                            InputImageType;
-  typedef typename InputImageType::Pointer       InputImagePointerType;
-  typedef typename InputImageType::ConstPointer  InputImageConstPointer;
-  typedef typename InputImageType::PixelType     InputPixelType;
-  typedef typename InputImageType::RegionType    InputImageRegionType;
-  typedef typename InputImageType::SizeType      InputSizeType;
-  typedef itk::Image<InputPixelType, 3>					    InputMaskType;
-  typedef itk::ImageRegionIterator<InputMaskType>           InputMaskIterType;
+  typedef TInputImage                             InputImageType;
+  typedef typename InputImageType::Pointer        InputImagePointerType;
+  typedef typename InputImageType::ConstPointer   InputImageConstPointer;
+  typedef typename InputImageType::PixelType      InputPixelType;
+  typedef typename InputImageType::RegionType     InputImageRegionType;
+  typedef typename InputImageType::SizeType       InputSizeType;
+  typedef itk::Image<InputPixelType, 3>           InputMaskType;
+  typedef itk::ImageRegionIterator<InputMaskType> InputMaskIterType;
 
-  typedef float													FloatPixelType;  
-  typedef TOutputImage											OutputImageType;
-  typedef typename OutputImageType::Pointer						OutputImagePointer;
-  typedef typename OutputImageType::ConstPointer				OutputImageConstPointer;
-  typedef typename OutputImageType::PixelType					OutputPixelType;  
-  typedef typename OutputImageType::RegionType					OutputImageRegionType;
-      
-  typedef itk::Image<FloatPixelType, 4>					    InternalQulumeType;
-  typedef typename InternalQulumeType::Pointer			    InternalQulumePointerType;
-  typedef typename InternalQulumeType::RegionType           InternalQulumeRegionType;
-  typedef typename InternalQulumeType::SizeType				InternalQulumeSizeType;
-    
-  typedef itk::Image<FloatPixelType, 3>						 InternalVolumeType;
-  typedef typename InternalVolumeType::Pointer					 InternalVolumePointerType;
-  typedef itk::ImageRegionIterator<InternalVolumeType>           InternalVolumeIterType;
-  typedef typename InternalVolumeType::RegionType				 InternalVolumeRegionType;
-  typedef typename InternalVolumeType::SizeType				 InternalVolumeSizeType;
+  typedef float                                  FloatPixelType;
+  typedef TOutputImage                           OutputImageType;
+  typedef typename OutputImageType::Pointer      OutputImagePointer;
+  typedef typename OutputImageType::ConstPointer OutputImageConstPointer;
+  typedef typename OutputImageType::PixelType    OutputPixelType;
+  typedef typename OutputImageType::RegionType   OutputImageRegionType;
 
-  typedef itk::VectorImage<FloatPixelType, 3>						 InternalVectorVolumeType;
-  typedef typename InternalVectorVolumeType::Pointer                     InternalVectorVolumePointerType;  
-  typedef itk::ImageRegionIterator<InternalVectorVolumeType>			 InternalVectorVolumeIterType;  
-  typedef typename InternalVectorVolumeType::RegionType		             InternalVectorVolumeRegionType;  
-  typedef typename InternalVectorVolumeType::SizeType                    InternalVectorVolumeSizeType;
-  
-  typedef itk::VariableLengthVector<float>                       InternalVectorVoxelType;
+  typedef itk::Image<FloatPixelType, 4>           InternalQulumeType;
+  typedef typename InternalQulumeType::Pointer    InternalQulumePointerType;
+  typedef typename InternalQulumeType::RegionType InternalQulumeRegionType;
+  typedef typename InternalQulumeType::SizeType   InternalQulumeSizeType;
 
-  typedef itk::ExtractImageFilter<InternalQulumeType, InternalVolumeType> ExtractImageFilterType;	
-  typedef itk::ImageToVectorImageFilter<InternalVolumeType>				  ImageToVectorImageFilterType;
-  typedef itk::CastImageFilter<InputImageType, InternalQulumeType >						CastFilterType;
-  
+  typedef itk::Image<FloatPixelType, 3>                InternalVolumeType;
+  typedef typename InternalVolumeType::Pointer         InternalVolumePointerType;
+  typedef itk::ImageRegionIterator<InternalVolumeType> InternalVolumeIterType;
+  typedef typename InternalVolumeType::RegionType      InternalVolumeRegionType;
+  typedef typename InternalVolumeType::SizeType        InternalVolumeSizeType;
+
+  typedef itk::VectorImage<FloatPixelType, 3>                InternalVectorVolumeType;
+  typedef typename InternalVectorVolumeType::Pointer         InternalVectorVolumePointerType;
+  typedef itk::ImageRegionIterator<InternalVectorVolumeType> InternalVectorVolumeIterType;
+  typedef typename InternalVectorVolumeType::RegionType      InternalVectorVolumeRegionType;
+  typedef typename InternalVectorVolumeType::SizeType        InternalVectorVolumeSizeType;
+
+  typedef itk::VariableLengthVector<float> InternalVectorVoxelType;
+
+  typedef itk::ExtractImageFilter<InternalQulumeType, InternalVolumeType> ExtractImageFilterType;
+  typedef itk::ImageToVectorImageFilter<InternalVolumeType>               ImageToVectorImageFilterType;
+  typedef itk::CastImageFilter<InputImageType, InternalQulumeType >       CastFilterType;
+
   /** Standard class typedefs. */
-  typedef ConvertSignalIntensitiesToConcentrationValuesFilter                      Self;
+  typedef ConvertSignalIntensitiesToConcentrationValuesFilter Self;
   typedef ImageToImageFilter<InputImageType, OutputImageType> Superclass;
   typedef SmartPointer<Self>                                  Pointer;
   typedef SmartPointer<const Self>                            ConstPointer;
@@ -78,8 +78,8 @@ public:
 
   /** Run-time type information (and related methods). */
   itkTypeMacro( ConvertSignalIntensitiesToConcentrationValuesFilter, ImageToImageFilter );
-  
-  /** Set and get the number of DWI channels. */    
+
+  /** Set and get the number of DWI channels. */
   itkGetMacro( T1PreBlood, float);
   itkSetMacro( T1PreBlood, float);
   itkGetMacro( T1PreTissue, float);
@@ -93,27 +93,39 @@ public:
   itkGetMacro( S0GradThresh, float);
   itkSetMacro( S0GradThresh, float);
 
-    void SetAIFMask(InputMaskType* aifMaskVolume)
+  void SetAIFMask(InputMaskType* aifMaskVolume)
   {
-	m_AIFMask = aifMaskVolume;
+    m_AIFMask = aifMaskVolume;
   }
-  
-  typename ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TOutputImage>::InternalQulumePointerType VectorVolumeToQulume(InternalVectorVolumePointerType inputVectorVolume);
-  typename ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TOutputImage>::InternalVectorVolumePointerType QulumeToVectorVolume(InternalQulumePointerType inputQulume);
-  
+
+  typename ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage,
+                                                               TOutputImage>::InternalQulumePointerType
+  VectorVolumeToQulume(InternalVectorVolumePointerType inputVectorVolume);
+
+  typename ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage,
+                                                               TOutputImage>::InternalVectorVolumePointerType
+  QulumeToVectorVolume(InternalQulumePointerType inputQulume);
+
 protected:
   ConvertSignalIntensitiesToConcentrationValuesFilter();
   virtual ~ConvertSignalIntensitiesToConcentrationValuesFilter()
   {
 
   }
+
   void PrintSelf(std::ostream& os, Indent indent) const;
-  
-  void GenerateData();  
-  
+
+  void GenerateData();
+
 private:
-  ConvertSignalIntensitiesToConcentrationValuesFilter(const Self &);   // purposely not implemented
-  void operator=(const Self &);  // purposely not implemented
+  ConvertSignalIntensitiesToConcentrationValuesFilter(const Self &); //
+                                                                     // purposely
+                                                                     // not
+                                                                     // implemented
+  void operator=(const Self &);                                      //
+                                                                     // purposely
+                                                                     // not
+                                                                     // implemented
 
   typename InputMaskType::Pointer m_AIFMask;
   float m_T1PreBlood;
@@ -121,7 +133,7 @@ private:
   float m_TR;
   float m_FA;
   float m_RGD_relaxivity;
-  float m_S0GradThresh;   
+  float m_S0GradThresh;
 };
 
 }; // end namespace itk

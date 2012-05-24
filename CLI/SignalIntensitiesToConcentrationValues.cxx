@@ -3,7 +3,7 @@
   Module:    $HeadURL: http://svn.slicer.org/Slicer4/trunk/Modules/CLI/Converters/SignalIntensitiesToConcentrationValues.cxx $
   Language:  C++
   Date:      $Date: 2012-03-07$
-  Version:   $Revision: $    
+  Version:   $Revision: $
 =========================================================================*/
 #include "SignalIntensitiesToConcentrationValuesCLP.h"
 #include "itkSignalIntensityToConcentration.h"
@@ -24,35 +24,36 @@ namespace
 
 template <class T>
 int DoIt( int argc, char * argv[], const T& targ)
-{	
-    PARSE_ARGS;  
-    
-	const unsigned int ImageDimension = 4;
-    
-	typedef  T																PixelType;
-	typedef itk::Image< PixelType, ImageDimension >							ImageType;			
-	typedef itk::ImageFileReader<ImageType>								   ReaderType;
-	typedef itk::ImageFileWriter<ImageType>							  ImageWriterType;	
-	typedef itk::SignalIntensityToConcentration<ImageType,ImageType>		ConverterType;
-	typename ConverterType::Pointer intensityToConcentrationConverter = ConverterType::New();	
-		
-	typename ReaderType::Pointer reader = ReaderType::New();
-	reader->SetFileName(InputFourDNrrdFile.c_str());	
-	reader->Update();	
-	intensityToConcentrationConverter->SetInput(reader->GetOutput());
-	intensityToConcentrationConverter->SetT1Pre(T1PreValue);
-	intensityToConcentrationConverter->SetTR(TRValue);
-	intensityToConcentrationConverter->SetFA(FAValue);
-	intensityToConcentrationConverter->SetRGD_relaxivity(RelaxivityValue);
-	intensityToConcentrationConverter->SetS0GradThresh(S0GradValue);	
-	intensityToConcentrationConverter->Update();
-	
-	typename ImageWriterType::Pointer concentrationWriter = ImageWriterType::New();
-	concentrationWriter->SetInput(intensityToConcentrationConverter->GetOutput());
-	concentrationWriter->SetFileName(OutputFourDNrrdFile.c_str());
-	concentrationWriter->Update();
-    return EXIT_SUCCESS;
- } // end of anonymous namespace
+{
+  PARSE_ARGS;
+
+  const unsigned int ImageDimension = 4;
+
+  typedef  T                                                       PixelType;
+  typedef itk::Image< PixelType, ImageDimension >                  ImageType;
+  typedef itk::ImageFileReader<ImageType>                          ReaderType;
+  typedef itk::ImageFileWriter<ImageType>                          ImageWriterType;
+  typedef itk::SignalIntensityToConcentration<ImageType,ImageType> ConverterType;
+  typename ConverterType::Pointer intensityToConcentrationConverter = ConverterType::New();
+
+  typename ReaderType::Pointer reader = ReaderType::New();
+  reader->SetFileName(InputFourDNrrdFile.c_str() );
+  reader->Update();
+  intensityToConcentrationConverter->SetInput(reader->GetOutput() );
+  intensityToConcentrationConverter->SetT1Pre(T1PreValue);
+  intensityToConcentrationConverter->SetTR(TRValue);
+  intensityToConcentrationConverter->SetFA(FAValue);
+  intensityToConcentrationConverter->SetRGD_relaxivity(RelaxivityValue);
+  intensityToConcentrationConverter->SetS0GradThresh(S0GradValue);
+  intensityToConcentrationConverter->Update();
+
+  typename ImageWriterType::Pointer concentrationWriter = ImageWriterType::New();
+  concentrationWriter->SetInput(intensityToConcentrationConverter->GetOutput() );
+  concentrationWriter->SetFileName(OutputFourDNrrdFile.c_str() );
+  concentrationWriter->Update();
+  return EXIT_SUCCESS;
+}  // end of anonymous namespace
+
 }
 int main( int argc, char * argv[] )
 {
@@ -68,8 +69,8 @@ int main( int argc, char * argv[] )
 
   try
     {
-    
-		itk::GetImageType(InputFourDNrrdFile, pixelType, componentType);		
+
+    itk::GetImageType(InputFourDNrrdFile, pixelType, componentType);
     // This filter handles all types
 
     switch( componentType )

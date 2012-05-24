@@ -28,46 +28,45 @@ class ITK_EXPORT CalculateQuantificationParametersFilter : public ImageToImageFi
 {
 public:
   /** Convenient typedefs for simplifying declarations. */
-  typedef TInputImage						 QulumeType;
-  typedef typename QulumeType::Pointer       QulumePointerType;
-  typedef typename QulumeType::ConstPointer  QulumeConstPointerType;
-  typedef typename QulumeType::PixelType     QulumePixelType;
-  typedef typename QulumeType::RegionType    QulumeRegionType;
-  typedef typename QulumeType::SizeType      QulumeSizeType;
+  typedef TInputImage                       QulumeType;
+  typedef typename QulumeType::Pointer      QulumePointerType;
+  typedef typename QulumeType::ConstPointer QulumeConstPointerType;
+  typedef typename QulumeType::PixelType    QulumePixelType;
+  typedef typename QulumeType::RegionType   QulumeRegionType;
+  typedef typename QulumeType::SizeType     QulumeSizeType;
 
-  typedef TOutputImage										VolumeType;
-  typedef typename VolumeType::Pointer						VolumePointerType;
-  typedef typename VolumeType::ConstPointer					VolumeConstPointerType;
-  typedef typename VolumeType::PixelType					VolumePixelType;  
-  typedef typename VolumeType::RegionType					VolumeRegionType;
-  typedef typename VolumeType::IndexType					VolumeIndexType;
-  typedef itk::ImageRegionIterator<VolumeType>				VolumeIterType; 
-  typedef itk::ImageRegionConstIterator<VolumeType>				VolumeConstIterType; 
+  typedef TOutputImage                              VolumeType;
+  typedef typename VolumeType::Pointer              VolumePointerType;
+  typedef typename VolumeType::ConstPointer         VolumeConstPointerType;
+  typedef typename VolumeType::PixelType            VolumePixelType;
+  typedef typename VolumeType::RegionType           VolumeRegionType;
+  typedef typename VolumeType::IndexType            VolumeIndexType;
+  typedef itk::ImageRegionIterator<VolumeType>      VolumeIterType;
+  typedef itk::ImageRegionConstIterator<VolumeType> VolumeConstIterType;
 
-  typedef itk::VectorImage<QulumePixelType, 3>							VectorVolumeType;
-  typedef typename VectorVolumeType::Pointer							VectorVolumePointerType;  
-  typedef itk::ImageRegionIterator<VectorVolumeType>					VectorVolumeIterType;  
-  typedef typename VectorVolumeType::RegionType							VectorVolumeRegionType;  
-  typedef typename VectorVolumeType::SizeType							VectorVolumeSizeType;
-    
-  typedef itk::VariableLengthVector<float>							VectorVoxelType;  
-  typedef itk::ImageToVectorImageFilter<VolumeType>					ImageToVectorImageFilterType;
-  typedef itk::ExtractImageFilter<QulumeType, VolumeType>			ExtractImageFilterType;	
-  
-  
+  typedef itk::VectorImage<QulumePixelType, 3>       VectorVolumeType;
+  typedef typename VectorVolumeType::Pointer         VectorVolumePointerType;
+  typedef itk::ImageRegionIterator<VectorVolumeType> VectorVolumeIterType;
+  typedef typename VectorVolumeType::RegionType      VectorVolumeRegionType;
+  typedef typename VectorVolumeType::SizeType        VectorVolumeSizeType;
+
+  typedef itk::VariableLengthVector<float>                VectorVoxelType;
+  typedef itk::ImageToVectorImageFilter<VolumeType>       ImageToVectorImageFilterType;
+  typedef itk::ExtractImageFilter<QulumeType, VolumeType> ExtractImageFilterType;
+
   /** Standard class typedefs. */
-  typedef CalculateQuantificationParametersFilter                      Self;
-  typedef ImageToImageFilter<QulumeType,VolumeType>		  Superclass;
-  typedef SmartPointer<Self>                                  Pointer;
-  typedef SmartPointer<const Self>                            ConstPointer;
+  typedef CalculateQuantificationParametersFilter   Self;
+  typedef ImageToImageFilter<QulumeType,VolumeType> Superclass;
+  typedef SmartPointer<Self>                        Pointer;
+  typedef SmartPointer<const Self>                  ConstPointer;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
   itkTypeMacro( CalculateQuantificationParametersFilter, ImageToImageFilter );
-  
-  /** Set and get the number of DWI channels. */    
+
+  /** Set and get the number of DWI channels. */
   itkGetMacro( T1Pre, float);
   itkSetMacro( T1Pre, float);
   itkGetMacro( TR, float);
@@ -91,8 +90,9 @@ public:
   itkGetMacro( hematocrit, float);
   itkSetMacro( hematocrit, float);
   itkGetMacro( AUCTimeInterval, float);
-  itkSetMacro( AUCTimeInterval, float);  
+  itkSetMacro( AUCTimeInterval, float);
   void SetTimeAxis(vcl_vector<float> inputTimeAxis);
+
   float* GetTimeAxis();
 
   /** ImageDimension enumeration */
@@ -101,76 +101,95 @@ public:
   itkStaticConstMacro(VolumeDimension, unsigned int,
                       VolumeType::ImageDimension);
 
-  typedef ImageToImageFilterDetail::ExtractImageFilterRegionCopier<itkGetStaticConstMacro(QulumeDimension), 
-    itkGetStaticConstMacro(VolumeDimension)> ExtractImageFilterRegionCopierType;
-    
+  typedef ImageToImageFilterDetail::ExtractImageFilterRegionCopier<itkGetStaticConstMacro(QulumeDimension),
+                                                                   itkGetStaticConstMacro(VolumeDimension)>
+  ExtractImageFilterRegionCopierType;
+
   itkGetConstMacro(ExtractionRegion, QulumeRegionType);
 
   void SetInputQulume(const QulumeType* qulume);
+
   void SetInputVolume(const VolumeType* volume);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(InputCovertibleToOutputCheck,
-    (Concept::Convertible<QulumePixelType, VolumePixelType>));
+                  (Concept::Convertible<QulumePixelType, VolumePixelType>) );
   /** End concept checking */
 #endif
   //////////////////////////
-  
 protected:
   CalculateQuantificationParametersFilter();
-  ~CalculateQuantificationParametersFilter(){};
+  ~CalculateQuantificationParametersFilter(){
+  }
   void PrintSelf(std::ostream& os, Indent indent) const;
-  void BeforeThreadedGenerateData();
-  #if ITK_VERSION_MAJOR < 4
-  void ThreadedGenerateData( const typename Superclass::OutputImageRegionType& outputRegionForThread, int threadId );
-  #else
-  void ThreadedGenerateData( const typename Superclass::OutputImageRegionType& outputRegionForThread, ThreadIdType threadId );
-  #endif  
-  void AfterThreadedGenerateData();
-//    void GenerateData();
-  ////////////////////
-  virtual void GenerateInputRequestedRegion()
-  throw( InvalidRequestedRegionError );  
-  virtual void GenerateOutputInformation();
-  virtual void CallCopyOutputRegionToInputRegion(QulumeRegionType &destRegion, const VolumeRegionType &srcRegion);
-  QulumeRegionType  m_ExtractionRegion;
-  VolumeRegionType  m_OutputImageRegion;
-  ////////////////////  
-  //  
-  typename TInputImage::ConstPointer GetInputQulume(); 
-  typename TOutputImage::ConstPointer GetInputVolume();
-  
-  void CalculateAverageAIF(VectorVolumePointerType inputVectorVolume, VolumeConstPointerType inputVolume,float*& averageAIF); 
-  typename CalculateQuantificationParametersFilter<TInputImage, TOutputImage>::VectorVolumePointerType QulumeToVectorVolume(QulumePointerType inputQulume);
-private:
-  CalculateQuantificationParametersFilter(const Self &);   // purposely not implemented
-  void operator=(const Self &);  // purposely not implemented
 
-  float m_T1Pre;
-  float m_TR;
-  float m_FA;
-  float m_RGD_relaxivity;
-  float m_S0GradThresh;
-  float m_fTol;
-  float m_gTol;
-  float m_xTol;
-  float m_epsilon;
-  int   m_maxIter;  
-  float m_hematocrit;
-  float m_AUCTimeInterval;
+  void BeforeThreadedGenerateData();
+
+#if ITK_VERSION_MAJOR < 4
+  void ThreadedGenerateData( const typename Superclass::OutputImageRegionType& outputRegionForThread, int threadId );
+
+#else
+  void ThreadedGenerateData( const typename Superclass::OutputImageRegionType& outputRegionForThread,
+                             ThreadIdType threadId );
+
+#endif
+  void AfterThreadedGenerateData();
+
+//    void GenerateData();
+////////////////////
+  virtual void GenerateInputRequestedRegion()
+  throw( InvalidRequestedRegionError );
+
+  virtual void GenerateOutputInformation();
+
+  virtual void CallCopyOutputRegionToInputRegion(QulumeRegionType &destRegion, const VolumeRegionType &srcRegion);
+
+  QulumeRegionType m_ExtractionRegion;
+  VolumeRegionType m_OutputImageRegion;
+  ////////////////////
+  //
+  typename TInputImage::ConstPointer GetInputQulume();
+
+  typename TOutputImage::ConstPointer GetInputVolume();
+
+  void CalculateAverageAIF(VectorVolumePointerType inputVectorVolume, VolumeConstPointerType inputVolume,
+                           float*& averageAIF);
+
+  typename CalculateQuantificationParametersFilter<TInputImage,
+                                                   TOutputImage>::VectorVolumePointerType QulumeToVectorVolume(
+    QulumePointerType inputQulume);
+
+private:
+  CalculateQuantificationParametersFilter(const Self &); // purposely not
+                                                         // implemented
+  void operator=(const Self &);                          // purposely not
+                                                         // implemented
+
+  float  m_T1Pre;
+  float  m_TR;
+  float  m_FA;
+  float  m_RGD_relaxivity;
+  float  m_S0GradThresh;
+  float  m_fTol;
+  float  m_gTol;
+  float  m_xTol;
+  float  m_epsilon;
+  int    m_maxIter;
+  float  m_hematocrit;
+  float  m_AUCTimeInterval;
   float* m_timeAxis;
   float* m_TimeMinute;
-    int m_timeSize;
-    float* m_averageAIFCon;
-    float m_aifAUC;    
+  int    m_timeSize;
+  float* m_averageAIFCon;
+  float  m_aifAUC;
   typename QulumeType::ConstPointer m_inputQulume;
   typename VolumeType::ConstPointer m_inputVolume;
   VectorVolumePointerType m_inputVectorVolume;
-  VolumePointerType m_ktransVolume;
-  VolumePointerType m_veVolume;
-  VolumePointerType m_maxSlopeVolume;
-  VolumePointerType m_aucVolume;
+  VolumePointerType       m_ktransVolume;
+  VolumePointerType       m_veVolume;
+  VolumePointerType       m_maxSlopeVolume;
+  VolumePointerType       m_aucVolume;
 };
 
 }; // end namespace itk

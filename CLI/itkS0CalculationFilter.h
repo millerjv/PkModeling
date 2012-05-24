@@ -24,25 +24,25 @@ class S0CalculationFilter : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Convenient typedefs for simplifying declarations. */
-  typedef TInputImage                            InputImageType;
-  typedef typename InputImageType::Pointer       InputImagePointerType;
-  typedef typename InputImageType::ConstPointer  InputImageConstPointer;
-  typedef typename InputImageType::PixelType     InputPixelType;
-  typedef typename InputImageType::RegionType    InputImageRegionType;
-  typedef typename InputImageType::SizeType      InputSizeType;
+  typedef TInputImage                                   InputImageType;
+  typedef typename InputImageType::Pointer              InputImagePointerType;
+  typedef typename InputImageType::ConstPointer         InputImageConstPointer;
+  typedef typename InputImageType::PixelType            InputPixelType;
+  typedef typename InputImageType::RegionType           InputImageRegionType;
+  typedef typename InputImageType::SizeType             InputSizeType;
   typedef itk::ImageRegionConstIterator<InputImageType> InputImageIterType;
 
-  typedef TOutputImage											OutputImageType;
-  typedef typename OutputImageType::Pointer						OutputImagePointer;
-  typedef typename OutputImageType::ConstPointer				OutputImageConstPointer;
-  typedef typename OutputImageType::PixelType					OutputPixelType;  
-  typedef typename OutputImageType::RegionType					OutputImageRegionType;
-  typedef itk::ImageRegionIterator<OutputImageType>				OutputImageIterType; 
-    
-  typedef itk::VariableLengthVector<float>                       InternalVectorVoxelType;
-    
+  typedef TOutputImage                              OutputImageType;
+  typedef typename OutputImageType::Pointer         OutputImagePointer;
+  typedef typename OutputImageType::ConstPointer    OutputImageConstPointer;
+  typedef typename OutputImageType::PixelType       OutputPixelType;
+  typedef typename OutputImageType::RegionType      OutputImageRegionType;
+  typedef itk::ImageRegionIterator<OutputImageType> OutputImageIterType;
+
+  typedef itk::VariableLengthVector<float> InternalVectorVoxelType;
+
   /** Standard class typedefs. */
-  typedef S0CalculationFilter                      Self;
+  typedef S0CalculationFilter                                 Self;
   typedef ImageToImageFilter<InputImageType, OutputImageType> Superclass;
   typedef SmartPointer<Self>                                  Pointer;
   typedef SmartPointer<const Self>                            ConstPointer;
@@ -52,29 +52,33 @@ public:
 
   /** Run-time type information (and related methods). */
   itkTypeMacro( S0CalculationFilter, ImageToImageFilter );
-  
-  /** Set and get the number of DWI channels. */      
+
+  /** Set and get the number of DWI channels. */
   itkGetMacro( S0GradThresh, float);
   itkSetMacro( S0GradThresh, float);
-
 protected:
   S0CalculationFilter();
-  virtual ~S0CalculationFilter() {}
-  void PrintSelf(std::ostream& os, Indent indent) const; 
+  virtual ~S0CalculationFilter() {
+  }
+  void PrintSelf(std::ostream& os, Indent indent) const;
+
   void BeforeThreadedGenerateData();
-  #if ITK_VERSION_MAJOR < 4
+
+#if ITK_VERSION_MAJOR < 4
   void ThreadedGenerateData( const typename Superclass::OutputImageRegionType& outputRegionForThread, int threadId );
-  #else
-  void ThreadedGenerateData( const typename Superclass::OutputImageRegionType& outputRegionForThread, ThreadIdType threadId );
-  #endif  
-     
+
+#else
+  void ThreadedGenerateData( const typename Superclass::OutputImageRegionType& outputRegionForThread,
+                             ThreadIdType threadId );
+
+#endif
 private:
-  S0CalculationFilter(const Self &);   // purposely not implemented
-  void operator=(const Self &);  // purposely not implemented
-    
-  float m_S0GradThresh;   
+  S0CalculationFilter(const Self &); // purposely not implemented
+  void operator=(const Self &);      // purposely not implemented
+
+  float                  m_S0GradThresh;
   InputImageConstPointer m_inputVectorVolume;
-  OutputImagePointer m_S0Volume;
+  OutputImagePointer     m_S0Volume;
 };
 
 }; // end namespace itk
