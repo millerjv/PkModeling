@@ -23,9 +23,9 @@ set(cli_module_SRCS
   )
   
 # Additional Target libraries
-# set(cli_module_target_libraries
-#  ${ITK_LIBRARIES} PkModeling
-#)
+set(cli_module_target_libraries
+ ${ITK_LIBRARIES} PkSolver
+)
 
 
 #-----------------------------------------------------------------------------
@@ -35,7 +35,7 @@ slicerMacroBuildCLI(
   NAME ${PKM}
   INCLUDE_DIRECTORIES ${cli_module_include_directories}  
   ADDITIONAL_SRCS ${cli_module_SRCS}
-  TARGET_LIBRARIES ${ITK_LIBRARIES}  
+  TARGET_LIBRARIES ${cli_module_target_libraries}  
   )
 
 #slicerMacroBuildCLI(
