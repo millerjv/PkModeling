@@ -176,7 +176,7 @@ void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>::BeforeTh
     m_timeSize = (int)m_inputVectorVolume->GetNumberOfComponentsPerPixel();
     
 	m_TimeMinute = new float[m_inputQulume->GetLargestPossibleRegion().GetSize()[3]]();
-	for(int i =0; i<(m_inputQulume->GetLargestPossibleRegion().GetSize()[3]);i++)
+	for(unsigned int i =0; i<(m_inputQulume->GetLargestPossibleRegion().GetSize()[3]);i++)
 	{
 		m_TimeMinute[i] = m_timeAxis[i]/60;
 		//std::cerr<<m_TimeMinute[i]<<std::endl;
@@ -452,7 +452,7 @@ CalculateQuantificationParametersFilter<TInputImage, TOutputImage>::QulumeToVect
 
     for (int i = 0; i < (int)inputQulumeSize[3]; i++) 
 	{
-		ExtractImageFilterType::Pointer extractImageFilter = ExtractImageFilterType::New();			
+        typename ExtractImageFilterType::Pointer extractImageFilter = ExtractImageFilterType::New();			
 		extractStartIndex[3] = i;				
 		extractRegion.SetIndex(extractStartIndex);		
 		extractRegion.SetSize(extractSize);

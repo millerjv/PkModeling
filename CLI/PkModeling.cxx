@@ -95,7 +95,7 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
 
 	//Convert to concentration
 	typedef itk::ConvertSignalIntensitiesToConcentrationValuesFilter<QulumeType,OutputQulumeType> ConvertFilterType;
-	ConvertFilterType::Pointer converter = ConvertFilterType::New();	
+	typename ConvertFilterType::Pointer converter = ConvertFilterType::New();	
 	converter->SetAIFMask(maskVolume);
 	converter->SetT1PreBlood(T1PreBloodValue);	
 	converter->SetInput(inputQulume);		
@@ -108,7 +108,7 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
 
 	//Calculate parameters	
 	typedef itk::CastImageFilter<VolumeType, OutputVolumeType> MaskCastFilterType;
-	MaskCastFilterType::Pointer maskCastFilter = MaskCastFilterType::New();
+	typename MaskCastFilterType::Pointer maskCastFilter = MaskCastFilterType::New();
 	maskCastFilter->SetInput(maskVolume);
 	maskCastFilter->Update();
     typedef itk::CalculateQuantificationParametersFilter<OutputQulumeType, OutputVolumeType>		QuantifierType;

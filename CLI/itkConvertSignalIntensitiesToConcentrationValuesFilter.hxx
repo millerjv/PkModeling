@@ -26,15 +26,15 @@ template<class TInputImage, class TOutputImage>
 void ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TOutputImage>::GenerateData()
 {
 	std::cout << "Signal Intensity To Concentration" << std::endl;
-	CastFilterType::Pointer castFilter = CastFilterType::New();
+	typename CastFilterType::Pointer castFilter = CastFilterType::New();
 	castFilter->SetInput(const_cast<InputImageType *>(this->GetInput()));
 	castFilter->Update();
-	typename InternalQulumePointerType inputQulume = castFilter->GetOutput();
-	InputImageType::SizeType inputQulumeSize = inputQulume->GetLargestPossibleRegion().GetSize();
+	InternalQulumePointerType inputQulume = castFilter->GetOutput();
+	typename InputImageType::SizeType inputQulumeSize = inputQulume->GetLargestPossibleRegion().GetSize();
 	std::cout << "input Qulume Size:"<<inputQulumeSize << std::endl;
 
 	//Qulume to VectorVolume
-	typename InternalVectorVolumePointerType inputVectorVolume = InternalVectorVolumeType::New();
+	InternalVectorVolumePointerType inputVectorVolume = InternalVectorVolumeType::New();
     inputVectorVolume = this->QulumeToVectorVolume(inputQulume);
 	//unsigned int vectorSize = (unsigned int)inputVectorVolume->GetNumberOfComponentsPerPixel();
 
@@ -46,25 +46,25 @@ void ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TOutputIma
 	S0VolumeFilter->SetS0GradThresh(m_S0GradThresh);
 	S0VolumeFilter->Update();		
 	
-	typename InternalVolumePointerType S0Volume = S0VolumeFilter->GetOutput();		
+	InternalVolumePointerType S0Volume = S0VolumeFilter->GetOutput();		
 	/*typedef itk::ImageFileWriter<InternalVolumeType> SynWriterType;
 	SynWriterType::Pointer synWriter = SynWriterType::New();
 	synWriter->SetFileName("D:/Codes/Slicer4/Modules/CLI/SignalIntensitiesToConcentrationValues/Data/DukeData/SyntheticDukeSmallQulumeS0.nrrd");
 	synWriter->SetInput(S0Volume);
 	synWriter->Update();*/
 
-	typename InternalVolumeIterType S0VolumeIter(S0Volume, S0Volume->GetRequestedRegion());	
-	typename InputMaskIterType	aifMaskVolumeIter(m_AIFMask,m_AIFMask->GetRequestedRegion());
+	InternalVolumeIterType S0VolumeIter(S0Volume, S0Volume->GetRequestedRegion());	
+	InputMaskIterType	aifMaskVolumeIter(m_AIFMask,m_AIFMask->GetRequestedRegion());
 
 	inputVectorVolume = this->QulumeToVectorVolume(inputQulume);
-	typename InternalVectorVolumeIterType inputVectorVolumeIter(inputVectorVolume, inputVectorVolume->GetLargestPossibleRegion());	
+	InternalVectorVolumeIterType inputVectorVolumeIter(inputVectorVolume, inputVectorVolume->GetLargestPossibleRegion());	
 		
 	aifMaskVolumeIter.GoToBegin();
 	S0VolumeIter.GoToBegin();
 	inputVectorVolumeIter.GoToBegin();
 	float * concentrationVectorVoxelTemp = new float[(int)inputVectorVolume->GetNumberOfComponentsPerPixel()];
 	bool isConvert;
-	typename InternalVectorVoxelType vectorVoxel;	
+	InternalVectorVoxelType vectorVoxel;	
 	//std::cout << "before while:"<< std::endl;
 		
 	while (!inputVectorVolumeIter.IsAtEnd())
