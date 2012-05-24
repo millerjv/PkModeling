@@ -83,9 +83,19 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
 	maskVolumeReader->Update();
 	maskVolume = maskVolumeReader->GetOutput();
 	
+	/*if(ISInputMask!=0)
+	{
+		std::cerr<<"Read mask!"<<std::endl;
+		typename MaskReaderType::Pointer maskReader = MaskReaderType::New();
+		maskReader->SetFileName(InputMaskNrrdFile.c_str());	
+		maskReader->Update();	
+		intensityToConcentrationConverter->SetAIFMask(maskReader->GetOutput());
+		intensityToConcentrationConverter->SetT1PreBlood(T1PreBloodValue);
+	}*/
+
 	//Convert to concentration
 	typedef itk::ConvertSignalIntensitiesToConcentrationValuesFilter<QulumeType,OutputQulumeType> ConvertFilterType;
-	ConverterFilterType::Pointer converter = ConverterFilterType::New();	
+	ConvertFilterType::Pointer converter = ConvertFilterType::New();	
 	converter->SetAIFMask(maskVolume);
 	converter->SetT1PreBlood(T1PreBloodValue);	
 	converter->SetInput(inputQulume);		
@@ -97,10 +107,15 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
 	converter->Update();
 
 	//Calculate parameters	
-    typedef itk::CalculateQuantificationParametersFilter<QulumeType, VolumeType>		QuantifierType;
+	typedef itk::CastImageFilter<VolumeType, OutputVolumeType> MaskCastFilterType;
+	MaskCastFilterType::Pointer maskCastFilter = MaskCastFilterType::New();
+	maskCastFilter->SetInput(maskVolume);
+	maskCastFilter->Update();
+    typedef itk::CalculateQuantificationParametersFilter<OutputQulumeType, OutputVolumeType>		QuantifierType;
 	typename QuantifierType::Pointer quantifier = QuantifierType::New();		
-	quantifier->SetInputQulume(converter->GetOutput());	
-	quantifier->SetInputVolume(maskVolume);	
+	quantifier->SetInputQulume(const_cast<OutputQulumeType *>(converter->GetOutput()));	
+
+	quantifier->SetInputVolume(maskCastFilter->GetOutput());	
 	quantifier->SetAUCTimeInterval(AUCTimeInterval);	
 	quantifier->SetTimeAxis(TimeAxis);
 	quantifier->SetfTol(FTolerance);
@@ -120,7 +135,7 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
 
 	//get output	
 	typename VolumeWriterType::Pointer ktranswriter = VolumeWriterType::New();
-	ktranswriter->SetInput(quantifier->GetOutput());
+	ktranswriter->SetInput(const_cast<OutputVolumeType *>(quantifier->GetOutput()));
 	ktranswriter->SetFileName(OutputKtransFile.c_str());
 	ktranswriter->Update();
 

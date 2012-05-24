@@ -47,11 +47,11 @@ void ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TOutputIma
 	S0VolumeFilter->Update();		
 	
 	typename InternalVolumePointerType S0Volume = S0VolumeFilter->GetOutput();		
-	typedef itk::ImageFileWriter<InternalVolumeType> SynWriterType;
+	/*typedef itk::ImageFileWriter<InternalVolumeType> SynWriterType;
 	SynWriterType::Pointer synWriter = SynWriterType::New();
 	synWriter->SetFileName("D:/Codes/Slicer4/Modules/CLI/SignalIntensitiesToConcentrationValues/Data/DukeData/SyntheticDukeSmallQulumeS0.nrrd");
 	synWriter->SetInput(S0Volume);
-	synWriter->Update();
+	synWriter->Update();*/
 
 	typename InternalVolumeIterType S0VolumeIter(S0Volume, S0Volume->GetRequestedRegion());	
 	typename InputMaskIterType	aifMaskVolumeIter(m_AIFMask,m_AIFMask->GetRequestedRegion());

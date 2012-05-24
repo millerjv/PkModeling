@@ -17,7 +17,7 @@
 #include "itkExtractImageFilter.h"
 #include "itkImageRegionIterator.h"
 #include "itkCastImageFilter.h"
-#include "PkSolver.h"
+#include "..\PkSolver\PkSolver.h"
 
 namespace itk
 {
@@ -50,9 +50,9 @@ public:
   typedef typename VectorVolumeType::RegionType							VectorVolumeRegionType;  
   typedef typename VectorVolumeType::SizeType							VectorVolumeSizeType;
     
-  typedef itk::VariableLengthVector<float>						VectorVoxelType;  
+  typedef itk::VariableLengthVector<float>							VectorVoxelType;  
   typedef itk::ImageToVectorImageFilter<VolumeType>					ImageToVectorImageFilterType;
-  typedef itk::ExtractImageFilter<QulumeType, VolumeType> ExtractImageFilterType;	
+  typedef itk::ExtractImageFilter<QulumeType, VolumeType>			ExtractImageFilterType;	
   
   
   /** Standard class typedefs. */

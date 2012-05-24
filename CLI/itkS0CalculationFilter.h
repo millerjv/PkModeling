@@ -13,7 +13,7 @@
 #include "itkVectorImage.h"
 #include "itkImageToVectorImageFilter.h"
 #include "itkImageRegionIterator.h"
-//#include "../PkSolver/PkSolver.h"
+#include "..\PkSolver\PkSolver.h"
 
 namespace itk
 {

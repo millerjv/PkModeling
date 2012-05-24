@@ -12,7 +12,6 @@
 #include "itkImageFileWriter.h"
 #include "itkImageFileReader.h"
 #include "itkLevenbergMarquardtOptimizer.h"
-#include "PkSolver.h"
 #include <ostream>
 #include "stdlib.h"
 #include "stdio.h"
@@ -106,7 +105,7 @@ void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>
   // this filter allows the input and the output to be of different dimensions
  
   // get pointers to the input and output
-  std::cout <<std::endl<< "generate output information" << std::endl;
+  std::cout <<std::endl<< "Generate output information" << std::endl;
   typename Superclass::OutputImagePointer      outputPtr = this->GetOutput();
   typename Superclass::InputImageConstPointer  inputPtr  = this->GetInput();
 
@@ -153,7 +152,7 @@ void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>::BeforeTh
 		
 	//transfer input qulume to vector image
 	m_inputVectorVolume = this->QulumeToVectorVolume(const_cast<QulumeType *>(static_cast<const QulumeType * >(m_inputQulume)));    	
-    
+    std::cout << "Before print out" << std::endl;
     VectorVolumeSizeType vectorVolumeSize = m_inputVectorVolume->GetLargestPossibleRegion().GetSize();
     std::cerr<<vectorVolumeSize<<std::endl;
 	//calculate parameters
@@ -180,23 +179,24 @@ void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>::BeforeTh
 	for(int i =0; i<(m_inputQulume->GetLargestPossibleRegion().GetSize()[3]);i++)
 	{
 		m_TimeMinute[i] = m_timeAxis[i]/60;
-	//	std::cerr<<m_TimeMinute[i]<<std::endl;
+		//std::cerr<<m_TimeMinute[i]<<std::endl;
 	}
-
+	
 	m_averageAIFCon = new float[m_timeSize]();
     int aif_BATIndex = 0;
     int aif_FirstPeakIndex = 0;
     float aif_MaxSlope = 0.0f;
+	//std::cerr<<"before calculate average aif"<<std::endl;
 	CalculateAverageAIF(m_inputVectorVolume, m_inputVolume, m_averageAIFCon);    
-    PkSolver::compute_bolus_arrival_time (m_timeSize, m_averageAIFCon, aif_BATIndex, aif_FirstPeakIndex, aif_MaxSlope);
-   /* for(int i=0;i<m_timeSize;i++)
+   /*for(int i=0;i<m_timeSize;i++)
     {
         std::cerr<<"averageAIFCon"<<i<<"and:"<<m_averageAIFCon[i]<<"\n"<<std::endl;
     }*/
-	//std::cerr<<"aif_BATIndex:"<<aif_BATIndex<<std::endl;
-	//std::cerr<<"m_AUCTimeInterval:"<<m_AUCTimeInterval<<std::endl;
-	m_aifAUC = PkSolver::area_under_curve(m_timeSize, m_timeAxis, m_averageAIFCon, aif_BATIndex, m_AUCTimeInterval);
-   // std::cerr<<"m_aifAUC:"<<m_aifAUC<<std::endl;
+	compute_bolus_arrival_time (m_timeSize, m_averageAIFCon, aif_BATIndex, aif_FirstPeakIndex, aif_MaxSlope);
+   std::cerr<<"aif_BATIndex:"<<aif_BATIndex<<std::endl;
+	std::cerr<<"m_AUCTimeInterval:"<<m_AUCTimeInterval<<std::endl;
+	m_aifAUC = area_under_curve(m_timeSize, m_timeAxis, m_averageAIFCon, aif_BATIndex, m_AUCTimeInterval);
+   std::cerr<<"m_aifAUC:"<<m_aifAUC<<std::endl;
     /* for(int i=0;i<m_timeSize;i++)
     {
         std::cerr<<"averageAIFCon"<<i<<"and:"<<m_averageAIFCon[i]<<"\n"<<std::endl;
@@ -233,7 +233,7 @@ void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>
 	
 	//set up optimizer
     itk::LevenbergMarquardtOptimizer::Pointer  optimizer = itk::LevenbergMarquardtOptimizer::New(); ///...    
-    PkSolver::LMCostFunction::Pointer costFunction = PkSolver::LMCostFunction::New(); ///...    
+    LMCostFunction::Pointer costFunction = LMCostFunction::New(); ///...    
         
     //std::cerr <<"costFunction\n"<<std::endl;
     costFunction->SetNumberOfValues (m_timeSize); //...
@@ -247,7 +247,7 @@ void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>
     
     std::cerr <<"LevenbergMarquardtOptimizer"<<std::endl;
     
-    PkSolver::CommandIterationUpdateLevenbergMarquardt::Pointer observer = PkSolver::CommandIterationUpdateLevenbergMarquardt::New();//...
+    CommandIterationUpdateLevenbergMarquardt::Pointer observer = CommandIterationUpdateLevenbergMarquardt::New();//...
     optimizer->AddObserver( itk::IterationEvent(), observer ); //...
     optimizer->AddObserver( itk::FunctionEvaluationIterationEvent(), observer );//...    
     // end set up optimizer
@@ -269,14 +269,14 @@ void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>
         /*PkSolver::pk_solver(m_timeSize, m_TimeMinute,  const_cast<float *>(vectorVoxel.GetDataPointer()), 
 								m_averageAIFCon, tempKtrans, tempVe, tempFpv,
 		  					    m_fTol, m_gTol, m_xTol, m_epsilon, m_maxIter, m_hematocrit);*/
-       PkSolver::pk_solver_boost(m_timeSize, m_TimeMinute, 
+       pk_solver_boost(m_timeSize, m_TimeMinute, 
                                  const_cast<float *>(vectorVoxel.GetDataPointer()),m_averageAIFCon, 
                                  tempKtrans, tempVe, tempFpv, 
                                  m_fTol,m_gTol,m_xTol,
                                  m_epsilon,m_maxIter,
                                  optimizer,costFunction);      
-		PkSolver::compute_bolus_arrival_time (m_timeSize, const_cast<float *>(vectorVoxel.GetDataPointer()), BATIndex, FirstPeakIndex, tempMaxSlope);
-		tempAUC = (PkSolver::area_under_curve(m_timeSize, m_timeAxis, const_cast<float *>(vectorVoxel.GetDataPointer()), BATIndex, m_AUCTimeInterval))/m_aifAUC;
+		compute_bolus_arrival_time (m_timeSize, const_cast<float *>(vectorVoxel.GetDataPointer()), BATIndex, FirstPeakIndex, tempMaxSlope);
+		tempAUC = (area_under_curve(m_timeSize, m_timeAxis, const_cast<float *>(vectorVoxel.GetDataPointer()), BATIndex, m_AUCTimeInterval))/m_aifAUC;
 		
 		//for debug
 		//vectorVolumeIndex = inputVectorVolumeIter.GetIndex();	
@@ -339,7 +339,7 @@ void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>
 template <class TInputImage, class TOutputImage>
 void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>::AfterThreadedGenerateData()
 {
-    std::cerr << "prepare for output" << std::endl;
+    std::cerr << "Prepare for output" << std::endl;
     this->SetNthOutput(0,m_ktransVolume);
 	this->SetNthOutput(1,m_veVolume);
 	this->SetNthOutput(2,m_maxSlopeVolume);
@@ -348,7 +348,7 @@ void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>::AfterThr
     delete [] m_timeAxis;
 	delete [] m_TimeMinute;
     delete [] m_averageAIFCon;
-	std::cerr << "Ready for output!" << std::endl;	
+//	std::cerr << "Ready for output!" << std::endl;	
 //	PkSolver::pk_report();
 }
     
@@ -384,8 +384,8 @@ CalculateQuantificationParametersFilter<TInputImage, TOutputImage>::CalculateAve
 			iterStringy << voxely;
 			iterStringz << voxelz;
 
-			std::string voxelInfo = "D:/Codes/Slicer4/Modules/CLI/PkModeling/Data/DCEMRIData/voxel_" +iterStringx.str()+std::string("_")+iterStringy.str()+"_"+iterStringz.str()+std::string("_SI.txt");
-			FILE* fp = fopen(voxelInfo.c_str(),"w");
+			//std::string voxelInfo = "D:/Codes/Slicer4/Modules/CLI/PkModeling/Data/DCEMRIData/voxel_" +iterStringx.str()+std::string("_")+iterStringy.str()+"_"+iterStringz.str()+std::string("_SI.txt");
+			//FILE* fp = fopen(voxelInfo.c_str(),"w");
 
 			numberVoxels +=1;
 			//std::cout << "numberVoxels:"<< numberVoxels << std::endl;	
@@ -394,25 +394,25 @@ CalculateQuantificationParametersFilter<TInputImage, TOutputImage>::CalculateAve
 			for(int i = 0; i < (int)inputVectorVolume->GetNumberOfComponentsPerPixel(); i++) 
 			{
 				//std::cout <<vectorVoxel.GetDataPointer()[i]<< std::endl;
-				fprintf(fp,"%f\n",vectorVoxel.GetDataPointer()[i]);
+				//fprintf(fp,"%f\n",vectorVoxel.GetDataPointer()[i]);
 				averageAIF[i]+=(float)vectorVoxel.GetDataPointer()[i];		//not an average value	
 				//std::cout << "averageAIF[i]"<< averageAIF[i] << std::endl;	
 			}
-			fclose(fp);
+			//fclose(fp);
 		}	
 		++inputVolumeIter;
 		++inputVectorVolumeIter;
 	}
 	
-	std::string voxelAveInfo = "D:/Codes/Slicer4/Modules/CLI/PkModeling/Data/DCEMRIData/voxel_average_SI.txt";
-	FILE* fpa = fopen(voxelAveInfo.c_str(),"w");
+	//std::string voxelAveInfo = "D:/Codes/Slicer4/Modules/CLI/PkModeling/Data/DCEMRIData/voxel_average_SI.txt";
+	//FILE* fpa = fopen(voxelAveInfo.c_str(),"w");
 	for(int i = 0; i < (int)inputVectorVolume->GetNumberOfComponentsPerPixel(); i++) 
 	{		
 		averageAIF[i]=averageAIF[i]/numberVoxels;			
-		fprintf(fpa,"%f\n",averageAIF[i]);
+		//fprintf(fpa,"%f\n",averageAIF[i]);
 		//std::cout << "averageAIF"<< averageAIF[i] << std::endl;	
 	}
-	fclose(fpa);
+	//fclose(fpa);
 	//std::cout << "Calculated average AIF" << std::endl;
 	//return averageAIF;
 }
@@ -421,18 +421,27 @@ template <class TInputImage, class TOutputImage>
 typename CalculateQuantificationParametersFilter<TInputImage, TOutputImage>::VectorVolumePointerType 
 CalculateQuantificationParametersFilter<TInputImage, TOutputImage>::QulumeToVectorVolume(QulumePointerType inputQulume)
 {		
-	std::cout << std::endl << "Qulume To VectorVolume" << std::endl;
+	std::cout << "Qulume To VectorVolume" << std::endl;
 	typename ImageToVectorImageFilterType::Pointer imageToVectorImageFilter = ImageToVectorImageFilterType::New();
 	
 	VolumePointerType volumeTemp;
     VectorVolumePointerType outputVectorVolume;
+
 	
 	QulumeRegionType inputQulumeRegion = inputQulume->GetLargestPossibleRegion();
 	QulumeSizeType inputQulumeSize = inputQulumeRegion.GetSize();
+	std::cerr<<inputQulumeSize<<std::endl;
+	//std::cerr<<inputQulume->GetPixelType()<<std::endl;
+	/*typedef itk::ImageFileWriter<QulumeType> InternalQulumeWriterType;
+	InternalQulumeWriterType::Pointer internalQulumeWriter = InternalQulumeWriterType::New();
+	internalQulumeWriter->SetFileName("D:/Codes/Slicer4/Modules/CLI/PkModeling/Data/DukeData/testQulumeInput.nrrd");
+	internalQulumeWriter->SetInput(inputQulume);
+	internalQulumeWriter->Update();*/
+
 	typename QulumeType::IndexType extractStartIndex;
 	QulumeSizeType extractSize;
 	QulumeRegionType extractRegion;
-	typename ExtractImageFilterType::Pointer extractImageFilter;
+	//typename ExtractImageFilterType::Pointer extractImageFilter;
 	extractStartIndex[0] = 0; 
 	extractStartIndex[1] = 0; 
 	extractStartIndex[2] = 0; 
@@ -443,7 +452,7 @@ CalculateQuantificationParametersFilter<TInputImage, TOutputImage>::QulumeToVect
 
     for (int i = 0; i < (int)inputQulumeSize[3]; i++) 
 	{
-		extractImageFilter = ExtractImageFilterType::New();			
+		ExtractImageFilterType::Pointer extractImageFilter = ExtractImageFilterType::New();			
 		extractStartIndex[3] = i;				
 		extractRegion.SetIndex(extractStartIndex);		
 		extractRegion.SetSize(extractSize);
@@ -455,10 +464,16 @@ CalculateQuantificationParametersFilter<TInputImage, TOutputImage>::QulumeToVect
 		imageToVectorImageFilter->SetNthInput(i, volumeTemp);
     }
 	
-	imageToVectorImageFilter->ReleaseDataFlagOn();
+	//imageToVectorImageFilter->ReleaseDataFlagOn();
 	imageToVectorImageFilter->Update();
-    outputVectorVolume = imageToVectorImageFilter->GetOutput();
-		
+	//std::cerr<<"test 1"<<std::endl;
+    outputVectorVolume = dynamic_cast<VectorVolumeType *>(imageToVectorImageFilter->GetOutput());
+	//outputVectorVolume = imageToVectorImageFilter->GetOutput();
+	//std::cerr<<"test 2"<<std::endl;
+	/*VectorVolumeSizeType vectorVolumeSize =  imageToVectorImageFilter->GetOutput()->GetLargestPossibleRegion().GetSize();
+    std::cerr<<vectorVolumeSize<<std::endl;
+	
+	std::cout << "Qulume To VectorVolume ends!" << std::endl;*/
 	return outputVectorVolume;
 }
 

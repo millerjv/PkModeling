@@ -17,6 +17,7 @@
 #include "itkS0CalculationFilter.h"
 #include "itkImageFileWriter.h"
 #include "itkCastImageFilter.h"
+#include "..\PkSolver\PkSolver.h"
 
 namespace itk
 {
