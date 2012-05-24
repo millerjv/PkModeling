@@ -107,8 +107,8 @@ class LMCostFunction: public itk::MultipleValuedCostFunction
         }
         
         //Not going to be used
-        void GetDerivative( const ParametersType & parameters,
-                           DerivativeType  & derivative ) const
+      void GetDerivative( const ParametersType & /* parameters*/,
+                          DerivativeType  & /*derivative*/ ) const
         {   
         }
         
