@@ -17,7 +17,7 @@
 #include "itkExtractImageFilter.h"
 #include "itkImageRegionIterator.h"
 #include "itkCastImageFilter.h"
-#include "..\PkSolver\PkSolver.h"
+#include "PkSolver.h"
 
 namespace itk
 {

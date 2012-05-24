@@ -8,7 +8,7 @@ configure_file(
   
 # Additional includes
 set(cli_module_include_directories
-   ../PkSolver
+   ${PkModeling_SOURCE_DIR}/PkSolver
   )
 
 # Additional source files
@@ -20,8 +20,6 @@ set(cli_module_SRCS
     itkConvertSignalIntensitiesToConcentrationValuesFilter.hxx
 	itkCalculateQuantificationParametersFilter.h
 	itkCalculateQuantificationParametersFilter.hxx
-	../PkSolver/PkSolver.h
-	../PkSolver/PkSolver.cxx
   )
   
 # Additional Target libraries
@@ -36,7 +34,6 @@ set(cli_module_SRCS
 slicerMacroBuildCLI(
   NAME ${PKM}
   INCLUDE_DIRECTORIES ${cli_module_include_directories}  
-  INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
   ADDITIONAL_SRCS ${cli_module_SRCS}
   TARGET_LIBRARIES ${ITK_LIBRARIES}  
   )
