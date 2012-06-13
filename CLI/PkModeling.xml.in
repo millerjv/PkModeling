@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <executable>
-  <category>Legacy.Registration</category>
-  <title>Pk Modeling</title>
+  <category>Quantification</category>
+  <title>PkModeling</title>
   <index>2</index>
   <description><![CDATA[Calculate concentration and parameters in Pk Modeling.\n\nThis module was originally distributed as "Linear registration" but has been renamed to eliminate confusion with the "Affine registration" module.\n\nThis module is often used to align images of different subjects or images of the same subject from different modalities.\n\n]]></description>
   <version>0.1.0.$Revision: 19276 $(alpha)</version>
@@ -66,7 +66,7 @@
       <channel>input</channel>
       <default>0.0049</default>      
     </float>
-	<float>
+	<float hidden="true">
       <name>S0GradValue</name>   
       <description><![CDATA[Signal Gradient Threshold value.]]></description>
       <longflag>S0grad</longflag>      
@@ -74,7 +74,7 @@
       <channel>input</channel>
       <default>15.0</default>      
     </float>	
-	<float>
+	<float hidden="true">
       <name>FTolerance</name>   
       <description><![CDATA[F Tolerance value.]]></description>
       <longflag>fTolerance</longflag>      
@@ -82,7 +82,7 @@
       <channel>input</channel>
       <default>1e-4</default>      
     </float>
-	<float>
+	<float hidden="true">
       <name>GTolerance</name>   
       <description><![CDATA[G Tolerance value.]]></description>
       <longflag>gTolerance</longflag>      
@@ -90,7 +90,7 @@
       <channel>input</channel>
       <default>1e-4</default>      
     </float>
-	<float>
+	<float hidden="true">
       <name>XTolerance</name>   
       <description><![CDATA[X Tolerance value.]]></description>
       <longflag>xTolerance</longflag>      
@@ -98,7 +98,7 @@
       <channel>input</channel>
       <default>1e-4</default>      
     </float>
-	<float>
+	<float hidden="true">
       <name>Epsilon</name>   
       <description><![CDATA[Epsilon value.]]></description>
       <longflag>epsilon</longflag>      
@@ -106,7 +106,7 @@
       <channel>input</channel>
       <default>1e-9</default>      
     </float>
-	<float>
+	<float hidden="true">
       <name>MaxIter</name>   
       <description><![CDATA[Maximum iteration value.]]></description>
       <longflag>maxIter</longflag>      
@@ -130,13 +130,13 @@
       <channel>input</channel>
       <default>90</default>      
     </float>
-	<float>
+	<float hidden="true">
       <name>ISInputMask</name>   
       <description><![CDATA[Input AIF mask flag.]]></description>
       <longflag>isInputMask</longflag>      
-      <label>Flag</label>
+      <label>Mask Flag</label>
       <channel>input</channel>
-      <default>0</default>      
+      <default>1</default>      
     </float>
   </parameters>
   <parameters>
