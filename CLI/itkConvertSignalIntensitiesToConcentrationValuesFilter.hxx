@@ -33,15 +33,11 @@ void ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TOutputIma
   InternalQulumePointerType inputQulume = castFilter->GetOutput();
   typename InputImageType::SizeType inputQulumeSize = inputQulume->GetLargestPossibleRegion().GetSize();
   std::cout << "input Qulume Size:"<<inputQulumeSize << std::endl;
-
-  //Qulume to VectorVolume
+  
   InternalVectorVolumePointerType inputVectorVolume = InternalVectorVolumeType::New();
   inputVectorVolume = this->QulumeToVectorVolume(inputQulume);
-  //unsigned int vectorSize = (unsigned
-  // int)inputVectorVolume->GetNumberOfComponentsPerPixel();
 
   // Get S0 Volume
-  //clock_t begin=clock();
   typedef itk::S0CalculationFilter<InternalVectorVolumeType, InternalVolumeType> S0VolumeFilterType;
   typename S0VolumeFilterType::Pointer S0VolumeFilter = S0VolumeFilterType::New();
   S0VolumeFilter->SetInput(inputVectorVolume);
@@ -49,12 +45,7 @@ void ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TOutputIma
   S0VolumeFilter->Update();
 
   InternalVolumePointerType S0Volume = S0VolumeFilter->GetOutput();
-  /*typedef itk::ImageFileWriter<InternalVolumeType> SynWriterType;
-  SynWriterType::Pointer synWriter = SynWriterType::New();
-  synWriter->SetFileName("D:/Codes/Slicer4/Modules/CLI/SignalIntensitiesToConcentrationValues/Data/DukeData/SyntheticDukeSmallQulumeS0.nrrd");
-  synWriter->SetInput(S0Volume);
-  synWriter->Update();*/
-
+  
   InternalVolumeIterType S0VolumeIter(S0Volume, S0Volume->GetRequestedRegion() );
   InputMaskIterType      aifMaskVolumeIter(m_AIFMask,m_AIFMask->GetRequestedRegion() );
 
@@ -68,22 +59,17 @@ void ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TOutputIma
     new float[(int)inputVectorVolume->GetNumberOfComponentsPerPixel()];
   bool                    isConvert;
   InternalVectorVoxelType vectorVoxel;
-  //std::cout << "before while:"<< std::endl;
-
+  
+  // Convert signal intensities to concentration values, if it is AIF voxel use bloood T1, otherwise use tissue T1
   while (!inputVectorVolumeIter.IsAtEnd() )
     {
-    //std::cout << "GET VECTORVOXEL" << std::endl;
+    
     vectorVoxel = inputVectorVolumeIter.Get();
-    //std::cout << "GoT
-    // VECTORVOXEL"<<m_AIFMask->GetLargestPossibleRegion().GetSize()[0] <<
-    // std::endl;
+    
     if( (m_AIFMask->GetLargestPossibleRegion().GetSize()[0])!=0)
       {
       if(aifMaskVolumeIter.Get()!=0)
         {
-        //std::cout << "AIF MASK !0" << std::endl;
-        //std::cerr<<"aif_bat:"<<aif_BATIndex<<std::endl;
-        //std::cerr<<"aif_FIRSTPEAK:"<<aif_FirstPeakIndex<<std::endl;
         isConvert = convert_signal_to_concentration (inputVectorVolume->GetNumberOfComponentsPerPixel(),
                                                      vectorVoxel.GetDataPointer(),
                                                      m_T1PreBlood, m_TR, m_FA,
@@ -94,7 +80,7 @@ void ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TOutputIma
         }
       else
         {
-        //std::cout << "AIF MASK !0 and not aif voxel" << std::endl;
+        
         isConvert = convert_signal_to_concentration (inputVectorVolume->GetNumberOfComponentsPerPixel(),
                                                      vectorVoxel.GetDataPointer(),
                                                      m_T1PreTissue, m_TR, m_FA,
@@ -107,7 +93,7 @@ void ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TOutputIma
       }
     else
       {
-      //std::cout << "AIF MASK 0" << std::endl;
+      
       isConvert = convert_signal_to_concentration (inputVectorVolume->GetNumberOfComponentsPerPixel(),
                                                    vectorVoxel.GetDataPointer(),
                                                    m_T1PreTissue, m_TR, m_FA,
@@ -116,21 +102,6 @@ void ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TOutputIma
                                                    S0VolumeIter.Get(),
                                                    m_S0GradThresh);
 
-      //vectorVoxelIndex = inputVectorVolumeIter.GetIndex();
-      //
-      //if((vectorVoxelIndex[0]==45)&&(vectorVoxelIndex[1]==79)&&(vectorVoxelIndex[2]==9))
-      //{
-      //	float * tempConcentration = const_cast<float
-      // *>(vectorVoxel.GetDataPointer());
-      //	std::cout<<"S0:"<<S0VolumeIter.Get()<<std::endl;
-      //	for(int itemp =
-      // 0;itemp<(inputVectorVolume->GetNumberOfComponentsPerPixel());itemp++)
-      //	{
-      //		std::cout<<"i, original signal,
-      // concentration:"<<itemp<<","<<tempConcentration[itemp]<<","<<concentrationVectorVoxelTemp[itemp]<<std::endl;
-      //	}
-      //	//std::cout<<"tempAUC:"<<tempAUC<<std::endl;
-      //}
       }
     vectorVoxel.SetData(concentrationVectorVoxelTemp,inputVectorVolume->GetNumberOfComponentsPerPixel() );
     inputVectorVolumeIter.Set(vectorVoxel);
@@ -139,21 +110,6 @@ void ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TOutputIma
     }
 
   this->SetNthOutput(0, this->VectorVolumeToQulume(inputVectorVolume) );
-
-  //typedef itk::S0ForTimeSeriesInQulume<InternalVectorVolumeType,
-  // InternalVolumeType>  S0ConcentrationVolumeFilterType;
-  //typename S0ConcentrationVolumeFilterType::Pointer
-  // S0ConcentrationVolumeFilter = S0ConcentrationVolumeFilterType::New();
-  //S0ConcentrationVolumeFilter->SetInput(inputVectorVolume);
-  //S0ConcentrationVolumeFilter->SetS0GradThresh(m_S0GradThresh);
-  //S0ConcentrationVolumeFilter->Update();
-  //
-  //typename ImageWriterType::Pointer s0ConcentrationWriter =
-  // ImageWriterType::New();
-  //s0ConcentrationWriter->SetInput(S0ConcentrationVolumeFilter->GetOutput());
-  //s0ConcentrationWriter->SetFileName("D:/Codes/Slicer4/Testing/Data/Input/s0ConcentrationVolume.nrrd");
-  //s0ConcentrationWriter->Update();
-
   delete [] concentrationVectorVoxelTemp;
 }
 

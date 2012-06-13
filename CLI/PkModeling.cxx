@@ -1,11 +1,10 @@
 /*=========================================================================
 
-  Program:   Registration stand-alone
-  Module:    $HeadURL: http://svn.slicer.org/Slicer4/trunk/Modules/CLI/RigidRegistration/RigidRegistration.cxx $
+  Program:   PkModeling module
+  Module:    $HeadURL: http://svn.slicer.org/Slicer4/trunk/Modules/CLI/PkModeling/PkModeling.cxx $
   Language:  C++
-  Date:      $Date: 2011-12-06 15:49:19 -0500 (Tue, 06 Dec 2011) $
-  Version:   $Revision: 18864 $
-
+  Date:      $Date: 2012-06-06 $
+  
   Copyright (c) Brigham and Women's Hospital (BWH) All Rights Reserved.
 
   See License.txt or http://www.slicer.org/copyright/copyright.txt for details.
@@ -18,7 +17,6 @@
 #include "itkCastImageFilter.h"
 
 #include "PkModelingCLP.h"
-//#include "../SignalIntensitiesToConcentrationValues/PkSolver.h"
 #include "itkOrientImageFilter.h"
 #include "itkImageFileWriter.h"
 #include "itkTransformFileReader.h"
@@ -36,11 +34,6 @@
 
 #define TESTMODE_ERROR_TOLERANCE 0.1
 
-// Use an anonymous namespace to keep class types and function names
-// from colliding when module is used as shared object module.  Every
-// thing should be in an anonymous namespace except for the module
-// entry point, e.g. main()
-//
 namespace
 {
 
@@ -67,8 +60,7 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
   typedef itk::Image<float,VolumeDimension> OutputVolumeType;
 
   typedef itk::ImageFileWriter< OutputVolumeType> VolumeWriterType;
-  //typedef itk::ImageFileWriter< QulumeType>						  QulumeWriterType;
-
+  
   //Read Qulume
   typename QulumeType::Pointer inputQulume = QulumeType::New();
   typename QulumeReaderType::Pointer qulumeReader = QulumeReaderType::New();
@@ -82,18 +74,8 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
   maskVolumeReader->SetFileName(InputMaskFile.c_str() );
   maskVolumeReader->Update();
   maskVolume = maskVolumeReader->GetOutput();
-
-  /*if(ISInputMask!=0)
-  {
-    std::cerr<<"Read mask!"<<std::endl;
-    typename MaskReaderType::Pointer maskReader = MaskReaderType::New();
-    maskReader->SetFileName(InputMaskNrrdFile.c_str());
-    maskReader->Update();
-    intensityToConcentrationConverter->SetAIFMask(maskReader->GetOutput());
-    intensityToConcentrationConverter->SetT1PreBlood(T1PreBloodValue);
-  }*/
-
-  //Convert to concentration
+ 
+  //Convert to concentration values
   typedef itk::ConvertSignalIntensitiesToConcentrationValuesFilter<QulumeType,OutputQulumeType> ConvertFilterType;
   typename ConvertFilterType::Pointer converter = ConvertFilterType::New();
   converter->SetAIFMask(maskVolume);
@@ -126,14 +108,7 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
   quantifier->Sethematocrit(Hematocrit);
   quantifier->Update();
 
-  //For test
-  /*std::cerr << std::endl << "in DoIt2: 3" << std::endl;
-  QulumeType::RegionType qulumeRegion = inputQulume->GetLargestPossibleRegion();
-    QulumeType::SizeType size = qulumeRegion.GetSize();
-  printf("Input Qulume Size: %d %d %d %d. \n", (int)size[0], (int)size[1], (int)size[2], (int)size[3]);
-  */
-
-  //get output
+  //set output
   typename VolumeWriterType::Pointer ktranswriter = VolumeWriterType::New();
   ktranswriter->SetInput(const_cast<OutputVolumeType *>(quantifier->GetOutput() ) );
   ktranswriter->SetFileName(OutputKtransFile.c_str() );
@@ -154,7 +129,7 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
   aucwriter->SetFileName(OutputAUCFile.c_str() );
   aucwriter->Update();
   return EXIT_SUCCESS;
-}  // end of anonymous namespace
+}  
 
 }
 
