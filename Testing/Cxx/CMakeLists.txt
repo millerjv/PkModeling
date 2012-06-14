@@ -16,7 +16,7 @@ add_test(NAME ${testname} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
   )
 set_property(TEST ${testname} PROPERTY LABELS ${CLP})
 
-set(testname ${CLP}TestPkModelling)
+set(testname ${CLP}TestPkModeling)
 add_test(NAME ${testname} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
 	ModuleEntryPoint
 	#--inputFourDNrrd  ${DCEMRIDATA}/case30Concentration.nrrd    
@@ -30,7 +30,6 @@ add_test(NAME ${testname} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
 	--relaxivity 0.0049  
 	--hematocrit 0.45
 	--aucTimeInterval 90
-	#--isInputMask 1
 	#--inputMask ${DCEMRIDATA}/maskVolume.nrrd
 	#--outputKtrans ${DCEMRIDATA}/ktransVolume.nrrd  
 	#--outputVe ${DCEMRIDATA}/veVolume.nrrd
