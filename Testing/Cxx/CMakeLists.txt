@@ -4,7 +4,6 @@ set(DCEMRIDATA ${CMAKE_CURRENT_SOURCE_DIR}/../Data/DCEMRIData)
 set(DUKEDATA ${CMAKE_CURRENT_SOURCE_DIR}/../Data/DukeData)
 set(SYNDATA ${CMAKE_CURRENT_SOURCE_DIR}/../Data/SyntheticData)
 
-#set(SI2C_NAME SignalIntensitiesToConcentrationValues)
 set(CLP ${EXTENSION_NAME})
 
 add_executable(${CLP}Test ${CLP}Test.cxx)
@@ -22,14 +21,16 @@ add_test(NAME ${testname} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
 	ModuleEntryPoint
 	#--inputFourDNrrd  ${DCEMRIDATA}/case30Concentration.nrrd    
 	#--inputFourDNrrd  ${SYNDATA}/SyntheticQulumeConcentration.nrrd    
-	--inputFourDNrrd  ${DUKEDATA}/SyntheticDukeConcentration.nrrd    
+	--inputFourDNrrd  ${DUKEDATA}/SyntheticDuke.nrrd    
 	#--inputFourDNrrd  ${DUKEDATA}/SyntheticDukeSmallQulumeConcentration.nrrd    
-	--T1 1000
+	--T1Tissue 1000
+    --T1Blood 1440
 	--TR 5
 	--FA 25
 	--relaxivity 0.0049  
 	--hematocrit 0.45
 	--aucTimeInterval 90
+	#--isInputMask 1
 	#--inputMask ${DCEMRIDATA}/maskVolume.nrrd
 	#--outputKtrans ${DCEMRIDATA}/ktransVolume.nrrd  
 	#--outputVe ${DCEMRIDATA}/veVolume.nrrd
