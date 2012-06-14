@@ -38,9 +38,3 @@ slicerMacroBuildCLI(
   TARGET_LIBRARIES ${cli_module_target_libraries}  
   )
 
-#slicerMacroBuildCLI(
- # NAME FILL_THIS_IN_WITH_NAME_OF_CONCENTRATION_TO_PARAMETER_IMAGES
- # INCLUDE_DIRECTORIES ${cli_module_include_directories}
- # TARGET_LIBRARIES ${cli_module_target_libraries}
- # ADDITIONAL_SOURCES ${cli_module_SRCS}
- # )
