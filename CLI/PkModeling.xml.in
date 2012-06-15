@@ -69,7 +69,7 @@
     </float>	
     <float hidden="true">
       <name>FTolerance</name>   
-      <description><![CDATA[F tolerance value for establishing convergence.]]></description>
+      <description><![CDATA[Tolerance on function value for establishing convergence.]]></description>
       <longflag>fTolerance</longflag>      
       <label>F Tolerance Value</label>
       <channel>input</channel>
@@ -77,7 +77,7 @@
     </float>
     <float hidden="true">
       <name>GTolerance</name>   
-      <description><![CDATA[G tolerance value for establishing convergence.]]></description>
+      <description><![CDATA[Tolerance on gradient value for establishing convergence.]]></description>
       <longflag>gTolerance</longflag>      
       <label>G Tolerance Value</label>
       <channel>input</channel>
@@ -85,7 +85,7 @@
     </float>
     <float hidden="true">
       <name>XTolerance</name>   
-      <description><![CDATA[X tolerance value for establishing convergence.]]></description>
+      <description><![CDATA[Tolerance on parameter values for establishing convergence.]]></description>
       <longflag>xTolerance</longflag>      
       <label>X Tolerance Value</label>
       <channel>input</channel>
@@ -144,30 +144,30 @@
     <image>
       <name>OutputKtransFileName</name>
       <longflag>outputKtrans</longflag>
-      <label>Output Ktrans</label>
+      <label>Output Ktrans image</label>
       <channel>output</channel>      
       <description><![CDATA[Output volume transfer constant between blood plasma and EES (extracellular-extravascular space) at each voxel.]]></description>
     </image>
     <image>
       <name>OutputVeFileName</name>
       <longflag>outputVe</longflag>
-      <label>Output ve volume</label>
+      <label>Output ve image</label>
       <channel>output</channel>      
-      <description><![CDATA[Output Fractional volume for extracellular space at each voxel.]]></description>
+      <description><![CDATA[Output fractional volume for extracellular space at each voxel.]]></description>
     </image>
     <image>
       <name>OutputMaxSlopeFileName</name>
       <longflag>outputMaxSlope</longflag>
-      <label>Output maxSlope volume</label>
+      <label>Output maximum slope image</label>
       <channel>output</channel>      
-      <description><![CDATA[Output Maximum Slope in the time series curve of each voxel.]]></description>
+      <description><![CDATA[Output maximum slope in the time series curve of each voxel.]]></description>
     </image>
     <image>
       <name>OutputAUCFileName</name>
       <longflag>outputAUC</longflag>
-      <label>Output AUC volume</label>
+      <label>Output AUC image</label>
       <channel>output</channel>      
-      <description><![CDATA[Output Area under the curve (AUC) of each voxel, measured from bolus arrival time to the end time of interval, normalized by the AUC of the AIF.]]></description>
+      <description><![CDATA[Output area under the curve (AUC) of each voxel, measured from bolus arrival time to the end time of interval, normalized by the AUC of the AIF.]]></description>
     </image>
   </parameters>
 </executable>
