@@ -64,14 +64,14 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
   //Read Qulume
   typename QulumeType::Pointer inputQulume = QulumeType::New();
   typename QulumeReaderType::Pointer qulumeReader = QulumeReaderType::New();
-  qulumeReader->SetFileName(InputFourDNrrdFile.c_str() );
+  qulumeReader->SetFileName(InputFourDImageFileName.c_str() );
   qulumeReader->Update();
   inputQulume = qulumeReader->GetOutput();
 
   //Read mask
   typename VolumeType::Pointer maskVolume = VolumeType::New();
   typename VolumeReaderType::Pointer maskVolumeReader = VolumeReaderType::New();
-  maskVolumeReader->SetFileName(InputMaskFile.c_str() );
+  maskVolumeReader->SetFileName(AIFMaskFileName.c_str() );
   maskVolumeReader->Update();
   maskVolume = maskVolumeReader->GetOutput();
  
@@ -99,7 +99,7 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
 
   quantifier->SetInputVolume(maskCastFilter->GetOutput() );
   quantifier->SetAUCTimeInterval(AUCTimeInterval);
-  quantifier->SetTimeAxis(TimeAxis);
+  quantifier->SetTimeAxis(TriggerTimes);
   quantifier->SetfTol(FTolerance);
   quantifier->SetgTol(GTolerance);
   quantifier->SetxTol(XTolerance);
@@ -111,22 +111,22 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
   //set output
   typename VolumeWriterType::Pointer ktranswriter = VolumeWriterType::New();
   ktranswriter->SetInput(const_cast<OutputVolumeType *>(quantifier->GetOutput() ) );
-  ktranswriter->SetFileName(OutputKtransFile.c_str() );
+  ktranswriter->SetFileName(OutputKtransFileName.c_str() );
   ktranswriter->Update();
 
   typename VolumeWriterType::Pointer vewriter = VolumeWriterType::New();
   vewriter->SetInput(quantifier->GetOutput(1) );
-  vewriter->SetFileName(OutputVeFile.c_str() );
+  vewriter->SetFileName(OutputVeFileName.c_str() );
   vewriter->Update();
 
   typename VolumeWriterType::Pointer maxSlopewriter = VolumeWriterType::New();
   maxSlopewriter->SetInput(quantifier->GetOutput(2) );
-  maxSlopewriter->SetFileName(OutputMaxSlopeFile.c_str() );
+  maxSlopewriter->SetFileName(OutputMaxSlopeFileName.c_str() );
   maxSlopewriter->Update();
 
   typename VolumeWriterType::Pointer aucwriter = VolumeWriterType::New();
   aucwriter->SetInput(quantifier->GetOutput(3) );
-  aucwriter->SetFileName(OutputAUCFile.c_str() );
+  aucwriter->SetFileName(OutputAUCFileName.c_str() );
   aucwriter->Update();
   return EXIT_SUCCESS;
 }  
@@ -148,7 +148,7 @@ int main( int argc, char * argv[] )
   try
     {
 
-    itk::GetImageType(InputFourDNrrdFile, pixelType, componentType);
+    itk::GetImageType(InputFourDImageFileName, pixelType, componentType);
     //std::cout << std::endl << "in try" << std::endl;
     // This filter handles all types
 
