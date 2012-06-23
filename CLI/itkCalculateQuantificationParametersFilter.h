@@ -107,7 +107,7 @@ public:
 
   itkGetConstMacro(ExtractionRegion, MultiVolumeRegionType);
 
-  void SetInputMultiVolume(const MultiVolumeType* qulume);
+  void SetInputMultiVolume(const MultiVolumeType* multiVolume);
 
   void SetInputVolume(const VolumeType* volume);
 
