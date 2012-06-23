@@ -8,10 +8,10 @@ T1 = 1600
 s0 = 10 (same as in the input data)
 relaxivity = 0.0049
 
-SyntheticQulumeInput.nrrd: signal intensity values, each voxel has the following values in time domain
+SyntheticMultiVolumeInput.nrrd: signal intensity values, each voxel has the following values in time domain
 10, 10, 10, 10, 10, 10, 10, 10, 50, 100, 50, 10, 10, 10, 10,10, 10, 10, 10, 10,10, 10, 10, 10, 10,10, 10, 10, 10, 10,10, 10, 10, 10, 10,10, 10, 10, 10, 10,10, 10, 10, 10, 10,10, 10, 10, 10, 10,
-SyntheticQulumeOutput.nrrd: concentration values calculated from the signal intensity values, each voxel has the following values in time domain
+SyntheticMultiVolumeOutput.nrrd: concentration values calculated from the signal intensity values, each voxel has the following values in time domain
 0, 0, 0, 0, 0, 0, 0, 0, 0.7673, 3.4819, 0.7673, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-SyntheticQulumeAllZero.nrrd: all zero values
-SyntheticQulumeAllTen.nrrd: all "10" values
-SyntheticQulumeAllNagTen.nrrd: all "-10" values
+SyntheticMultiVolumeAllZero.nrrd: all zero values
+SyntheticMultiVolumeAllTen.nrrd: all "10" values
+SyntheticMultiVolumeAllNagTen.nrrd: all "-10" values
