@@ -30,12 +30,12 @@ void ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TOutputIma
   typename CastFilterType::Pointer castFilter = CastFilterType::New();
   castFilter->SetInput(const_cast<InputImageType *>(this->GetInput() ) );
   castFilter->Update();
-  InternalQulumePointerType inputQulume = castFilter->GetOutput();
-  typename InputImageType::SizeType inputQulumeSize = inputQulume->GetLargestPossibleRegion().GetSize();
-  std::cout << "input Qulume Size:"<<inputQulumeSize << std::endl;
+  InternalMultiVolumePointerType inputMultiVolume = castFilter->GetOutput();
+  typename InputImageType::SizeType inputMultiVolumeSize = inputMultiVolume->GetLargestPossibleRegion().GetSize();
+  std::cout << "input MultiVolume Size:"<<inputMultiVolumeSize << std::endl;
   
   InternalVectorVolumePointerType inputVectorVolume = InternalVectorVolumeType::New();
-  inputVectorVolume = this->QulumeToVectorVolume(inputQulume);
+  inputVectorVolume = this->MultiVolumeToVectorVolume(inputMultiVolume);
 
   // Get S0 Volume
   typedef itk::S0CalculationFilter<InternalVectorVolumeType, InternalVolumeType> S0VolumeFilterType;
@@ -49,7 +49,7 @@ void ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TOutputIma
   InternalVolumeIterType S0VolumeIter(S0Volume, S0Volume->GetRequestedRegion() );
   InputMaskIterType      aifMaskVolumeIter(m_AIFMask,m_AIFMask->GetRequestedRegion() );
 
-  inputVectorVolume = this->QulumeToVectorVolume(inputQulume);
+  inputVectorVolume = this->MultiVolumeToVectorVolume(inputMultiVolume);
   InternalVectorVolumeIterType inputVectorVolumeIter(inputVectorVolume, inputVectorVolume->GetLargestPossibleRegion() );
 
   aifMaskVolumeIter.GoToBegin();
@@ -109,93 +109,93 @@ void ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TOutputIma
     ++inputVectorVolumeIter;
     }
 
-  this->SetNthOutput(0, this->VectorVolumeToQulume(inputVectorVolume) );
+  this->SetNthOutput(0, this->VectorVolumeToMultiVolume(inputVectorVolume) );
   delete [] concentrationVectorVoxelTemp;
 }
 
 template <class TInputImage, class TOutputImage>
-typename ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TOutputImage>::InternalQulumePointerType
-ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TOutputImage>::VectorVolumeToQulume(
+typename ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TOutputImage>::InternalMultiVolumePointerType
+ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TOutputImage>::VectorVolumeToMultiVolume(
   InternalVectorVolumePointerType inputVectorVolume)
 {
-  std::cout << std::endl << "VectorVolume To Qulume" << std::endl;
+  std::cout << std::endl << "VectorVolume To MultiVolume" << std::endl;
   InternalVectorVolumeRegionType inputVectorVolumeRegion = inputVectorVolume->GetLargestPossibleRegion();
   InternalVectorVolumeSizeType   inputVectorVolumeSize = inputVectorVolumeRegion.GetSize();
   InternalVectorVolumeIterType   inputVectorVolumeIter(inputVectorVolume, inputVectorVolume->GetRequestedRegion() );
 
-  InternalQulumePointerType     outputQulume = InternalQulumeType::New();
-  InternalQulumeType::IndexType outputQulumeStartIndex;
-  outputQulumeStartIndex[0]=0;
-  outputQulumeStartIndex[1]=0;
-  outputQulumeStartIndex[2]=0;
-  outputQulumeStartIndex[3]=0;
-  InternalQulumeType::SizeType outputQulumeSize;
-  outputQulumeSize[0]=inputVectorVolumeSize[0];
-  outputQulumeSize[1]=inputVectorVolumeSize[1];
-  outputQulumeSize[2]=inputVectorVolumeSize[2];
-  outputQulumeSize[3]=inputVectorVolume->GetNumberOfComponentsPerPixel();
+  InternalMultiVolumePointerType     outputMultiVolume = InternalMultiVolumeType::New();
+  InternalMultiVolumeType::IndexType outputMultiVolumeStartIndex;
+  outputMultiVolumeStartIndex[0]=0;
+  outputMultiVolumeStartIndex[1]=0;
+  outputMultiVolumeStartIndex[2]=0;
+  outputMultiVolumeStartIndex[3]=0;
+  InternalMultiVolumeType::SizeType outputMultiVolumeSize;
+  outputMultiVolumeSize[0]=inputVectorVolumeSize[0];
+  outputMultiVolumeSize[1]=inputVectorVolumeSize[1];
+  outputMultiVolumeSize[2]=inputVectorVolumeSize[2];
+  outputMultiVolumeSize[3]=inputVectorVolume->GetNumberOfComponentsPerPixel();
 
-  InternalQulumeType::RegionType outputQulumeRegion;
-  outputQulumeRegion.SetSize(outputQulumeSize);
-  outputQulumeRegion.SetIndex(outputQulumeStartIndex);
-  outputQulume->SetRegions(outputQulumeRegion);
-  outputQulume->Allocate();
-  outputQulume->FillBuffer(0);
+  InternalMultiVolumeType::RegionType outputMultiVolumeRegion;
+  outputMultiVolumeRegion.SetSize(outputMultiVolumeSize);
+  outputMultiVolumeRegion.SetIndex(outputMultiVolumeStartIndex);
+  outputMultiVolume->SetRegions(outputMultiVolumeRegion);
+  outputMultiVolume->Allocate();
+  outputMultiVolume->FillBuffer(0);
 
   InternalVectorVoxelType             vectorVoxel;
   InternalVectorVolumeType::IndexType tempVectorVolumeIndex;
-  InternalQulumeType::IndexType       outputQulumeIndex;
+  InternalMultiVolumeType::IndexType       outputMultiVolumeIndex;
   while (!inputVectorVolumeIter.IsAtEnd() )
     {
     tempVectorVolumeIndex=inputVectorVolumeIter.GetIndex();
     vectorVoxel = inputVectorVolume->GetPixel(tempVectorVolumeIndex);
-    outputQulumeIndex[0]=tempVectorVolumeIndex[0];
-    outputQulumeIndex[1]=tempVectorVolumeIndex[1];
-    outputQulumeIndex[2]=tempVectorVolumeIndex[2];
+    outputMultiVolumeIndex[0]=tempVectorVolumeIndex[0];
+    outputMultiVolumeIndex[1]=tempVectorVolumeIndex[1];
+    outputMultiVolumeIndex[2]=tempVectorVolumeIndex[2];
     for(int i = 0; i < (int)inputVectorVolume->GetNumberOfComponentsPerPixel(); i++)
       {
-      outputQulumeIndex[3]=i;
-      outputQulume->SetPixel(outputQulumeIndex, vectorVoxel[i]);
+      outputMultiVolumeIndex[3]=i;
+      outputMultiVolume->SetPixel(outputMultiVolumeIndex, vectorVoxel[i]);
       }
     ++inputVectorVolumeIter;
     }
 
-  return outputQulume;
+  return outputMultiVolume;
 }
 
 template <class TInputImage, class TOutputImage>
 typename ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage,
                                                              TOutputImage>::InternalVectorVolumePointerType
-ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TOutputImage>::QulumeToVectorVolume(
-  InternalQulumePointerType inputQulume)
+ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TOutputImage>::MultiVolumeToVectorVolume(
+  InternalMultiVolumePointerType inputMultiVolume)
 {
-  std::cout << std::endl << "Qulume To VectorVolume" << std::endl;
+  std::cout << std::endl << "MultiVolume To VectorVolume" << std::endl;
   ImageToVectorImageFilterType::Pointer imageToVectorImageFilter = ImageToVectorImageFilterType::New();
 
   InternalVolumeType::Pointer       volumeTemp;
   InternalVectorVolumeType::Pointer outputVectorVolume;
 
-  InternalQulumeRegionType       inputQulumeRegion = inputQulume->GetLargestPossibleRegion();
-  InternalQulumeSizeType         inputQulumeSize = inputQulumeRegion.GetSize();
-  InternalQulumeType::IndexType  extractStartIndex;
-  InternalQulumeType::SizeType   extractSize;
-  InternalQulumeType::RegionType extractRegion;
+  InternalMultiVolumeRegionType       inputMultiVolumeRegion = inputMultiVolume->GetLargestPossibleRegion();
+  InternalMultiVolumeSizeType         inputMultiVolumeSize = inputMultiVolumeRegion.GetSize();
+  InternalMultiVolumeType::IndexType  extractStartIndex;
+  InternalMultiVolumeType::SizeType   extractSize;
+  InternalMultiVolumeType::RegionType extractRegion;
 
-  for (int i = 0; i < (int)inputQulumeSize[3]; i++)
+  for (int i = 0; i < (int)inputMultiVolumeSize[3]; i++)
     {
     ExtractImageFilterType::Pointer extractImageFilter = ExtractImageFilterType::New();
     extractStartIndex[0] = 0;
     extractStartIndex[1] = 0;
     extractStartIndex[2] = 0;
-    extractSize[0] = inputQulumeSize[0];
-    extractSize[1] = inputQulumeSize[1];
-    extractSize[2] = inputQulumeSize[2];
+    extractSize[0] = inputMultiVolumeSize[0];
+    extractSize[1] = inputMultiVolumeSize[1];
+    extractSize[2] = inputMultiVolumeSize[2];
     extractSize[3] = 0;
     extractStartIndex[3] = i;
     extractRegion.SetIndex(extractStartIndex);
     extractRegion.SetSize(extractSize);
     extractImageFilter->SetExtractionRegion(extractRegion);
-    extractImageFilter->SetInput(inputQulume);
+    extractImageFilter->SetInput(inputMultiVolume);
     extractImageFilter->Update();
     extractImageFilter->ReleaseDataFlagOn();
     volumeTemp = extractImageFilter->GetOutput();

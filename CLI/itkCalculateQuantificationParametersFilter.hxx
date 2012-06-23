@@ -47,7 +47,7 @@ CalculateQuantificationParametersFilter<TInputImage,TOutputImage>::CalculateQuan
 
 template<class TInputImage, class TOutputImage>
 void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>
-::CallCopyOutputRegionToInputRegion(QulumeRegionType &destRegion, const VolumeRegionType &srcRegion)
+::CallCopyOutputRegionToInputRegion(MultiVolumeRegionType &destRegion, const VolumeRegionType &srcRegion)
 {
   ExtractImageFilterRegionCopierType extractImageRegionCopier;
 
@@ -61,8 +61,8 @@ throw( InvalidRequestedRegionError )
 {
   Superclass::GenerateInputRequestedRegion();
   
-  typename CalculateQuantificationParametersFilter<TInputImage,TOutputImage>::QulumePointerType image =
-    const_cast< QulumeType * >( this->GetInput(0) );
+  typename CalculateQuantificationParametersFilter<TInputImage,TOutputImage>::MultiVolumePointerType image =
+    const_cast< MultiVolumeType * >( this->GetInput(0) );
   if ( image )
     {
     image->SetRequestedRegion( this->GetInput(0)->GetLargestPossibleRegion() );
@@ -71,9 +71,9 @@ throw( InvalidRequestedRegionError )
 
 // Set 4D concentration values as first input
 template< class TInputImage, class TOutputImage >
-void CalculateQuantificationParametersFilter< TInputImage, TOutputImage >::SetInputQulume(const TInputImage* qulume)
+void CalculateQuantificationParametersFilter< TInputImage, TOutputImage >::SetInputMultiVolume(const TInputImage* multiVolume)
 {
-  SetNthInput(0, const_cast<TInputImage*>(qulume) );
+  SetNthInput(0, const_cast<TInputImage*>(multiVolume) );
 }
 
 // Set 3D AIF mask as second input
@@ -84,7 +84,7 @@ void CalculateQuantificationParametersFilter< TInputImage, TOutputImage >::SetIn
 }
 
 template< class TInputImage, class TOutputImage >
-typename TInputImage::ConstPointer CalculateQuantificationParametersFilter< TInputImage, TOutputImage >::GetInputQulume()
+typename TInputImage::ConstPointer CalculateQuantificationParametersFilter< TInputImage, TOutputImage >::GetInputMultiVolume()
 {
   return static_cast< const TInputImage * >
          ( this->ProcessObject::GetInput(0) );
@@ -134,12 +134,12 @@ template <class TInputImage, class TOutputImage>
 void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>::BeforeThreadedGenerateData()
 {
 
-  m_inputQulume = this->GetInputQulume();
+  m_inputMultiVolume = this->GetInputMultiVolume();
   m_inputVolume = this->GetInputVolume();
 
-  //transfer input qulume to vector image
+  //transfer input multiVolume to vector image
   m_inputVectorVolume =
-    this->QulumeToVectorVolume(const_cast<QulumeType *>(static_cast<const QulumeType * >(m_inputQulume) ) );
+    this->MultiVolumeToVectorVolume(const_cast<MultiVolumeType *>(static_cast<const MultiVolumeType * >(m_inputMultiVolume) ) );
 
   VectorVolumeSizeType vectorVolumeSize = m_inputVectorVolume->GetLargestPossibleRegion().GetSize();
 
@@ -163,10 +163,10 @@ void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>::BeforeTh
 
   m_timeSize = (int)m_inputVectorVolume->GetNumberOfComponentsPerPixel();
 
-  m_TimeMinute = new float[m_inputQulume->GetLargestPossibleRegion().GetSize()[3]]();
+  m_TimeMinute = new float[m_inputMultiVolume->GetLargestPossibleRegion().GetSize()[3]]();
   
   //convert second to minute for time series
-  for(unsigned int i =0; i<(m_inputQulume->GetLargestPossibleRegion().GetSize()[3]); i++)
+  for(unsigned int i =0; i<(m_inputMultiVolume->GetLargestPossibleRegion().GetSize()[3]); i++)
     {
     m_TimeMinute[i] = m_timeAxis[i]/60;    
     }
@@ -316,36 +316,36 @@ CalculateQuantificationParametersFilter<TInputImage, TOutputImage>::CalculateAve
 
 template <class TInputImage, class TOutputImage>
 typename CalculateQuantificationParametersFilter<TInputImage, TOutputImage>::VectorVolumePointerType
-CalculateQuantificationParametersFilter<TInputImage, TOutputImage>::QulumeToVectorVolume(QulumePointerType inputQulume)
+CalculateQuantificationParametersFilter<TInputImage, TOutputImage>::MultiVolumeToVectorVolume(MultiVolumePointerType inputMultiVolume)
 { 
   typename ImageToVectorImageFilterType::Pointer imageToVectorImageFilter = ImageToVectorImageFilterType::New();
 
   VolumePointerType       volumeTemp;
   VectorVolumePointerType outputVectorVolume;
 
-  QulumeRegionType inputQulumeRegion = inputQulume->GetLargestPossibleRegion();
-  QulumeSizeType   inputQulumeSize = inputQulumeRegion.GetSize();
+  MultiVolumeRegionType inputMultiVolumeRegion = inputMultiVolume->GetLargestPossibleRegion();
+  MultiVolumeSizeType   inputMultiVolumeSize = inputMultiVolumeRegion.GetSize();
  
-  typename QulumeType::IndexType extractStartIndex;
-  QulumeSizeType   extractSize;
-  QulumeRegionType extractRegion;
+  typename MultiVolumeType::IndexType extractStartIndex;
+  MultiVolumeSizeType   extractSize;
+  MultiVolumeRegionType extractRegion;
  
   extractStartIndex[0] = 0;
   extractStartIndex[1] = 0;
   extractStartIndex[2] = 0;
-  extractSize[0] = inputQulumeSize[0];
-  extractSize[1] = inputQulumeSize[1];
-  extractSize[2] = inputQulumeSize[2];
+  extractSize[0] = inputMultiVolumeSize[0];
+  extractSize[1] = inputMultiVolumeSize[1];
+  extractSize[2] = inputMultiVolumeSize[2];
   extractSize[3] = 0;
 
-  for (int i = 0; i < (int)inputQulumeSize[3]; i++)
+  for (int i = 0; i < (int)inputMultiVolumeSize[3]; i++)
     {
     typename ExtractImageFilterType::Pointer extractImageFilter = ExtractImageFilterType::New();
     extractStartIndex[3] = i;
     extractRegion.SetIndex(extractStartIndex);
     extractRegion.SetSize(extractSize);
     extractImageFilter->SetExtractionRegion(extractRegion);
-    extractImageFilter->SetInput(inputQulume);
+    extractImageFilter->SetInput(inputMultiVolume);
     extractImageFilter->Update();
     extractImageFilter->ReleaseDataFlagOn();
     volumeTemp = extractImageFilter->GetOutput();

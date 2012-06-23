@@ -45,28 +45,28 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
   //
   PARSE_ARGS;
 
-  const   unsigned int QulumeDimension = 4;
-  typedef T1                                           QulumePixelType;
-  typedef itk::Image<QulumePixelType, QulumeDimension> QulumeType;
-  typedef typename QulumeType::RegionType              QulumeRegionType;
-  typedef itk::ImageFileReader<QulumeType>             QulumeReaderType;
+  const   unsigned int MultiVolumeDimension = 4;
+  typedef T1                                                MultiVolumePixelType;
+  typedef itk::Image<MultiVolumePixelType, MultiVolumeDimension> MultiVolumeType;
+  typedef typename MultiVolumeType::RegionType              MultiVolumeRegionType;
+  typedef itk::ImageFileReader<MultiVolumeType>             MultiVolumeReaderType;
 
   const   unsigned int VolumeDimension = 3;
   typedef T2                                           VolumePixelType;
   typedef itk::Image<VolumePixelType, VolumeDimension> VolumeType;
   typedef itk::ImageFileReader<VolumeType>             VolumeReaderType;
 
-  typedef itk::Image<float,QulumeDimension> OutputQulumeType;
+  typedef itk::Image<float,MultiVolumeDimension> OutputMultiVolumeType;
   typedef itk::Image<float,VolumeDimension> OutputVolumeType;
 
   typedef itk::ImageFileWriter< OutputVolumeType> VolumeWriterType;
   
-  //Read Qulume
-  typename QulumeType::Pointer inputQulume = QulumeType::New();
-  typename QulumeReaderType::Pointer qulumeReader = QulumeReaderType::New();
-  qulumeReader->SetFileName(InputFourDImageFileName.c_str() );
-  qulumeReader->Update();
-  inputQulume = qulumeReader->GetOutput();
+  //Read MultiVolume
+  typename MultiVolumeType::Pointer inputMultiVolume = MultiVolumeType::New();
+  typename MultiVolumeReaderType::Pointer multiVolumeReader = MultiVolumeReaderType::New();
+  multiVolumeReader->SetFileName(InputFourDImageFileName.c_str() );
+  multiVolumeReader->Update();
+  inputMultiVolume = multiVolumeReader->GetOutput();
 
   //Read mask
   typename VolumeType::Pointer maskVolume = VolumeType::New();
@@ -76,11 +76,11 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
   maskVolume = maskVolumeReader->GetOutput();
  
   //Convert to concentration values
-  typedef itk::ConvertSignalIntensitiesToConcentrationValuesFilter<QulumeType,OutputQulumeType> ConvertFilterType;
+  typedef itk::ConvertSignalIntensitiesToConcentrationValuesFilter<MultiVolumeType,OutputMultiVolumeType> ConvertFilterType;
   typename ConvertFilterType::Pointer converter = ConvertFilterType::New();
   converter->SetAIFMask(maskVolume);
   converter->SetT1PreBlood(T1PreBloodValue);
-  converter->SetInput(inputQulume);
+  converter->SetInput(inputMultiVolume);
   converter->SetT1PreTissue(T1PreTissueValue);
   converter->SetTR(TRValue);
   converter->SetFA(FAValue);
@@ -93,9 +93,9 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
   typename MaskCastFilterType::Pointer maskCastFilter = MaskCastFilterType::New();
   maskCastFilter->SetInput(maskVolume);
   maskCastFilter->Update();
-  typedef itk::CalculateQuantificationParametersFilter<OutputQulumeType, OutputVolumeType> QuantifierType;
+  typedef itk::CalculateQuantificationParametersFilter<OutputMultiVolumeType, OutputVolumeType> QuantifierType;
   typename QuantifierType::Pointer quantifier = QuantifierType::New();
-  quantifier->SetInputQulume(const_cast<OutputQulumeType *>(converter->GetOutput() ) );
+  quantifier->SetInputMultiVolume(const_cast<OutputMultiVolumeType *>(converter->GetOutput() ) );
 
   quantifier->SetInputVolume(maskCastFilter->GetOutput() );
   quantifier->SetAUCTimeInterval(AUCTimeInterval);

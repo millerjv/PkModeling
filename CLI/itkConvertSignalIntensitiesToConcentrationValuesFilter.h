@@ -44,10 +44,10 @@ public:
   typedef typename OutputImageType::PixelType    OutputPixelType;
   typedef typename OutputImageType::RegionType   OutputImageRegionType;
 
-  typedef itk::Image<FloatPixelType, 4>           InternalQulumeType;
-  typedef typename InternalQulumeType::Pointer    InternalQulumePointerType;
-  typedef typename InternalQulumeType::RegionType InternalQulumeRegionType;
-  typedef typename InternalQulumeType::SizeType   InternalQulumeSizeType;
+  typedef itk::Image<FloatPixelType, 4>           InternalMultiVolumeType;
+  typedef typename InternalMultiVolumeType::Pointer    InternalMultiVolumePointerType;
+  typedef typename InternalMultiVolumeType::RegionType InternalMultiVolumeRegionType;
+  typedef typename InternalMultiVolumeType::SizeType   InternalMultiVolumeSizeType;
 
   typedef itk::Image<FloatPixelType, 3>                InternalVolumeType;
   typedef typename InternalVolumeType::Pointer         InternalVolumePointerType;
@@ -63,9 +63,9 @@ public:
 
   typedef itk::VariableLengthVector<float> InternalVectorVoxelType;
 
-  typedef itk::ExtractImageFilter<InternalQulumeType, InternalVolumeType> ExtractImageFilterType;
+  typedef itk::ExtractImageFilter<InternalMultiVolumeType, InternalVolumeType> ExtractImageFilterType;
   typedef itk::ImageToVectorImageFilter<InternalVolumeType>               ImageToVectorImageFilterType;
-  typedef itk::CastImageFilter<InputImageType, InternalQulumeType >       CastFilterType;
+  typedef itk::CastImageFilter<InputImageType, InternalMultiVolumeType >       CastFilterType;
 
   /** Standard class typedefs. */
   typedef ConvertSignalIntensitiesToConcentrationValuesFilter Self;
@@ -99,12 +99,12 @@ public:
   }
 
   typename ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage,
-                                                               TOutputImage>::InternalQulumePointerType
-  VectorVolumeToQulume(InternalVectorVolumePointerType inputVectorVolume);
+                                                               TOutputImage>::InternalMultiVolumePointerType
+  VectorVolumeToMultiVolume(InternalVectorVolumePointerType inputVectorVolume);
 
   typename ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage,
                                                                TOutputImage>::InternalVectorVolumePointerType
-  QulumeToVectorVolume(InternalQulumePointerType inputQulume);
+  MultiVolumeToVectorVolume(InternalMultiVolumePointerType inputMultiVolume);
 
 protected:
   ConvertSignalIntensitiesToConcentrationValuesFilter();

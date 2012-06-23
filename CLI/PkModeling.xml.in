@@ -127,14 +127,14 @@
   <parameters>
     <label>IO</label>
     <description><![CDATA[Input/output parameters]]></description>    
-    <image>
+    <image type="dynamic-contrast-enhanced">
       <name>InputFourDImageFileName</name>
       <longflag>fourDImage</longflag>
       <label>Input 4D Image</label>
       <channel>input</channel>      
       <description><![CDATA[Input 4D Image (txyz)]]></description>
     </image>	 
-    <image>
+    <image type="label">
       <name>AIFMaskFileName</name>
       <longflag>aifMaskImage</longflag>
       <label>AIF Mask Image</label>
