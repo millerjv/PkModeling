@@ -20,9 +20,9 @@ set(testname ${CLP}TestPkModeling)
 add_test(NAME ${testname} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
 	ModuleEntryPoint
 	#--inputFourDNrrd  ${DCEMRIDATA}/case30Concentration.nrrd    
-	#--inputFourDNrrd  ${SYNDATA}/SyntheticQulumeConcentration.nrrd    
+	#--inputFourDNrrd  ${SYNDATA}/SyntheticMultiVolumeConcentration.nrrd    
 	--inputFourDNrrd  ${DUKEDATA}/SyntheticDuke.nrrd    
-	#--inputFourDNrrd  ${DUKEDATA}/SyntheticDukeSmallQulumeConcentration.nrrd    
+	#--inputFourDNrrd  ${DUKEDATA}/SyntheticDukeSmallMultiVolumeConcentration.nrrd    
 	--T1Tissue 1000
     --T1Blood 1440
 	--TR 5
@@ -45,10 +45,10 @@ add_test(NAME ${testname} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
 	--outputVe ${DUKEDATA}/veVolumeSyn.nrrd
 	--outputMaxSlope ${DUKEDATA}/maxSlopeVolumeSyn.nrrd
 	--outputAUC ${DUKEDATA}/AUCVolumeSyn.nrrd  
-	#--inputMask ${DUKEDATA}/SyntheticDukeSmallQulumeMask.nrrd
-	#--outputKtrans ${DUKEDATA}/ktransVolumeSynSmallQulume.nrrd  
-	#--outputVe ${DUKEDATA}/veVolumeSynSmallQulume.nrrd
-	#--outputMaxSlope ${DUKEDATA}/maxSlopeVolumeSynSmallQulume.nrrd
-	#--outputAUC ${DUKEDATA}/AUCVolumeSynSmallQulume.nrrd    
+	#--inputMask ${DUKEDATA}/SyntheticDukeSmallMultiVolumeMask.nrrd
+	#--outputKtrans ${DUKEDATA}/ktransVolumeSynSmallMultiVolume.nrrd  
+	#--outputVe ${DUKEDATA}/veVolumeSynSmallMultiVolume.nrrd
+	#--outputMaxSlope ${DUKEDATA}/maxSlopeVolumeSynSmallMultiVolume.nrrd
+	#--outputAUC ${DUKEDATA}/AUCVolumeSynSmallMultiVolume.nrrd    
   )
 set_property(TEST ${testname} PROPERTY LABELS ${CLP})
