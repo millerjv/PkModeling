@@ -37,6 +37,69 @@
 namespace
 {
 
+#define SimpleAttributeGetMethodMacro(name, key, type)     \
+type Get##name(itk::MetaDataDictionary& dictionary)           \
+{\
+  type value = type(); \
+  if (dictionary.HasKey(key))\
+    {\
+    /* attributes stored as strings */ \
+    std::string valueString; \
+    ExposeMetaData(dictionary, key, valueString); \
+    std::stringstream valueStream(valueString); \
+    valueStream >> value; \
+    }\
+  else\
+    {\
+    itkGenericExceptionMacro("Missing attribute '" key "'.");\
+    }\
+  return value;\
+}
+
+//SimpleAttributeGetMethodMacro(EchoTime, "MultiVolume.DICOM.EchoTime", float);
+SimpleAttributeGetMethodMacro(RepetitionTime, "MultiVolume.DICOM.RepetitionTime",float);
+SimpleAttributeGetMethodMacro(FlipAngle, "MultiVolume.DICOM.FlipAngle", float);
+
+std::vector<float> GetTriggerTimes(itk::MetaDataDictionary& dictionary)
+{
+  std::vector<float> triggerTimes;
+
+  if (dictionary.HasKey("MultiVolume.FrameIdentifyingDICOMTagName"))
+    {
+    std::string tag;
+    ExposeMetaData(dictionary, "MultiVolume.FrameIdentifyingDICOMTagName", tag);
+    if (dictionary.HasKey("MultiVolume.FrameLabels"))
+      {
+      // Acquisition parameters stored as text
+      std::string frameLabelsString;
+      ExposeMetaData(dictionary, "MultiVolume.FrameLabels", frameLabelsString);
+      std::stringstream frameLabelsStream(frameLabelsString);
+      if (tag == "Trigger Time")
+        {
+        float t;
+        while (frameLabelsStream >> t)
+          {
+          t /= 1000.0; // convert to seconds (are times in milliseconds?)
+          triggerTimes.push_back(t);
+          }
+        }
+      // what other frame identification methods are there?
+      }
+    else
+      {
+      itkGenericExceptionMacro("Missing attribute 'MultiVolume.FrameLabels'.")
+      }
+    }
+  else
+    {
+    itkGenericExceptionMacro("Missing attribute 'MultiVolume.FrameIdentifyingDICOMTagName'.");
+    }
+  
+  return triggerTimes;
+}
+
+
+
 template <class T1, class T2>
 int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
 {
@@ -62,18 +125,79 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
   typedef itk::ImageFileWriter< OutputVolumeType> VolumeWriterType;
   
   //Read MultiVolume
-  typename MultiVolumeType::Pointer inputMultiVolume = MultiVolumeType::New();
   typename MultiVolumeReaderType::Pointer multiVolumeReader = MultiVolumeReaderType::New();
   multiVolumeReader->SetFileName(InputFourDImageFileName.c_str() );
   multiVolumeReader->Update();
-  inputMultiVolume = multiVolumeReader->GetOutput();
+  typename MultiVolumeType::Pointer inputMultiVolume = multiVolumeReader->GetOutput();
+
+  //Look for tags representing the acquisition parameters
+  //
+  //
+
+  // Trigger times
+  std::vector<float> TriggerTimes;
+  try
+    {
+    TriggerTimes = GetTriggerTimes(inputMultiVolume->GetMetaDataDictionary());
+    }
+  catch (itk::ExceptionObject &exc)
+    {
+    itkGenericExceptionMacro(<< exc.GetDescription() 
+            << " Image " << InputFourDImageFileName.c_str() 
+            << " does not contain sufficient attributes to support algorithms.");
+    return EXIT_FAILURE;
+    }
+
+  // // EchoTime
+  // float echoTime = 0.0;
+  // try 
+  //   {
+  //   echoTime = GetEchoTime(inputMultiVolume->GetMetaDataDictionary());
+  //   }
+  // catch (itk::ExceptionObject &exc)
+  //   {
+  //   itkGenericExceptionMacro(<< exc.GetDescription() 
+  //           << " Image " << InputFourDImageFileName.c_str() 
+  //           << " does not contain sufficient attributes to support algorithms.");
+  //   return EXIT_FAILURE;
+    
+  //   }
+
+  // FlipAngle
+  float FAValue = 0.0;
+  try 
+    {
+    FAValue = GetFlipAngle(inputMultiVolume->GetMetaDataDictionary());
+    }
+  catch (itk::ExceptionObject &exc)
+    {
+    itkGenericExceptionMacro(<< exc.GetDescription() 
+            << " Image " << InputFourDImageFileName.c_str() 
+            << " does not contain sufficient attributes to support algorithms.");
+    return EXIT_FAILURE;
+    
+    }
+
+  // RepetitionTime
+  float TRValue = 0.0;
+  try 
+    {
+    TRValue = GetRepetitionTime(inputMultiVolume->GetMetaDataDictionary());
+    }
+  catch (itk::ExceptionObject &exc)
+    {
+    itkGenericExceptionMacro(<< exc.GetDescription() 
+            << " Image " << InputFourDImageFileName.c_str() 
+            << " does not contain sufficient attributes to support algorithms.");
+    return EXIT_FAILURE;
+    
+    }
 
   //Read mask
-  typename VolumeType::Pointer maskVolume = VolumeType::New();
   typename VolumeReaderType::Pointer maskVolumeReader = VolumeReaderType::New();
   maskVolumeReader->SetFileName(AIFMaskFileName.c_str() );
   maskVolumeReader->Update();
-  maskVolume = maskVolumeReader->GetOutput();
+  typename VolumeType::Pointer maskVolume = maskVolumeReader->GetOutput();
  
   //Convert to concentration values
   typedef itk::ConvertSignalIntensitiesToConcentrationValuesFilter<MultiVolumeType,OutputMultiVolumeType> ConvertFilterType;
