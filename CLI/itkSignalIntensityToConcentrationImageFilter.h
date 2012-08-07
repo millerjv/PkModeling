@@ -1,9 +1,11 @@
 /*=========================================================================
+
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $SignalIntensitiesToConcentrationValues: itkConvertSignalIntensitiesToConcentrationValuesFilter.h $
   Language:  C++
   Date:      $Date: 2012/03/07 $
   Version:   $Revision: 0.0 $
+
 =========================================================================*/
 #ifndef __itkConvertSignalIntensitiesToConcentrationValuesFilter_h
 #define __itkConvertSignalIntensitiesToConcentrationValuesFilter_h
@@ -16,13 +18,27 @@
 #include "itkImageRegionIterator.h"
 #include "itkS0CalculationFilter.h"
 #include "itkImageFileWriter.h"
-#include "itkCastImageFilter.h"
+
 #include "PkSolver.h"
 
 namespace itk
 {
-/** \class ConvertSignalIntensitiesToConcentrationValuesFilter */
-
+/** \class ConvertSignalIntensitiesToConcentrationValuesFilter 
+ * \brief Convert from signal intensities to concentrations.
+ *
+ * This converts an VectorImage of signal intensities into a
+ * VectorImage of concentration values.
+ *
+ * An second input, specifying the location of the arterial input
+ * function, allows for the calculation to be adjusted for blood
+ * verses tissue.
+ *
+ * \note
+ * This work is part of the National Alliance for Medical Image Computing 
+ * (NAMIC), funded by the National Institutes of Health through the NIH Roadmap
+ * for Medical Research, Grant U54 EB005149.
+ * 
+ */
 template <class TInputImage, class TOutputImage>
 class ConvertSignalIntensitiesToConcentrationValuesFilter : public ImageToImageFilter<TInputImage, TOutputImage>
 {
@@ -34,38 +50,32 @@ public:
   typedef typename InputImageType::PixelType      InputPixelType;
   typedef typename InputImageType::RegionType     InputImageRegionType;
   typedef typename InputImageType::SizeType       InputSizeType;
-  typedef itk::Image<InputPixelType, 3>           InputMaskType;
+
+  typedef itk::Image<unsigned char, TInputImage::ImageDimension> InputMaskType;
   typedef itk::ImageRegionIterator<InputMaskType> InputMaskIterType;
 
-  typedef float                                  FloatPixelType;
   typedef TOutputImage                           OutputImageType;
   typedef typename OutputImageType::Pointer      OutputImagePointer;
   typedef typename OutputImageType::ConstPointer OutputImageConstPointer;
   typedef typename OutputImageType::PixelType    OutputPixelType;
   typedef typename OutputImageType::RegionType   OutputImageRegionType;
+  typedef itk::ImageRegionIterator<OutputImageType> OutputIterType;
 
-  typedef itk::Image<FloatPixelType, 4>           InternalMultiVolumeType;
-  typedef typename InternalMultiVolumeType::Pointer    InternalMultiVolumePointerType;
-  typedef typename InternalMultiVolumeType::RegionType InternalMultiVolumeRegionType;
-  typedef typename InternalMultiVolumeType::SizeType   InternalMultiVolumeSizeType;
+  typedef float                                  FloatPixelType;
 
-  typedef itk::Image<FloatPixelType, 3>                InternalVolumeType;
+  typedef itk::Image<FloatPixelType, TInputImage::ImageDimension> InternalVolumeType;
   typedef typename InternalVolumeType::Pointer         InternalVolumePointerType;
   typedef itk::ImageRegionIterator<InternalVolumeType> InternalVolumeIterType;
   typedef typename InternalVolumeType::RegionType      InternalVolumeRegionType;
   typedef typename InternalVolumeType::SizeType        InternalVolumeSizeType;
 
-  typedef itk::VectorImage<FloatPixelType, 3>                InternalVectorVolumeType;
+  typedef itk::VectorImage<FloatPixelType, TInputImage::ImageDimension> InternalVectorVolumeType;
   typedef typename InternalVectorVolumeType::Pointer         InternalVectorVolumePointerType;
   typedef itk::ImageRegionIterator<InternalVectorVolumeType> InternalVectorVolumeIterType;
   typedef typename InternalVectorVolumeType::RegionType      InternalVectorVolumeRegionType;
   typedef typename InternalVectorVolumeType::SizeType        InternalVectorVolumeSizeType;
 
   typedef itk::VariableLengthVector<float> InternalVectorVoxelType;
-
-  typedef itk::ExtractImageFilter<InternalMultiVolumeType, InternalVolumeType> ExtractImageFilterType;
-  typedef itk::ImageToVectorImageFilter<InternalVolumeType>               ImageToVectorImageFilterType;
-  typedef itk::CastImageFilter<InputImageType, InternalMultiVolumeType >       CastFilterType;
 
   /** Standard class typedefs. */
   typedef ConvertSignalIntensitiesToConcentrationValuesFilter Self;
@@ -81,7 +91,7 @@ public:
 
   /** Set and get the number of DWI channels. */
   itkGetMacro( T1PreBlood, float);
-  itkSetMacro( T1PreBlood, float);
+ itkSetMacro( T1PreBlood, float);
   itkGetMacro( T1PreTissue, float);
   itkSetMacro( T1PreTissue, float);
   itkGetMacro( TR, float);
@@ -93,24 +103,23 @@ public:
   itkGetMacro( S0GradThresh, float);
   itkSetMacro( S0GradThresh, float);
 
+  // Set a mask image for specifying the location of the arterial
+  // input function
   void SetAIFMask(InputMaskType* aifMaskVolume)
   {
-    m_AIFMask = aifMaskVolume;
+    this->SetNthInput(1, aifMaskVolume);
   }
 
-  typename ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage,
-                                                               TOutputImage>::InternalMultiVolumePointerType
-  VectorVolumeToMultiVolume(InternalVectorVolumePointerType inputVectorVolume);
-
-  typename ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage,
-                                                               TOutputImage>::InternalVectorVolumePointerType
-  MultiVolumeToVectorVolume(InternalMultiVolumePointerType inputMultiVolume);
+  // Get the mask image assigned as the arterial input function
+  const InputMaskType* GetAIFMask() const
+  {
+    return dynamic_cast<InputMastType*>(this->GetNthInput(1));
+  }
 
 protected:
   ConvertSignalIntensitiesToConcentrationValuesFilter();
   virtual ~ConvertSignalIntensitiesToConcentrationValuesFilter()
   {
-
   }
 
   void PrintSelf(std::ostream& os, Indent indent) const;
@@ -127,7 +136,6 @@ private:
                                                                      // not
                                                                      // implemented
 
-  typename InputMaskType::Pointer m_AIFMask;
   float m_T1PreBlood;
   float m_T1PreTissue;
   float m_TR;

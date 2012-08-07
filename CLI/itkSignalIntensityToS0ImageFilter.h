@@ -1,12 +1,12 @@
 /*=========================================================================
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $S0CalculationFilter: itkS0CalculationFilter.h$
+  Module:    $SignalIntensityToS0ImageFilter: itkSignalIntensityToS0ImageFilter.h$
   Language:  C++
   Date:      $Date: 2012/03/7 $
   Version:   $Revision: 1.0 $
 =========================================================================*/
-#ifndef __itkS0CalculationFilter_h
-#define __itkS0CalculationFilter_h
+#ifndef __itkSignalIntensityToS0ImageFilter_h
+#define __itkSignalIntensityToS0ImageFilter_h
 
 #include "itkImageToImageFilter.h"
 #include "itkImage.h"
@@ -17,10 +17,10 @@
 
 namespace itk
 {
-/** \class S0CalculationFilter */
+/** \class SignalIntensityToS0ImageFilter */
 
 template <class TInputImage, class TOutputImage>
-class S0CalculationFilter : public ImageToImageFilter<TInputImage, TOutputImage>
+class SignalIntensityToS0ImageFilter : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Convenient typedefs for simplifying declarations. */
@@ -39,10 +39,11 @@ public:
   typedef typename OutputImageType::RegionType      OutputImageRegionType;
   typedef itk::ImageRegionIterator<OutputImageType> OutputImageIterType;
 
+  typedef itk::VariableLengthVector<InputPixelType> InputVectorVoxelType;
   typedef itk::VariableLengthVector<float> InternalVectorVoxelType;
 
   /** Standard class typedefs. */
-  typedef S0CalculationFilter                                 Self;
+  typedef SignalIntensityToS0ImageFilter                                 Self;
   typedef ImageToImageFilter<InputImageType, OutputImageType> Superclass;
   typedef SmartPointer<Self>                                  Pointer;
   typedef SmartPointer<const Self>                            ConstPointer;
@@ -51,14 +52,15 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( S0CalculationFilter, ImageToImageFilter );
+  itkTypeMacro( SignalIntensityToS0ImageFilter, ImageToImageFilter );
 
   /** Set and get the number of DWI channels. */
   itkGetMacro( S0GradThresh, float);
   itkSetMacro( S0GradThresh, float);
+
 protected:
-  S0CalculationFilter();
-  virtual ~S0CalculationFilter() {
+  SignalIntensityToS0ImageFilter();
+  virtual ~SignalIntensityToS0ImageFilter() {
   }
   void PrintSelf(std::ostream& os, Indent indent) const;
 
@@ -73,18 +75,16 @@ protected:
 
 #endif
 private:
-  S0CalculationFilter(const Self &); // purposely not implemented
+  SignalIntensityToS0ImageFilter(const Self &); // purposely not implemented
   void operator=(const Self &);      // purposely not implemented
 
   float                  m_S0GradThresh;
-  InputImageConstPointer m_inputVectorVolume;
-  OutputImagePointer     m_S0Volume;
 };
 
 }; // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkS0CalculationFilter.hxx"
+#include "itkSignalIntensityToS0ImageFilter.hxx"
 #endif
 
 #endif
