@@ -7,8 +7,8 @@
 namespace itk
 {
 
-template <class TInputImage, class TOutputImage>
-ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage,
+template <class TInputImage, class TMaskImage, class TOutputImage>
+ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TMaskImage,
                                                     TOutputImage>::ConvertSignalIntensitiesToConcentrationValuesFilter()
 {
   m_T1PreTissue = 0.0f;
@@ -20,8 +20,8 @@ ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage,
   this->SetNumberOfRequiredInputs(1);
 }
 
-template<class TInputImage, class TOutputImage>
-void ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TOutputImage>::GenerateData()
+template<class TInputImage, class TMaskImage, class TOutputImage>
+void ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TMaskImage, TOutputImage>::GenerateData()
 {
   std::cout << "Signal Intensity To Concentration" << std::endl;
 
@@ -128,17 +128,17 @@ void ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TOutputIma
 }
 
 
-template <class TInputImage, class TOutput>
-void ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TOutput>
+template <class TInputImage, class TMaskImage, class TOutput>
+void ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TMaskImage, TOutput>
 ::PrintSelf( std::ostream& os, Indent indent ) const
 {
   Superclass::PrintSelf( os, indent );
-  os << indent << "T1PreBlood: "                  << m_T1PreBlood                                 << std::endl;
-  os << indent << "T1PreTissue: "                 << m_T1PreTissue                                 << std::endl;
-  os << indent << "TR: "                  << m_TR                 << std::endl;
-  os << indent << "FA: "                  << m_FA                 << std::endl;
-  os << indent << "RGD_relaxivity: "                        << m_RGD_relaxivity                        << std::endl;
-  os << indent << "S0GradThresh: "                          << m_S0GradThresh                          << std::endl;
+  os << indent << "T1PreBlood: " << m_T1PreBlood << std::endl;
+  os << indent << "T1PreTissue: " << m_T1PreTissue << std::endl;
+  os << indent << "TR: " << m_TR << std::endl;
+  os << indent << "FA: " << m_FA << std::endl;
+  os << indent << "RGD_relaxivity: " << m_RGD_relaxivity << std::endl;
+  os << indent << "S0GradThresh: " << m_S0GradThresh << std::endl;
 }
 
 } // end namespace itk

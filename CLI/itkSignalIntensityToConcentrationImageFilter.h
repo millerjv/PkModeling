@@ -39,7 +39,7 @@ namespace itk
  * for Medical Research, Grant U54 EB005149.
  * 
  */
-template <class TInputImage, class TOutputImage>
+template <class TInputImage, class TMaskImage, class TOutputImage>
 class ConvertSignalIntensitiesToConcentrationValuesFilter : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
@@ -51,7 +51,7 @@ public:
   typedef typename InputImageType::RegionType     InputImageRegionType;
   typedef typename InputImageType::SizeType       InputSizeType;
 
-  typedef itk::Image<unsigned char, TInputImage::ImageDimension> InputMaskType;
+  typedef TMaskImage                              InputMaskType;
   typedef itk::ImageRegionIterator<InputMaskType> InputMaskIterType;
 
   typedef TOutputImage                           OutputImageType;
