@@ -1,12 +1,12 @@
 /*=========================================================================
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkCalculateQuantificationParametersFilter.h,v $
+  Module:    $RCSfile: itkConcentrationToQuantitativeImageFilter.h,v $
   Language:  C++
   Date:      $Date: 2012/05/01 14:28:51 $
   Version:   $Revision: 0.0 $
 =========================================================================*/
-#ifndef __itkCalculateQuantificationParametersFilter_h
-#define __itkCalculateQuantificationParametersFilter_h
+#ifndef __itkConcentrationToQuantitativeImageFilter_h
+#define __itkConcentrationToQuantitativeImageFilter_h
 
 #include "itkImageToImageFilter.h"
 #include "itkImage.h"
@@ -21,10 +21,10 @@
 
 namespace itk
 {
-/** \class CalculateQuantificationParametersFilter */
+/** \class ConcentrationToQuantitativeImageFilter */
 
 template <class TInputImage, class TOutputImage>
-class ITK_EXPORT CalculateQuantificationParametersFilter : public ImageToImageFilter<TInputImage, TOutputImage>
+class ITK_EXPORT ConcentrationToQuantitativeImageFilter : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Convenient typedefs for simplifying declarations. */
@@ -55,7 +55,7 @@ public:
   typedef itk::ExtractImageFilter<MultiVolumeType, VolumeType> ExtractImageFilterType;
 
   /** Standard class typedefs. */
-  typedef CalculateQuantificationParametersFilter   Self;
+  typedef ConcentrationToQuantitativeImageFilter   Self;
   typedef ImageToImageFilter<MultiVolumeType,VolumeType> Superclass;
   typedef SmartPointer<Self>                        Pointer;
   typedef SmartPointer<const Self>                  ConstPointer;
@@ -64,7 +64,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( CalculateQuantificationParametersFilter, ImageToImageFilter );
+  itkTypeMacro( ConcentrationToQuantitativeImageFilter, ImageToImageFilter );
 
   /** Set and get the number of DWI channels. */
   itkGetMacro( T1Pre, float);
@@ -119,8 +119,8 @@ public:
 #endif
   //////////////////////////
 protected:
-  CalculateQuantificationParametersFilter();
-  ~CalculateQuantificationParametersFilter(){
+  ConcentrationToQuantitativeImageFilter();
+  ~ConcentrationToQuantitativeImageFilter(){
   }
   void PrintSelf(std::ostream& os, Indent indent) const;
 
@@ -156,12 +156,12 @@ protected:
   void CalculateAverageAIF(VectorVolumePointerType inputVectorVolume, VolumeConstPointerType inputVolume,
                            float*& averageAIF);
 
-  typename CalculateQuantificationParametersFilter<TInputImage,
+  typename ConcentrationToQuantitativeImageFilter<TInputImage,
                                                    TOutputImage>::VectorVolumePointerType MultiVolumeToVectorVolume(
     MultiVolumePointerType inputMultiVolume);
 
 private:
-  CalculateQuantificationParametersFilter(const Self &); // purposely not
+  ConcentrationToQuantitativeImageFilter(const Self &); // purposely not
                                                          // implemented
   void operator=(const Self &);                          // purposely not
                                                          // implemented
@@ -195,7 +195,7 @@ private:
 }; // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkCalculateQuantificationParametersFilter.hxx"
+#include "itkConcentrationToQuantitativeImageFilter.hxx"
 #endif
 
 #endif

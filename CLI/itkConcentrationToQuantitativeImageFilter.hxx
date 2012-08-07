@@ -1,12 +1,12 @@
-#ifndef _itkCalculateQuantificationParametersFilter_hxx
-#define _itkCalculateQuantificationParametersFilter_hxx
+#ifndef _itkConcentrationToQuantitativeImageFilter_hxx
+#define _itkConcentrationToQuantitativeImageFilter_hxx
 #endif
 
 #include "itkImageRegionConstIterator.h"
 #include "itkImageRegionIterator.h"
 #include "vnl/vnl_math.h"
 #include "itkCastImageFilter.h"
-#include "itkCalculateQuantificationParametersFilter.h"
+#include "itkConcentrationToQuantitativeImageFilter.h"
 
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkImageFileWriter.h"
@@ -20,7 +20,7 @@ namespace itk
 {
 
 template <class TInputImage, class TOutputImage>
-CalculateQuantificationParametersFilter<TInputImage,TOutputImage>::CalculateQuantificationParametersFilter()
+ConcentrationToQuantitativeImageFilter<TInputImage,TOutputImage>::ConcentrationToQuantitativeImageFilter()
 {
   m_T1Pre = 0.0f;
   m_TR = 0.0f;
@@ -46,7 +46,7 @@ CalculateQuantificationParametersFilter<TInputImage,TOutputImage>::CalculateQuan
 }
 
 template<class TInputImage, class TOutputImage>
-void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>
+void ConcentrationToQuantitativeImageFilter<TInputImage,TOutputImage>
 ::CallCopyOutputRegionToInputRegion(MultiVolumeRegionType &destRegion, const VolumeRegionType &srcRegion)
 {
   ExtractImageFilterRegionCopierType extractImageRegionCopier;
@@ -55,13 +55,13 @@ void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>
 }
 // Change the input region size, otherwise it would be same as the output size
 template< class TInputImage, class TOutputImage >
-void CalculateQuantificationParametersFilter< TInputImage, TOutputImage >
+void ConcentrationToQuantitativeImageFilter< TInputImage, TOutputImage >
 ::GenerateInputRequestedRegion()
 throw( InvalidRequestedRegionError )
 {
   Superclass::GenerateInputRequestedRegion();
   
-  typename CalculateQuantificationParametersFilter<TInputImage,TOutputImage>::MultiVolumePointerType image =
+  typename ConcentrationToQuantitativeImageFilter<TInputImage,TOutputImage>::MultiVolumePointerType image =
     const_cast< MultiVolumeType * >( this->GetInput(0) );
   if ( image )
     {
@@ -71,27 +71,27 @@ throw( InvalidRequestedRegionError )
 
 // Set 4D concentration values as first input
 template< class TInputImage, class TOutputImage >
-void CalculateQuantificationParametersFilter< TInputImage, TOutputImage >::SetInputMultiVolume(const TInputImage* multiVolume)
+void ConcentrationToQuantitativeImageFilter< TInputImage, TOutputImage >::SetInputMultiVolume(const TInputImage* multiVolume)
 {
   SetNthInput(0, const_cast<TInputImage*>(multiVolume) );
 }
 
 // Set 3D AIF mask as second input
 template< class TInputImage, class TOutputImage >
-void CalculateQuantificationParametersFilter< TInputImage, TOutputImage >::SetInputVolume(const TOutputImage* volume)
+void ConcentrationToQuantitativeImageFilter< TInputImage, TOutputImage >::SetInputVolume(const TOutputImage* volume)
 {
   SetNthInput(1, const_cast<TOutputImage*>(volume) );
 }
 
 template< class TInputImage, class TOutputImage >
-typename TInputImage::ConstPointer CalculateQuantificationParametersFilter< TInputImage, TOutputImage >::GetInputMultiVolume()
+typename TInputImage::ConstPointer ConcentrationToQuantitativeImageFilter< TInputImage, TOutputImage >::GetInputMultiVolume()
 {
   return static_cast< const TInputImage * >
          ( this->ProcessObject::GetInput(0) );
 }
 
 template< class TInputImage, class TOutputImage >
-typename TOutputImage::ConstPointer CalculateQuantificationParametersFilter< TInputImage,
+typename TOutputImage::ConstPointer ConcentrationToQuantitativeImageFilter< TInputImage,
                                                                              TOutputImage >::GetInputVolume()
 {
   return static_cast< const TOutputImage * >
@@ -100,7 +100,7 @@ typename TOutputImage::ConstPointer CalculateQuantificationParametersFilter< TIn
 
 // Set the output size same as the x, y, z of input 4D data
 template <class TInputImage, class TOutputImage>
-void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>
+void ConcentrationToQuantitativeImageFilter<TInputImage,TOutputImage>
 ::GenerateOutputInformation()
 {
   // do not call the superclass' implementation of this method since
@@ -131,7 +131,7 @@ void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>
 }
 
 template <class TInputImage, class TOutputImage>
-void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>::BeforeThreadedGenerateData()
+void ConcentrationToQuantitativeImageFilter<TInputImage,TOutputImage>::BeforeThreadedGenerateData()
 {
 
   m_inputMultiVolume = this->GetInputMultiVolume();
@@ -185,7 +185,7 @@ void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>::BeforeTh
 }
 
 template <class TInputImage, class TOutputImage>
-void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>
+void ConcentrationToQuantitativeImageFilter<TInputImage,TOutputImage>
 #if ITK_VERSION_MAJOR < 4
 ::ThreadedGenerateData( const typename Superclass::OutputImageRegionType & outputRegionForThread, int itkNotUsed(
                           threadId) )
@@ -261,7 +261,7 @@ void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>
   }
 
 template <class TInputImage, class TOutputImage>
-void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>::AfterThreadedGenerateData()
+void ConcentrationToQuantitativeImageFilter<TInputImage,TOutputImage>::AfterThreadedGenerateData()
 {
   std::cerr << "Prepare for output" << std::endl;
   this->SetNthOutput(0,m_ktransVolume);
@@ -277,7 +277,7 @@ void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>::AfterThr
 // Calculate average AIF according to the AIF mask
 template <class TInputImage, class TOutputImage>
 void
-CalculateQuantificationParametersFilter<TInputImage, TOutputImage>::CalculateAverageAIF(
+ConcentrationToQuantitativeImageFilter<TInputImage, TOutputImage>::CalculateAverageAIF(
   VectorVolumePointerType inputVectorVolume, VolumeConstPointerType inputVolume,float*& averageAIF)
 {
   VectorVolumeIterType inputVectorVolumeIter(inputVectorVolume, inputVectorVolume->GetRequestedRegion() );
@@ -315,8 +315,8 @@ CalculateQuantificationParametersFilter<TInputImage, TOutputImage>::CalculateAve
 }
 
 template <class TInputImage, class TOutputImage>
-typename CalculateQuantificationParametersFilter<TInputImage, TOutputImage>::VectorVolumePointerType
-CalculateQuantificationParametersFilter<TInputImage, TOutputImage>::MultiVolumeToVectorVolume(MultiVolumePointerType inputMultiVolume)
+typename ConcentrationToQuantitativeImageFilter<TInputImage, TOutputImage>::VectorVolumePointerType
+ConcentrationToQuantitativeImageFilter<TInputImage, TOutputImage>::MultiVolumeToVectorVolume(MultiVolumePointerType inputMultiVolume)
 { 
   typename ImageToVectorImageFilterType::Pointer imageToVectorImageFilter = ImageToVectorImageFilterType::New();
 
@@ -359,7 +359,7 @@ CalculateQuantificationParametersFilter<TInputImage, TOutputImage>::MultiVolumeT
 }
 
 template <class TInputImage, class TOutputImage>
-void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>
+void ConcentrationToQuantitativeImageFilter<TInputImage,TOutputImage>
 ::SetTimeAxis(vcl_vector<float> inputTimeAxis)
 {  
   m_timeAxis = new float[inputTimeAxis.size()]();
@@ -371,23 +371,23 @@ void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>
 }
 
 template <class TInputImage, class TOutputImage>
-float* CalculateQuantificationParametersFilter<TInputImage,TOutputImage>
+float* ConcentrationToQuantitativeImageFilter<TInputImage,TOutputImage>
 ::GetTimeAxis()
 {
   return m_timeAxis;
 }
 
 template <class TInputImage, class TOutputImage>
-void CalculateQuantificationParametersFilter<TInputImage,TOutputImage>
+void ConcentrationToQuantitativeImageFilter<TInputImage,TOutputImage>
 ::PrintSelf( std::ostream& os, Indent indent ) const
 {
   Superclass::PrintSelf( os, indent );
-  os << indent << "m_fTol: "                  << m_fTol                         << std::endl;
-  os << indent << "m_gTol: "                  << m_gTol                 << std::endl;
-  os << indent << "m_xTol: "                  << m_xTol                 << std::endl;
-  os << indent << "m_epsilon: "                 << m_epsilon                          << std::endl;
-  os << indent << "m_maxIter: "                 << m_maxIter                              << std::endl;
-  os << indent << "m_hematocrit: "                << m_hematocrit                             << std::endl;
+  os << indent << "Function tolerance: " << m_fTol << std::endl;
+  os << indent << "Gradient tolerance: " << m_gTol << std::endl;
+  os << indent << "Parameter tolerance: " << m_xTol << std::endl;
+  os << indent << "Epsilon: " << m_epsilon << std::endl;
+  os << indent << "Maximum number of iterations: " << m_maxIter << std::endl;
+  os << indent << "Hematocrit: " << m_hematocrit << std::endl;
 }
 
 } // end namespace itk
