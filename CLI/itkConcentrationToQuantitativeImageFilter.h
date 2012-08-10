@@ -14,7 +14,6 @@
 #include "itkArray2D.h"
 #include "itkVectorImage.h"
 #include "itkImageToVectorImageFilter.h"
-#include "itkExtractImageFilter.h"
 #include "itkImageRegionIterator.h"
 #include "itkCastImageFilter.h"
 #include "PkSolver.h"
@@ -23,40 +22,41 @@ namespace itk
 {
 /** \class ConcentrationToQuantitativeImageFilter */
 
-template <class TInputImage, class TOutputImage>
+template <class TInputImage, class TMaskImage, class TOutputImage>
 class ITK_EXPORT ConcentrationToQuantitativeImageFilter : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Convenient typedefs for simplifying declarations. */
-  typedef TInputImage                            MultiVolumeType;
-  typedef typename MultiVolumeType::Pointer      MultiVolumePointerType;
-  typedef typename MultiVolumeType::ConstPointer MultiVolumeConstPointerType;
-  typedef typename MultiVolumeType::PixelType    MultiVolumePixelType;
-  typedef typename MultiVolumeType::RegionType   MultiVolumeRegionType;
-  typedef typename MultiVolumeType::SizeType     MultiVolumeSizeType;
+  typedef TInputImage                             VectorVolumeType;
+  typedef typename VectorVolumeType::Pointer      VectorVolumePointerType;
+  typedef typename VectorVolumeType::ConstPointer VectorVolumeConstPointerType;
+  typedef typename VectorVolumeType::PixelType    VectorVolumePixelType;
+  typedef typename VectorVolumeType::RegionType   VectorVolumeRegionType;
+  typedef typename VectorVolumeType::SizeType     VectorVolumeSizeType;
+  typedef itk::ImageRegionConstIterator<VectorVolumeType> VectorVolumeConstIterType;
 
-  typedef TOutputImage                              VolumeType;
-  typedef typename VolumeType::Pointer              VolumePointerType;
-  typedef typename VolumeType::ConstPointer         VolumeConstPointerType;
-  typedef typename VolumeType::PixelType            VolumePixelType;
-  typedef typename VolumeType::RegionType           VolumeRegionType;
-  typedef typename VolumeType::IndexType            VolumeIndexType;
-  typedef itk::ImageRegionIterator<VolumeType>      VolumeIterType;
-  typedef itk::ImageRegionConstIterator<VolumeType> VolumeConstIterType;
+  typedef TMaskImage                            MaskVolumeType;
+  typedef typename MaskVolumeType::Pointer      MaskVolumePointerType;
+  typedef typename MaskVolumeType::ConstPointer MaskVolumeConstPointerType;
+  typedef typename MaskVolumeType::PixelType    MaskVolumePixelType;
+  typedef typename MaskVolumeType::RegionType   MaskVolumeRegionType;
+  typedef typename MaskVolumeType::SizeType     MaskVolumeSizeType;
+  typedef itk::ImageRegionConstIterator<MaskVolumeType> MaskVolumeConstIterType;
 
-  typedef itk::VectorImage<MultiVolumePixelType, 3>  VectorVolumeType;
-  typedef typename VectorVolumeType::Pointer         VectorVolumePointerType;
-  typedef itk::ImageRegionIterator<VectorVolumeType> VectorVolumeIterType;
-  typedef typename VectorVolumeType::RegionType      VectorVolumeRegionType;
-  typedef typename VectorVolumeType::SizeType        VectorVolumeSizeType;
+  typedef TOutputImage                                    OutputVolumeType;
+  typedef typename OutputVolumeType::Pointer              OutputVolumePointerType;
+  typedef typename OutputVolumeType::ConstPointer         OutputVolumeConstPointerType;
+  typedef typename OutputVolumeType::PixelType            OutputVolumePixelType;
+  typedef typename OutputVolumeType::RegionType           OutputVolumeRegionType;
+  typedef typename OutputVolumeType::IndexType            OutputVolumeIndexType;
+  typedef itk::ImageRegionIterator<OutputVolumeType>      OutputVolumeIterType;
+  typedef itk::ImageRegionConstIterator<OutputVolumeType> OutputVolumeConstIterType;
 
-  typedef itk::VariableLengthVector<float>                VectorVoxelType;
-  typedef itk::ImageToVectorImageFilter<VolumeType>       ImageToVectorImageFilterType;
-  typedef itk::ExtractImageFilter<MultiVolumeType, VolumeType> ExtractImageFilterType;
+  typedef itk::VariableLengthVector<float>          VectorVoxelType;
 
   /** Standard class typedefs. */
   typedef ConcentrationToQuantitativeImageFilter   Self;
-  typedef ImageToImageFilter<MultiVolumeType,VolumeType> Superclass;
+  typedef ImageToImageFilter<VectorVolumeType,OutputVolumeType> Superclass;
   typedef SmartPointer<Self>                        Pointer;
   typedef SmartPointer<const Self>                  ConstPointer;
 
@@ -91,33 +91,26 @@ public:
   itkSetMacro( hematocrit, float);
   itkGetMacro( AUCTimeInterval, float);
   itkSetMacro( AUCTimeInterval, float);
-  void SetTimeAxis(vcl_vector<float> inputTimeAxis);
+  void SetTimeAxis(const std::vector<float>& inputTimeAxis);
 
-  float* GetTimeAxis();
+  const std::vector<float>& GetTimeAxis();
 
   /** ImageDimension enumeration */
-  itkStaticConstMacro(MultiVolumeDimension, unsigned int,
-                      MultiVolumeType::ImageDimension);
-  itkStaticConstMacro(VolumeDimension, unsigned int,
-                      VolumeType::ImageDimension);
+  itkStaticConstMacro(VectorVolumeDimension, unsigned int,
+                      VectorVolumeType::ImageDimension);
+  itkStaticConstMacro(MaskVolumeDimension, unsigned int,
+                      MaskVolumeType::ImageDimension);
+  itkStaticConstMacro(OutputVolumeDimension, unsigned int,
+                      OutputVolumeType::ImageDimension);
 
-  typedef ImageToImageFilterDetail::ExtractImageFilterRegionCopier<itkGetStaticConstMacro(MultiVolumeDimension),
-                                                                   itkGetStaticConstMacro(VolumeDimension)>
-  ExtractImageFilterRegionCopierType;
+  void SetAIFMask(const MaskVolumeType* volume);
+  const TMaskImage* GetAIFMask() const;
 
-  itkGetConstMacro(ExtractionRegion, MultiVolumeRegionType);
+  TOutputImage* GetKTransVolume();
+  TOutputImage* GetVEVolume();
+  TOutputImage* GetMaxSlopeVolume();
+  TOutputImage* GetAUCVolume();
 
-  void SetInputMultiVolume(const MultiVolumeType* multiVolume);
-
-  void SetInputVolume(const VolumeType* volume);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  /** Begin concept checking */
-  itkConceptMacro(InputCovertibleToOutputCheck,
-                  (Concept::Convertible<MultiVolumePixelType, VolumePixelType>) );
-  /** End concept checking */
-#endif
-  //////////////////////////
 protected:
   ConcentrationToQuantitativeImageFilter();
   ~ConcentrationToQuantitativeImageFilter(){
@@ -134,37 +127,13 @@ protected:
                              ThreadIdType threadId );
 
 #endif
-  void AfterThreadedGenerateData();
 
-//    void GenerateData();
-////////////////////
-  virtual void GenerateInputRequestedRegion()
-  throw( InvalidRequestedRegionError );
+  std::vector<float> CalculateAverageAIF(const VectorVolumeType* inputVectorVolume, const MaskVolumeType* maskVolume);
 
-  virtual void GenerateOutputInformation();
-
-  virtual void CallCopyOutputRegionToInputRegion(MultiVolumeRegionType &destRegion, const VolumeRegionType &srcRegion);
-
-  MultiVolumeRegionType m_ExtractionRegion;
-  VolumeRegionType m_OutputImageRegion;
-  ////////////////////
-  //
-  typename TInputImage::ConstPointer GetInputMultiVolume();
-
-  typename TOutputImage::ConstPointer GetInputVolume();
-
-  void CalculateAverageAIF(VectorVolumePointerType inputVectorVolume, VolumeConstPointerType inputVolume,
-                           float*& averageAIF);
-
-  typename ConcentrationToQuantitativeImageFilter<TInputImage,
-                                                   TOutputImage>::VectorVolumePointerType MultiVolumeToVectorVolume(
-    MultiVolumePointerType inputMultiVolume);
 
 private:
-  ConcentrationToQuantitativeImageFilter(const Self &); // purposely not
-                                                         // implemented
-  void operator=(const Self &);                          // purposely not
-                                                         // implemented
+  ConcentrationToQuantitativeImageFilter(const Self &); // purposely not implemented
+  void operator=(const Self &); // purposely not implemented
 
   float  m_T1Pre;
   float  m_TR;
@@ -178,18 +147,11 @@ private:
   int    m_maxIter;
   float  m_hematocrit;
   float  m_AUCTimeInterval;
-  float* m_timeAxis;
-  float* m_TimeMinute;
-  int    m_timeSize;
-  float* m_averageAIFCon;
+  std::vector<float> m_TimeAxis;
+
+  // variables to cache information to share between threads
+  std::vector<float> m_averageAIFConcentration;
   float  m_aifAUC;
-  typename MultiVolumeType::ConstPointer m_inputMultiVolume;
-  typename VolumeType::ConstPointer m_inputVolume;
-  VectorVolumePointerType m_inputVectorVolume;
-  VolumePointerType       m_ktransVolume;
-  VolumePointerType       m_veVolume;
-  VolumePointerType       m_maxSlopeVolume;
-  VolumePointerType       m_aucVolume;
 };
 
 }; // end namespace itk

@@ -7,16 +7,9 @@
   Version:   $Revision: 1.0 $
 
 =========================================================================*/
-
-/*=========================================================================
-itk filter to calculate S0 value.
-Input: Vector volume, x*y*z(t)
-Output: Volume, x*y*z
-Parameter: S0GradThresh, Threshold for gradient magnitude of S0
-=========================================================================*/
-
 #ifndef _itkSignalIntensityToS0ImageFilter_hxx
 #define _itkSignalIntensityToS0ImageFilter_hxx
+
 #include "itkSignalIntensityToS0ImageFilter.h"
 
 namespace itk
@@ -42,15 +35,15 @@ void SignalIntensityToS0ImageFilter<TInputImage, TOutputImage>
   //Input is vector volume, output is volume
   std::cerr << std::endl << "Calculate S0" << std::endl;
 
-  InputImageType* inputVectorVolume = this->GetInput();
+  const InputImageType* inputVectorVolume = this->GetInput();
   OutputImageType* S0Volume = this->GetOutput();
 
-  InputImageIterType  inputVectorVolumeIter(inputVectorVolume, outputRegionForThread);
+  InputImageConstIterType  inputVectorVolumeIter(inputVectorVolume, outputRegionForThread);
   OutputImageIterType S0VolumeIter(S0Volume, outputRegionForThread);
 
   float                   S0Temp = 0.0f;
   InternalVectorVoxelType vectorVoxel;
-  InputVectorVoxelType inputVectorVoxel;
+  InputPixelType inputVectorVoxel;
 
   while (!inputVectorVolumeIter.IsAtEnd() )
     {
@@ -61,7 +54,7 @@ void SignalIntensityToS0ImageFilter<TInputImage, TOutputImage>
     vectorVoxel += inputVectorVoxel; // shorthand for a copy/cast
 
     S0Temp =
-      compute_s0_individual_curve ( (int)m_inputVectorVolume->GetNumberOfComponentsPerPixel(),
+      compute_s0_individual_curve ( (int)inputVectorVolume->GetNumberOfComponentsPerPixel(),
                                     const_cast<float*>( vectorVoxel.GetDataPointer() ), m_S0GradThresh);
     S0VolumeIter.Set(static_cast<OutputPixelType>(S0Temp) );
     ++S0VolumeIter;

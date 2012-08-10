@@ -30,7 +30,7 @@ public:
   typedef typename InputImageType::PixelType            InputPixelType;
   typedef typename InputImageType::RegionType           InputImageRegionType;
   typedef typename InputImageType::SizeType             InputSizeType;
-  typedef itk::ImageRegionConstIterator<InputImageType> InputImageIterType;
+  typedef itk::ImageRegionConstIterator<InputImageType> InputImageConstIterType;
 
   typedef TOutputImage                              OutputImageType;
   typedef typename OutputImageType::Pointer         OutputImagePointer;
@@ -39,7 +39,6 @@ public:
   typedef typename OutputImageType::RegionType      OutputImageRegionType;
   typedef itk::ImageRegionIterator<OutputImageType> OutputImageIterType;
 
-  typedef itk::VariableLengthVector<InputPixelType> InputVectorVoxelType;
   typedef itk::VariableLengthVector<float> InternalVectorVoxelType;
 
   /** Standard class typedefs. */
@@ -64,7 +63,6 @@ protected:
   }
   void PrintSelf(std::ostream& os, Indent indent) const;
 
-  void BeforeThreadedGenerateData();
 
 #if ITK_VERSION_MAJOR < 4
   void ThreadedGenerateData( const typename Superclass::OutputImageRegionType& outputRegionForThread, int threadId );

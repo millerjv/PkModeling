@@ -32,13 +32,13 @@ static itk::TimeProbesCollectorBase probe;
 // 
 //
 
-bool pk_solver (const int signalSize, const float* timeAxis, 
+bool pk_solver (int signalSize, const float* timeAxis, 
                 const float* PixelConcentrationCurve, 
                 const float* BloodConcentrationCurve, 
                 float& Ktrans, float& Ve, float& Fpv,
-                const float fTol, const float gTol, const float xTol,
-                const float epsilon, const int maxIter,
-                const float hematocrit)
+                float fTol, float gTol, float xTol,
+                float epsilon, int maxIter,
+                float hematocrit)
 {
   // Note the unit: timeAxis should be in minutes!! This could be related to the following parameters!!
   // fTol      =  1e-4;  // Function value tolerance
@@ -61,7 +61,7 @@ bool pk_solver (const int signalSize, const float* timeAxis,
   costFunction->SetCb (BloodConcentrationCurve, signalSize); //BloodConcentrationCurve
   costFunction->SetCv (PixelConcentrationCurve, signalSize); //Signal Y
   costFunction->SetTime (timeAxis, signalSize); //Signal X
-  costFunction->set_hematocrit (hematocrit);
+  costFunction->SetHematocrit (hematocrit);
   costFunction->GetValue (initialValue);
 
   try {
@@ -117,89 +117,96 @@ bool pk_solver (const int signalSize, const float* timeAxis,
   return true;
 }
 
-bool pk_solver_boost (const int signalSize, const float* timeAxis, 
-                      const float* PixelConcentrationCurve, 
-                      const float* BloodConcentrationCurve, 
-                      float& Ktrans, float& Ve, float& Fpv,
-                      const float fTol, const float gTol, const float xTol,
-                      const float epsilon, const int maxIter,
-                      itk::LevenbergMarquardtOptimizer::Pointer optimizer,
-                      LMCostFunction::Pointer costFunction
-                      )
+bool pk_solver(int signalSize, const float* timeAxis, 
+               const float* PixelConcentrationCurve, 
+               const float* BloodConcentrationCurve, 
+               float& Ktrans, float& Ve, float& Fpv,
+               float fTol, float gTol, float xTol,
+               float epsilon, int maxIter,
+               float hematocrit,
+               itk::LevenbergMarquardtOptimizer* optimizer,
+               LMCostFunction* costFunction)
 {
-    //std::cout << "in pk solver" << std::endl;
-    // probe.Start("pk_solver");
-    // Note the unit: timeAxis should be in minutes!! This could be related to the following parameters!!
-    // fTol      =  1e-4;  // Function value tolerance
-    // gTol      =  1e-4;  // Gradient magnitude tolerance 
-    // xTol      =  1e-5;  // Search space tolerance
-    // epsilon   =  1e-9;    // Step
-    // maxIter   =   200;  // Maximum number of iterations
-    //std::cerr << "In pkSolver!" << std::endl;
-    // Levenberg Marquardt optimizer  
+  //std::cout << "in pk solver" << std::endl;
+  // probe.Start("pk_solver");
+  // Note the unit: timeAxis should be in minutes!! This could be related to the following parameters!!
+  // fTol      =  1e-4;  // Function value tolerance
+  // gTol      =  1e-4;  // Gradient magnitude tolerance 
+  // xTol      =  1e-5;  // Search space tolerance
+  // epsilon   =  1e-9;    // Step
+  // maxIter   =   200;  // Maximum number of iterations
+  //std::cerr << "In pkSolver!" << std::endl;
+  // Levenberg Marquardt optimizer  
         
-    //////////////
-    LMCostFunction::ParametersType initialValue(LMCostFunction::SpaceDimension); ///...
-        initialValue[0] = 0.1;     //Ktrans //...
-       initialValue[1] = 0.5;     //ve //...
-       initialValue[2] = 0.1;     //f_pv //...
+  //////////////
+  LMCostFunction::ParametersType initialValue(LMCostFunction::SpaceDimension); ///...
+  initialValue[0] = 0.1;     //Ktrans //...
+  initialValue[1] = 0.5;     //ve //...
+  initialValue[2] = 0.1;     //f_pv //...
         
-        costFunction->SetCb (BloodConcentrationCurve, signalSize); //BloodConcentrationCurve
-        costFunction->SetCv (PixelConcentrationCurve, signalSize); //Signal Y
-        costFunction->SetTime (timeAxis, signalSize); //Signal X
-        costFunction->GetValue (initialValue); //...
+  costFunction->SetNumberOfValues (signalSize);
+  
 
-        try {
-            optimizer->SetCostFunction( costFunction.GetPointer() ); 
-        }
-        catch ( itk::ExceptionObject & e ) {
-            std::cout << "Exception thrown ! " << std::endl;
-            std::cout << "An error ocurred during Optimization" << std::endl;
-            std::cout << e << std::endl;
-            return false;
-        }   
+  costFunction->SetCb (BloodConcentrationCurve, signalSize); //BloodConcentrationCurve
+  costFunction->SetCv (PixelConcentrationCurve, signalSize); //Signal Y
+  costFunction->SetTime (timeAxis, signalSize); //Signal X
+  costFunction->SetHematocrit (hematocrit);
+  costFunction->GetValue (initialValue); //...
+
+  optimizer->UseCostFunctionGradientOff();   
+  optimizer->SetUseCostFunctionGradient(0);  
+
+  try {
+     optimizer->SetCostFunction( costFunction ); 
+  }
+  catch ( itk::ExceptionObject & e ) {
+  std::cout << "Exception thrown ! " << std::endl;
+  std::cout << "An error ocurred during Optimization" << std::endl;
+  std::cout << e << std::endl;
+  return false;
+  }   
         
-        itk::LevenbergMarquardtOptimizer::InternalOptimizerType * vnlOptimizer = optimizer->GetOptimizer();//...
+  itk::LevenbergMarquardtOptimizer::InternalOptimizerType * vnlOptimizer = optimizer->GetOptimizer();//...
         
-        vnlOptimizer->set_f_tolerance( fTol ); //...
-        vnlOptimizer->set_g_tolerance( gTol ); //...
-        vnlOptimizer->set_x_tolerance( xTol ); //...
-        vnlOptimizer->set_epsilon_function( epsilon ); //...
-        vnlOptimizer->set_max_function_evals( maxIter ); //...
+  vnlOptimizer->set_f_tolerance( fTol ); //...
+  vnlOptimizer->set_g_tolerance( gTol ); //...
+  vnlOptimizer->set_x_tolerance( xTol ); //...
+  vnlOptimizer->set_epsilon_function( epsilon ); //...
+  vnlOptimizer->set_max_function_evals( maxIter ); //...
         
-        // We start not so far from the solution 
+  // We start not so far from the solution 
         
-        optimizer->SetInitialPosition( initialValue ); //...       
+  optimizer->SetInitialPosition( initialValue ); //...       
         
-        try {
-            //  probe.Start("optimizer");
-            optimizer->StartOptimization();
-            //   probe.Stop("optimizer");
-        }
-        catch( itk::ExceptionObject & e ) {
-            std::cerr << "Exception thrown ! " << std::endl;
-            std::cerr << "An error ocurred during Optimization" << std::endl;
-            std::cerr << "Location    = " << e.GetLocation()    << std::endl;
-            std::cerr << "Description = " << e.GetDescription() << std::endl;
-            return false;
-        }
-        //std::cerr << "after optimizer!" << std::endl;
-        itk::LevenbergMarquardtOptimizer::ParametersType finalPosition;
-        finalPosition = optimizer->GetCurrentPosition();
+  try {
+  //  probe.Start("optimizer");
+  optimizer->StartOptimization();
+  //   probe.Stop("optimizer");
+  }
+  catch( itk::ExceptionObject & e ) {
+  std::cerr << "Exception thrown ! " << std::endl;
+  std::cerr << "An error ocurred during Optimization" << std::endl;
+  std::cerr << "Location    = " << e.GetLocation()    << std::endl;
+  std::cerr << "Description = " << e.GetDescription() << std::endl;
+  return false;
+  }
+  //std::cerr << "after optimizer!" << std::endl;
+  itk::LevenbergMarquardtOptimizer::ParametersType finalPosition;
+  finalPosition = optimizer->GetCurrentPosition();
         
-        //Solution: remove the scale of 100  
-        Ktrans = finalPosition[0];
-        Ve = finalPosition[1];
-        Fpv = finalPosition[2];  
-		if(Ve<0) Ve = 0;
-		if(Ve>1) Ve = 1;
-		if(Ktrans<0) Ktrans = 0;
-		if(Ktrans>100) Ktrans = 100;
+  //Solution: remove the scale of 100  
+  Ktrans = finalPosition[0];
+  Ve = finalPosition[1];
+  Fpv = finalPosition[2];  
+  if(Ve<0) Ve = 0;
+  if(Ve>1) Ve = 1;
+  if(Ktrans<0) Ktrans = 0;
+  if(Ktrans>100) Ktrans = 100;
 		
-		//if((Fpv>1)||(Fpv<0)) Fpv = 0;
-        //  probe.Stop("pk_solver");
-        return true;
-    }
+  //if((Fpv>1)||(Fpv<0)) Fpv = 0;
+  //  probe.Stop("pk_solver");
+  return true;
+}
 
 void pk_report()
 {
@@ -214,13 +221,13 @@ void pk_clear()
 #define PI 3.1415926535897932384626433832795
 #define IS_NAN(x) ((x) != (x))
 
-bool convert_signal_to_concentration (const unsigned int signalSize, 
+bool convert_signal_to_concentration (unsigned int signalSize, 
                                       const float* SignalIntensityCurve, 
-                                      const float T1Pre, const float TR, const float FA,
-                                      float*& concentration,
-                                      const float RGd_relaxivity,
+                                      const float T1Pre, float TR, float FA,
+                                      float* concentration,
+                                      float RGd_relaxivity,
                                       float s0,
-                                      const float S0GradThresh)
+                                      float S0GradThresh)
 {
   const double exp_TR_BloodT1 = exp (-TR/T1Pre);
   const float alpha = FA * PI/180;  
@@ -260,84 +267,85 @@ bool convert_signal_to_concentration (const unsigned int signalSize,
   return true;
 }
 
-float area_under_curve(const int signalSize, 
-					   const float* timeAxis,
-					   const float* concentration, 
-					   int BATIndex, 
-					   float aucTimeInterval)
+float area_under_curve(int signalSize, 
+                       const float* timeAxis,
+                       const float* concentration, 
+                       int BATIndex, 
+                       float aucTimeInterval)
 {	
-	float auc = 0.0f;
-    if(BATIndex>=signalSize) return auc;
-	//std::cerr << std::endl << "BATIndex:"<<BATIndex << std::endl;	
+  float auc = 0.0f;
+  if(BATIndex>=signalSize) return auc;
+  //std::cerr << std::endl << "BATIndex:"<<BATIndex << std::endl;	
 	
-	int lastIndex = BATIndex;
-	//std::cerr << std::endl << "timeAxis[0]:"<< timeAxis[0] << std::endl;	
-	float targetTime = timeAxis[BATIndex]+aucTimeInterval; 
-	//std::cerr << std::endl << "targetTime:"<< targetTime << std::endl;	
-	float tempTime = timeAxis[BATIndex+1];
-	//std::cerr << std::endl << "tempTime:"<< tempTime << std::endl;	
+  int lastIndex = BATIndex;
+  //std::cerr << std::endl << "timeAxis[0]:"<< timeAxis[0] << std::endl;	
+  float targetTime = timeAxis[BATIndex]+aucTimeInterval; 
+  //std::cerr << std::endl << "targetTime:"<< targetTime << std::endl;	
+  float tempTime = timeAxis[BATIndex+1];
+  //std::cerr << std::endl << "tempTime:"<< tempTime << std::endl;	
 
-	//find the last index
-	while((tempTime<targetTime)&&(lastIndex<(signalSize-2)))
-	{	
-		lastIndex+=1;		
-		tempTime = timeAxis[lastIndex+1] ;
-		//std::cerr << std::endl << "tempTime"<<tempTime << std::endl;
-	}	
+  //find the last index
+  while((tempTime<targetTime)&&(lastIndex<(signalSize-2)))
+    {	
+    lastIndex+=1;		
+    tempTime = timeAxis[lastIndex+1] ;
+    //std::cerr << std::endl << "tempTime"<<tempTime << std::endl;
+    }	
 		
-	if ((lastIndex-BATIndex)==0) return auc = aucTimeInterval*concentration[BATIndex];
+  if ((lastIndex-BATIndex)==0) return auc = aucTimeInterval*concentration[BATIndex];
 
-	//extract time and concentration
-	float * concentrationValues = new float[lastIndex-BATIndex+2]();
-	float * timeValues = new float[lastIndex-BATIndex+2]();
+  //extract time and concentration
+  float * concentrationValues = new float[lastIndex-BATIndex+2]();
+  float * timeValues = new float[lastIndex-BATIndex+2]();
 
-	//find the extra time and concentration value for auc
-	float y1, y2, x1, x2, slope, b, targetX, targetY;
-	y2 = concentration[lastIndex+1];
-	y1 = concentration[lastIndex];
-	x2 = timeAxis[lastIndex+1];
-	x1 = timeAxis[lastIndex];
-	slope = (y2-y1)/(x2-x1);
-	b = y1-slope*x1;
-	targetX = timeAxis[BATIndex] + aucTimeInterval;
-	targetY = slope*targetX+b;
-	if(targetX>timeAxis[signalSize-1])
-	{
-		targetX = timeAxis[lastIndex+1];
-		targetY = concentration[lastIndex+1];
-	}
-	concentrationValues[lastIndex-BATIndex+1] = targetY; //put the extra value at the end
-	timeValues[lastIndex-BATIndex+1] = targetX; //put the extra time value at the end
+  //find the extra time and concentration value for auc
+  float y1, y2, x1, x2, slope, b, targetX, targetY;
+  y2 = concentration[lastIndex+1];
+  y1 = concentration[lastIndex];
+  x2 = timeAxis[lastIndex+1];
+  x1 = timeAxis[lastIndex];
+  slope = (y2-y1)/(x2-x1);
+  b = y1-slope*x1;
+  targetX = timeAxis[BATIndex] + aucTimeInterval;
+  targetY = slope*targetX+b;
+  if(targetX>timeAxis[signalSize-1])
+    {
+    targetX = timeAxis[lastIndex+1];
+    targetY = concentration[lastIndex+1];
+    }
+  concentrationValues[lastIndex-BATIndex+1] = targetY; //put the extra value at the end
+  timeValues[lastIndex-BATIndex+1] = targetX; //put the extra time value at the end
 	
 //	printf("lastIndex is %f\n", (float)lastIndex);
-	for(int i=0; i<(lastIndex-BATIndex+1); ++i)
-	{
-		concentrationValues[i] = concentration[i+BATIndex];
-		timeValues[i] = timeAxis[i+BATIndex];
-		//printf("lastIndex is %f,%f\n", (float) concentrationValues[i],(float)timeValues[i]);
-	}	
+  for(int i=0; i<(lastIndex-BATIndex+1); ++i)
+    {
+    concentrationValues[i] = concentration[i+BATIndex];
+    timeValues[i] = timeAxis[i+BATIndex];
+    //printf("lastIndex is %f,%f\n", (float) concentrationValues[i],(float)timeValues[i]);
+    }	
 
-	//get auc
-	auc = intergrate(concentrationValues,timeValues,(lastIndex-BATIndex+2));
+  //get auc
+  auc = intergrate(concentrationValues,timeValues,(lastIndex-BATIndex+2));
 
-	delete [] concentrationValues, timeValues;
-	return auc;
+  delete [] concentrationValues;
+  delete [] timeValues;
+  return auc;
 }
 
 float intergrate(float* yValues, float * xValues, int size)
 {
-	float area= 0.0f;
-	for(int i=1; i<size;++i)
-	{
-		area+=(xValues[i]-xValues[i-1])*(yValues[i]+yValues[i-1])/2;
-	//	std::cerr << std::endl << "area:" << area<<","<<yValues[i] << std::endl;
-	}
-	return area;
+  float area= 0.0f;
+  for(int i=1; i<size;++i)
+    {
+    area+=(xValues[i]-xValues[i-1])*(yValues[i]+yValues[i-1])/2;
+    //	std::cerr << std::endl << "area:" << area<<","<<yValues[i] << std::endl;
+    }
+  return area;
 }
 
-void compute_derivative (const int signalSize,
+void compute_derivative (int signalSize,
                          const float* SignalY,
-                         float*& YDeriv)
+                         float* YDeriv)
 {
   YDeriv[0] = (float) ((-3.0*SignalY[0] + 4.0*SignalY[1] - SignalY[2]) / 2.0);
   YDeriv[signalSize-1] = (float) ((3.0*SignalY[signalSize-1] - 4.0*SignalY[signalSize-2] + SignalY[signalSize-3]) / 2.0);
@@ -346,9 +354,9 @@ void compute_derivative (const int signalSize,
   }
 }
 
-void compute_derivative_forward (const int signalSize,
+void compute_derivative_forward (int signalSize,
                          const float* SignalY,
-                         float*& YDeriv)
+                         float* YDeriv)
 {  
   YDeriv[signalSize-1] = (float) (SignalY[signalSize-1] - SignalY[signalSize-2]);
   for(int i=0; i<signalSize-1; i++) {
@@ -356,9 +364,9 @@ void compute_derivative_forward (const int signalSize,
   }
 }
 
-void compute_derivative_backward (const int signalSize,
+void compute_derivative_backward (int signalSize,
                          const float* SignalY,
-                         float*& YDeriv)
+                         float* YDeriv)
 {
   YDeriv[0] = (float) (-SignalY[0] + SignalY[1]);  
   for(int i=1; i<signalSize; i++) {
@@ -366,7 +374,7 @@ void compute_derivative_backward (const int signalSize,
   }
 }
 
-float get_signal_max (const int signalSize, const float* SignalY)
+float get_signal_max (int signalSize, const float* SignalY)
 {
   float max = -1E10f;
   for (int i=0; i<signalSize; i++)
@@ -375,7 +383,7 @@ float get_signal_max (const int signalSize, const float* SignalY)
   return max;
 }
 
-bool compute_bolus_arrival_time (const int signalSize, const float* SignalY,
+bool compute_bolus_arrival_time (int signalSize, const float* SignalY,
                                 int& ArrivalTime, int& FirstPeak, float& MaxSlope)
 {
   float* y0 = new float[signalSize];  // Input pixel values
@@ -463,7 +471,7 @@ bool compute_bolus_arrival_time (const int signalSize, const float* SignalY,
   return true;
 }
 
-void compute_gradient_old (const int signalSize, const float* SignalY, float*& SignalGradient)
+void compute_gradient_old (int signalSize, const float* SignalY, float* SignalGradient)
 {
   typedef itk::Image<float, 1>   ImageType;
   typedef itk::GradientMagnitudeImageFilter<ImageType, ImageType>  FilterType;
@@ -494,36 +502,36 @@ void compute_gradient_old (const int signalSize, const float* SignalY, float*& S
   }
 }
 
-void compute_gradient (const int signalSize, const float* SignalY, float*& SignalGradient)
+void compute_gradient (int signalSize, const float* SignalY, float* SignalGradient)
 {	
-	compute_derivative (signalSize, SignalY, SignalGradient);
-	for(int i=0; i<signalSize; i++) 
-	{
-		SignalGradient[i] = sqrt(SignalGradient[i]*SignalGradient[i]);		
-	} 
+  compute_derivative (signalSize, SignalY, SignalGradient);
+  for(int i=0; i<signalSize; i++) 
+    {
+    SignalGradient[i] = sqrt(SignalGradient[i]*SignalGradient[i]);		
+    } 
 }
 
-void compute_gradient_forward (const int signalSize, const float* SignalY, float*& SignalGradient)
+void compute_gradient_forward (int signalSize, const float* SignalY, float* SignalGradient)
 {
-	compute_derivative_forward (signalSize, SignalY, SignalGradient);
-	for(int i=0; i<signalSize; i++) 
-	{
-		SignalGradient[i] = sqrt(SignalGradient[i]*SignalGradient[i]);		
-	} 	
+  compute_derivative_forward (signalSize, SignalY, SignalGradient);
+  for(int i=0; i<signalSize; i++) 
+    {
+    SignalGradient[i] = sqrt(SignalGradient[i]*SignalGradient[i]);		
+    } 	
 }
 
-void compute_gradient_backward (const int signalSize, const float* SignalY, float*& SignalGradient)
+void compute_gradient_backward (int signalSize, const float* SignalY, float* SignalGradient)
 {	
-	compute_derivative_backward (signalSize, SignalY, SignalGradient);
-	for(int i=0; i<signalSize; i++) 
-	{
-		SignalGradient[i] = sqrt(SignalGradient[i]*SignalGradient[i]);		
-	} 	
+  compute_derivative_backward (signalSize, SignalY, SignalGradient);
+  for(int i=0; i<signalSize; i++) 
+    {
+    SignalGradient[i] = sqrt(SignalGradient[i]*SignalGradient[i]);		
+    } 	
 }
 
 
-float compute_s0_using_sumsignal_properties (const int signalSize, const float* SignalY, 
-                                             const short* lowGradIndex, const int FirstPeak)
+float compute_s0_using_sumsignal_properties (int signalSize, const float* SignalY, 
+                                             const short* lowGradIndex, int FirstPeak)
 {
   double S0 = 0;
   int count = 0;
@@ -542,7 +550,7 @@ float compute_s0_using_sumsignal_properties (const int signalSize, const float* 
   return float (S0);
 }
 
-float compute_s0_individual_curve (const int signalSize, const float* SignalY, const float S0GradThresh)
+float compute_s0_individual_curve (int signalSize, const float* SignalY, float S0GradThresh)
 {  
   double S0 = 0;
   int ArrivalTime, FirstPeak;

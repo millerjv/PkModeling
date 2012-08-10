@@ -9,28 +9,19 @@
 
   See License.txt or http://www.slicer.org/copyright/copyright.txt for details.
 =========================================================================*/
-#include "itkImageToVectorImageFilter.h"
-#include "itkExtractImageFilter.h"
-#include "itkImageRegionIterator.h"
-#include "itkImageRegionConstIterator.h"
-#include "vcl_vector.h"
-#include "itkCastImageFilter.h"
+
 
 #include "PkModelingCLP.h"
-#include "itkOrientImageFilter.h"
-#include "itkImageFileWriter.h"
-#include "itkTransformFileReader.h"
-#include "itkTransformFileWriter.h"
 
-#include "itkQuaternionRigidTransform.h"
-#include "itkResampleImageFilter.h"
-#include "itkBinomialBlurImageFilter.h"
+#include "itkMetaDataObject.h"
+#include "itkImageFileReader.h"
+#include "itkImageFileWriter.h"
+#include "itkTimeProbesCollectorBase.h"
 
 #include "itkPluginUtilities.h"
 
-#include "itkTimeProbesCollectorBase.h"
-#include "itkConvertSignalIntensitiesToConcentrationValuesFilter.h"
-#include "itkCalculateQuantificationParametersFilter.h"
+#include "itkSignalIntensityToConcentrationImageFilter.h"
+#include "itkConcentrationToQuantitativeImageFilter.h"
 
 #define TESTMODE_ERROR_TOLERANCE 0.1
 
@@ -45,7 +36,7 @@ type Get##name(itk::MetaDataDictionary& dictionary)           \
     {\
     /* attributes stored as strings */ \
     std::string valueString; \
-    ExposeMetaData(dictionary, key, valueString); \
+    itk::ExposeMetaData(dictionary, key, valueString);  \
     std::stringstream valueStream(valueString); \
     valueStream >> value; \
     }\
@@ -67,12 +58,12 @@ std::vector<float> GetTriggerTimes(itk::MetaDataDictionary& dictionary)
   if (dictionary.HasKey("MultiVolume.FrameIdentifyingDICOMTagName"))
     {
     std::string tag;
-    ExposeMetaData(dictionary, "MultiVolume.FrameIdentifyingDICOMTagName", tag);
+    itk::ExposeMetaData(dictionary, "MultiVolume.FrameIdentifyingDICOMTagName", tag);
     if (dictionary.HasKey("MultiVolume.FrameLabels"))
       {
       // Acquisition parameters stored as text
       std::string frameLabelsString;
-      ExposeMetaData(dictionary, "MultiVolume.FrameLabels", frameLabelsString);
+      itk::ExposeMetaData(dictionary, "MultiVolume.FrameLabels", frameLabelsString);
       std::stringstream frameLabelsStream(frameLabelsString);
       if (tag == "Trigger Time")
         {
@@ -101,34 +92,34 @@ std::vector<float> GetTriggerTimes(itk::MetaDataDictionary& dictionary)
 
 
 template <class T1, class T2>
-int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
+int DoIt( int argc, char * argv[], const T1 &, const T2 &)
 {
   //
   // Command line processing
   //
   PARSE_ARGS;
 
-  const   unsigned int MultiVolumeDimension = 4;
-  typedef T1                                                MultiVolumePixelType;
-  typedef itk::Image<MultiVolumePixelType, MultiVolumeDimension> MultiVolumeType;
-  typedef typename MultiVolumeType::RegionType              MultiVolumeRegionType;
-  typedef itk::ImageFileReader<MultiVolumeType>             MultiVolumeReaderType;
+  const   unsigned int VectorVolumeDimension = 3;
+  typedef T1                                                 VectorVolumePixelType;
+  typedef itk::VectorImage<VectorVolumePixelType, VectorVolumeDimension> VectorVolumeType;
+  typedef itk::VectorImage<float, VectorVolumeDimension>     FloatVectorVolumeType;
+  typedef typename VectorVolumeType::RegionType              VectorVolumeRegionType;
+  typedef itk::ImageFileReader<VectorVolumeType>             VectorVolumeReaderType;
 
-  const   unsigned int VolumeDimension = 3;
-  typedef T2                                           VolumePixelType;
-  typedef itk::Image<VolumePixelType, VolumeDimension> VolumeType;
-  typedef itk::ImageFileReader<VolumeType>             VolumeReaderType;
+  const   unsigned int MaskVolumeDimension = 3;
+  typedef T2                                                   MaskVolumePixelType;
+  typedef itk::Image<MaskVolumePixelType, MaskVolumeDimension> MaskVolumeType;
+  typedef itk::ImageFileReader<MaskVolumeType>                 MaskVolumeReaderType;
 
-  typedef itk::Image<float,MultiVolumeDimension> OutputMultiVolumeType;
-  typedef itk::Image<float,VolumeDimension> OutputVolumeType;
-
-  typedef itk::ImageFileWriter< OutputVolumeType> VolumeWriterType;
+  typedef itk::Image<float,VectorVolumeDimension> OutputVolumeType;
+  typedef itk::ImageFileWriter< OutputVolumeType> OutputVolumeWriterType;
   
-  //Read MultiVolume
-  typename MultiVolumeReaderType::Pointer multiVolumeReader = MultiVolumeReaderType::New();
+  //Read VectorVolume
+  typename VectorVolumeReaderType::Pointer multiVolumeReader 
+    = VectorVolumeReaderType::New();
   multiVolumeReader->SetFileName(InputFourDImageFileName.c_str() );
   multiVolumeReader->Update();
-  typename MultiVolumeType::Pointer inputMultiVolume = multiVolumeReader->GetOutput();
+  typename VectorVolumeType::Pointer inputVectorVolume = multiVolumeReader->GetOutput();
 
   //Look for tags representing the acquisition parameters
   //
@@ -138,7 +129,7 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
   std::vector<float> TriggerTimes;
   try
     {
-    TriggerTimes = GetTriggerTimes(inputMultiVolume->GetMetaDataDictionary());
+    TriggerTimes = GetTriggerTimes(inputVectorVolume->GetMetaDataDictionary());
     }
   catch (itk::ExceptionObject &exc)
     {
@@ -152,7 +143,7 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
   // float echoTime = 0.0;
   // try 
   //   {
-  //   echoTime = GetEchoTime(inputMultiVolume->GetMetaDataDictionary());
+  //   echoTime = GetEchoTime(inputVectorVolume->GetMetaDataDictionary());
   //   }
   // catch (itk::ExceptionObject &exc)
   //   {
@@ -167,7 +158,7 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
   float FAValue = 0.0;
   try 
     {
-    FAValue = GetFlipAngle(inputMultiVolume->GetMetaDataDictionary());
+    FAValue = GetFlipAngle(inputVectorVolume->GetMetaDataDictionary());
     }
   catch (itk::ExceptionObject &exc)
     {
@@ -182,7 +173,7 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
   float TRValue = 0.0;
   try 
     {
-    TRValue = GetRepetitionTime(inputMultiVolume->GetMetaDataDictionary());
+    TRValue = GetRepetitionTime(inputVectorVolume->GetMetaDataDictionary());
     }
   catch (itk::ExceptionObject &exc)
     {
@@ -194,17 +185,17 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
     }
 
   //Read mask
-  typename VolumeReaderType::Pointer maskVolumeReader = VolumeReaderType::New();
+  typename MaskVolumeReaderType::Pointer maskVolumeReader = MaskVolumeReaderType::New();
   maskVolumeReader->SetFileName(AIFMaskFileName.c_str() );
   maskVolumeReader->Update();
-  typename VolumeType::Pointer maskVolume = maskVolumeReader->GetOutput();
+  typename MaskVolumeType::Pointer maskVolume = maskVolumeReader->GetOutput();
  
   //Convert to concentration values
-  typedef itk::ConvertSignalIntensitiesToConcentrationValuesFilter<MultiVolumeType,OutputMultiVolumeType> ConvertFilterType;
+  typedef itk::SignalIntensityToConcentrationImageFilter<VectorVolumeType,MaskVolumeType,FloatVectorVolumeType> ConvertFilterType;
   typename ConvertFilterType::Pointer converter = ConvertFilterType::New();
+  converter->SetInput(inputVectorVolume);
   converter->SetAIFMask(maskVolume);
   converter->SetT1PreBlood(T1PreBloodValue);
-  converter->SetInput(inputMultiVolume);
   converter->SetT1PreTissue(T1PreTissueValue);
   converter->SetTR(TRValue);
   converter->SetFA(FAValue);
@@ -213,15 +204,11 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
   converter->Update();
 
   //Calculate parameters
-  typedef itk::CastImageFilter<VolumeType, OutputVolumeType> MaskCastFilterType;
-  typename MaskCastFilterType::Pointer maskCastFilter = MaskCastFilterType::New();
-  maskCastFilter->SetInput(maskVolume);
-  maskCastFilter->Update();
-  typedef itk::CalculateQuantificationParametersFilter<OutputMultiVolumeType, OutputVolumeType> QuantifierType;
+  typedef itk::ConcentrationToQuantitativeImageFilter<FloatVectorVolumeType, MaskVolumeType, OutputVolumeType> QuantifierType;
   typename QuantifierType::Pointer quantifier = QuantifierType::New();
-  quantifier->SetInputMultiVolume(const_cast<OutputMultiVolumeType *>(converter->GetOutput() ) );
+  quantifier->SetInput(converter->GetOutput());
+  quantifier->SetAIFMask(maskVolume );
 
-  quantifier->SetInputVolume(maskCastFilter->GetOutput() );
   quantifier->SetAUCTimeInterval(AUCTimeInterval);
   quantifier->SetTimeAxis(TriggerTimes);
   quantifier->SetfTol(FTolerance);
@@ -233,25 +220,26 @@ int DoIt2( int argc, char * argv[], const T1 &, const T2 &)
   quantifier->Update();
 
   //set output
-  typename VolumeWriterType::Pointer ktranswriter = VolumeWriterType::New();
+  typename OutputVolumeWriterType::Pointer ktranswriter = OutputVolumeWriterType::New();
   ktranswriter->SetInput(const_cast<OutputVolumeType *>(quantifier->GetOutput() ) );
   ktranswriter->SetFileName(OutputKtransFileName.c_str() );
   ktranswriter->Update();
 
-  typename VolumeWriterType::Pointer vewriter = VolumeWriterType::New();
+  typename OutputVolumeWriterType::Pointer vewriter = OutputVolumeWriterType::New();
   vewriter->SetInput(quantifier->GetOutput(1) );
   vewriter->SetFileName(OutputVeFileName.c_str() );
   vewriter->Update();
 
-  typename VolumeWriterType::Pointer maxSlopewriter = VolumeWriterType::New();
+  typename OutputVolumeWriterType::Pointer maxSlopewriter = OutputVolumeWriterType::New();
   maxSlopewriter->SetInput(quantifier->GetOutput(2) );
   maxSlopewriter->SetFileName(OutputMaxSlopeFileName.c_str() );
   maxSlopewriter->Update();
 
-  typename VolumeWriterType::Pointer aucwriter = VolumeWriterType::New();
+  typename OutputVolumeWriterType::Pointer aucwriter = OutputVolumeWriterType::New();
   aucwriter->SetInput(quantifier->GetOutput(3) );
   aucwriter->SetFileName(OutputAUCFileName.c_str() );
   aucwriter->Update();
+
   return EXIT_SUCCESS;
 }  
 
@@ -281,24 +269,24 @@ int main( int argc, char * argv[] )
       case itk::ImageIOBase::CHAR:
       case itk::ImageIOBase::UCHAR:
       case itk::ImageIOBase::SHORT:
-        return DoIt2( argc, argv, static_cast<short>(0),static_cast<short>(0) );
+        return DoIt( argc, argv, static_cast<short>(0),static_cast<short>(0) );
         break;
       case itk::ImageIOBase::USHORT:
       case itk::ImageIOBase::INT:
-        return DoIt2( argc, argv, static_cast<int>(0),static_cast<int>(0) );
+        return DoIt( argc, argv, static_cast<int>(0),static_cast<short>(0) );
         break;
       case itk::ImageIOBase::UINT:
       case itk::ImageIOBase::ULONG:
-        return DoIt2( argc, argv, static_cast<unsigned long>(0),static_cast<unsigned long>(0) );
+        return DoIt( argc, argv, static_cast<unsigned long>(0),static_cast<short>(0) );
         break;
       case itk::ImageIOBase::LONG:
-        return DoIt2( argc, argv, static_cast<long>(0),static_cast<long>(0) );
+        return DoIt( argc, argv, static_cast<long>(0),static_cast<short>(0) );
         break;
       case itk::ImageIOBase::FLOAT:
-        return DoIt2( argc, argv, static_cast<float>(0),static_cast<float>(0) );
+        return DoIt( argc, argv, static_cast<float>(0),static_cast<short>(0) );
         break;
       case itk::ImageIOBase::DOUBLE:
-        return DoIt2( argc, argv, static_cast<float>(0),static_cast<float>(0) );
+        return DoIt( argc, argv, static_cast<float>(0),static_cast<short>(0) );
         break;
       case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
       default:

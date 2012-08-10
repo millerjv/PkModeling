@@ -1,6 +1,6 @@
-#ifndef _itkConvertSignalIntensitiesToConcentrationValuesFilter_hxx
-#define _itkConvertSignalIntensitiesToConcentrationValuesFilter_hxx
-#include "itkConvertSignalIntensitiesToConcentrationValuesFilter.h"
+#ifndef _itkSignalIntensityToConcentrationImageFilter_hxx
+#define _itkSignalIntensityToConcentrationImageFilter_hxx
+#include "itkSignalIntensityToConcentrationImageFilter.h"
 #include "itkImageFileReader.h"
 #include "itkCastImageFilter.h"
 
@@ -8,8 +8,8 @@ namespace itk
 {
 
 template <class TInputImage, class TMaskImage, class TOutputImage>
-ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TMaskImage,
-                                                    TOutputImage>::ConvertSignalIntensitiesToConcentrationValuesFilter()
+SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage,
+                                                    TOutputImage>::SignalIntensityToConcentrationImageFilter()
 {
   m_T1PreTissue = 0.0f;
   m_T1PreBlood = m_T1PreTissue;
@@ -21,18 +21,18 @@ ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TMaskImage,
 }
 
 template<class TInputImage, class TMaskImage, class TOutputImage>
-void ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TMaskImage, TOutputImage>::GenerateData()
+void SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::GenerateData()
 {
   std::cout << "Signal Intensity To Concentration" << std::endl;
 
-  InputImageType* inputVectorVolume = dynamic_cast<InputImageType*>(this->GetInput());
+  const InputImageType* inputVectorVolume = this->GetInput();
 
   OutputImageType* outputVolume = this->GetOutput();
   outputVolume->SetBufferedRegion(inputVectorVolume->GetBufferedRegion());
   outputVolume->Allocate();
 
   // Get S0 Volume
-  typedef itk::S0CalculationFilter<TInputImage, InternalVolumeType> S0VolumeFilterType;
+  typedef SignalIntensityToS0ImageFilter<TInputImage, InternalVolumeType> S0VolumeFilterType;
   typename S0VolumeFilterType::Pointer S0VolumeFilter = S0VolumeFilterType::New();
   S0VolumeFilter->SetInput(inputVectorVolume);
   S0VolumeFilter->SetS0GradThresh(m_S0GradThresh);
@@ -40,14 +40,14 @@ void ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TMaskImage
   InternalVolumePointerType S0Volume = S0VolumeFilter->GetOutput();
   
   InternalVolumeIterType S0VolumeIter(S0Volume, S0Volume->GetRequestedRegion() );
-  InternalVectorVolumeIterType inputVectorVolumeIter(inputVectorVolume, 
-                                                     inputVectorVolume->GetRequestedRegion() );
-  OutputIterType oit(outputVolume, inputVectorVolume->GetRequestedRegion());
+  InputImageConstIterType inputVectorVolumeIter(inputVectorVolume, 
+                                               inputVectorVolume->GetRequestedRegion());
+  OutputIterType oit(outputVolume,outputVolume->GetRequestedRegion());
 
-  InputMaskIterType aifMaskVolumeIter;
+  InputMaskConstIterType aifMaskVolumeIter;
   if (this->GetAIFMask())
     {
-    aifMaskVolumeIter = InputMaskIterType(this->GetAIFMask(),this->GetAIFMask()->GetRequestedRegion() );
+    aifMaskVolumeIter = InputMaskConstIterType(this->GetAIFMask(),this->GetAIFMask()->GetRequestedRegion() );
     aifMaskVolumeIter.GoToBegin();
     }
 
@@ -111,7 +111,7 @@ void ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TMaskImage
 
     // copy the concentration vector to the output
     outputVectorVoxel.SetSize(inputVectorVoxel.GetSize());
-    for (typename OutputPixelType::ElementIdentifer i = 0; 
+    for (typename OutputPixelType::ElementIdentifier i = 0; 
          i < outputVectorVoxel.GetSize(); ++i)
       {
       outputVectorVoxel[i] 
@@ -129,7 +129,7 @@ void ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TMaskImage
 
 
 template <class TInputImage, class TMaskImage, class TOutput>
-void ConvertSignalIntensitiesToConcentrationValuesFilter<TInputImage, TMaskImage, TOutput>
+void SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutput>
 ::PrintSelf( std::ostream& os, Indent indent ) const
 {
   Superclass::PrintSelf( os, indent );

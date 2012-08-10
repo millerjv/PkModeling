@@ -13,13 +13,13 @@ set(cli_module_include_directories
 
 # Additional source files
 set(cli_module_SRCS
-	PkModeling.cxx
-	itkS0CalculationFilter.h
-	itkS0CalculationFilter.hxx
-	itkConvertSignalIntensitiesToConcentrationValuesFilter.h
-    itkConvertSignalIntensitiesToConcentrationValuesFilter.hxx
-	itkCalculateQuantificationParametersFilter.h
-	itkCalculateQuantificationParametersFilter.hxx
+  PkModeling.cxx
+  itkSignalIntensityToS0ImageFilter.h
+  itkSignalIntensityToS0ImageFilter.hxx
+  itkSignalIntensityToConcentrationImageFilter.h
+  itkSignalIntensityToConcentrationImageFilter.h
+  itkConcentrationToQuantitativeImageFilter.h
+  itkConcentrationToQuantitativeImageFilter.hxx
   )
   
 # Additional Target libraries

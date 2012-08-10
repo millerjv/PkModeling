@@ -5,12 +5,8 @@
 #include "itkImageRegionConstIterator.h"
 #include "itkImageRegionIterator.h"
 #include "vnl/vnl_math.h"
-#include "itkCastImageFilter.h"
 #include "itkConcentrationToQuantitativeImageFilter.h"
 
-#include "itkBinaryThresholdImageFilter.h"
-#include "itkImageFileWriter.h"
-#include "itkImageFileReader.h"
 #include "itkLevenbergMarquardtOptimizer.h"
 #include <ostream>
 #include "stdlib.h"
@@ -19,8 +15,8 @@
 namespace itk
 {
 
-template <class TInputImage, class TOutputImage>
-ConcentrationToQuantitativeImageFilter<TInputImage,TOutputImage>::ConcentrationToQuantitativeImageFilter()
+template <class TInputImage, class TMaskImage, class TOutputImage>
+ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>::ConcentrationToQuantitativeImageFilter()
 {
   m_T1Pre = 0.0f;
   m_TR = 0.0f;
@@ -34,158 +30,112 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TOutputImage>::ConcentrationT
   m_maxIter = 200;
   m_hematocrit = 0.4f;
   m_aifAUC = 0.0f;
-  m_timeSize = 0;
-  m_timeAxis = new float();
-  m_averageAIFCon = new float();
   this->Superclass::SetNumberOfRequiredInputs(2);
   this->Superclass::SetNumberOfRequiredOutputs(4);
-  this->Superclass::SetNthOutput(0, VolumeType::New() );
-  this->Superclass::SetNthOutput(1, VolumeType::New() );
-  this->Superclass::SetNthOutput(2, VolumeType::New() );
-  this->Superclass::SetNthOutput(3, VolumeType::New() );
+  this->Superclass::SetNthOutput(1, static_cast<TOutputImage*>(this->MakeOutput(0).GetPointer()));
+  this->Superclass::SetNthOutput(2, static_cast<TOutputImage*>(this->MakeOutput(0).GetPointer()));
+  this->Superclass::SetNthOutput(3, static_cast<TOutputImage*>(this->MakeOutput(0).GetPointer()));
 }
 
-template<class TInputImage, class TOutputImage>
-void ConcentrationToQuantitativeImageFilter<TInputImage,TOutputImage>
-::CallCopyOutputRegionToInputRegion(MultiVolumeRegionType &destRegion, const VolumeRegionType &srcRegion)
-{
-  ExtractImageFilterRegionCopierType extractImageRegionCopier;
-
-  extractImageRegionCopier(destRegion, srcRegion, m_ExtractionRegion);
-}
-// Change the input region size, otherwise it would be same as the output size
-template< class TInputImage, class TOutputImage >
-void ConcentrationToQuantitativeImageFilter< TInputImage, TOutputImage >
-::GenerateInputRequestedRegion()
-throw( InvalidRequestedRegionError )
-{
-  Superclass::GenerateInputRequestedRegion();
-  
-  typename ConcentrationToQuantitativeImageFilter<TInputImage,TOutputImage>::MultiVolumePointerType image =
-    const_cast< MultiVolumeType * >( this->GetInput(0) );
-  if ( image )
-    {
-    image->SetRequestedRegion( this->GetInput(0)->GetLargestPossibleRegion() );
-    }
-}
-
-// Set 4D concentration values as first input
-template< class TInputImage, class TOutputImage >
-void ConcentrationToQuantitativeImageFilter< TInputImage, TOutputImage >::SetInputMultiVolume(const TInputImage* multiVolume)
-{
-  SetNthInput(0, const_cast<TInputImage*>(multiVolume) );
-}
 
 // Set 3D AIF mask as second input
-template< class TInputImage, class TOutputImage >
-void ConcentrationToQuantitativeImageFilter< TInputImage, TOutputImage >::SetInputVolume(const TOutputImage* volume)
+template< class TInputImage, class TMaskImage, class TOutputImage >
+void 
+ConcentrationToQuantitativeImageFilter< TInputImage, TMaskImage, TOutputImage >
+::SetAIFMask(const TMaskImage* volume)
 {
-  SetNthInput(1, const_cast<TOutputImage*>(volume) );
+  this->SetNthInput(1, const_cast<TMaskImage*>(volume) );
 }
 
-template< class TInputImage, class TOutputImage >
-typename TInputImage::ConstPointer ConcentrationToQuantitativeImageFilter< TInputImage, TOutputImage >::GetInputMultiVolume()
+template< class TInputImage, class TMaskImage, class TOutputImage >
+const TMaskImage* 
+ConcentrationToQuantitativeImageFilter< TInputImage, TMaskImage, TOutputImage >
+::GetAIFMask() const
 {
-  return static_cast< const TInputImage * >
-         ( this->ProcessObject::GetInput(0) );
+  return dynamic_cast< const TMaskImage * >( this->ProcessObject::GetInput(1) );
 }
 
-template< class TInputImage, class TOutputImage >
-typename TOutputImage::ConstPointer ConcentrationToQuantitativeImageFilter< TInputImage,
-                                                                             TOutputImage >::GetInputVolume()
+template< class TInputImage, class TMaskImage, class TOutputImage >
+TOutputImage* 
+ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
+::GetKTransVolume() 
 {
-  return static_cast< const TOutputImage * >
-         ( this->ProcessObject::GetInput(1) );
+  return dynamic_cast< TOutputImage * >( this->ProcessObject::GetOutput(0) );
 }
 
-// Set the output size same as the x, y, z of input 4D data
-template <class TInputImage, class TOutputImage>
-void ConcentrationToQuantitativeImageFilter<TInputImage,TOutputImage>
-::GenerateOutputInformation()
+template< class TInputImage, class TMaskImage, class TOutputImage >
+TOutputImage* 
+ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
+::GetVEVolume() 
 {
-  // do not call the superclass' implementation of this method since
-  // this filter allows the input and the output to be of different dimensions
+  return dynamic_cast< TOutputImage * >( this->ProcessObject::GetOutput(1) );
+}
 
-  // get pointers to the input and output
-  std::cout <<std::endl<< "Generate output information" << std::endl;
-  typename Superclass::OutputImagePointer      outputPtr = this->GetOutput();
-  typename Superclass::InputImageConstPointer  inputPtr  = this->GetInput();
+template< class TInputImage, class TMaskImage, class TOutputImage >
+TOutputImage* 
+ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
+::GetMaxSlopeVolume() 
+{
+  return dynamic_cast< TOutputImage * >( this->ProcessObject::GetOutput(2) );
+}
 
-  if ( !outputPtr || !inputPtr)
-    {
-    return;
-    }
+template< class TInputImage, class TMaskImage, class TOutputImage >
+TOutputImage* 
+ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
+::GetAUCVolume() 
+{
+  return dynamic_cast< TOutputImage * >( this->ProcessObject::GetOutput(3) );
+}
 
-  typename TOutputImage::RegionType outputImageRegion;
-  typename TOutputImage::IndexType outputStartIndex;
-  outputStartIndex.Fill(0);
-  typename TOutputImage::SizeType outputSize;
-  typename TInputImage::SizeType inputSize = inputPtr->GetLargestPossibleRegion().GetSize();
-  outputSize[0]=inputSize[0];
-  outputSize[1]=inputSize[1];
-  outputSize[2]=inputSize[2];
-  outputImageRegion.SetSize(outputSize);
-  outputImageRegion.SetIndex(outputStartIndex);
+
+
+template <class TInputImage, class TMaskImage, class TOutputImage>
+void 
+ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
+::BeforeThreadedGenerateData()
+{
+  const VectorVolumeType* inputVectorVolume = this->GetInput();
+  const MaskVolumeType* maskVolume = this->GetAIFMask();
+
+  // Allocate the buffers for the output images
+  OutputVolumeType* ktransVolume = this->GetKTransVolume();
+  ktransVolume->SetRegions(inputVectorVolume->GetRequestedRegion() );
+  ktransVolume->Allocate();
+  ktransVolume->FillBuffer(0);
+
+  OutputVolumeType* veVolume = this->GetVEVolume();
+  veVolume->SetRegions(inputVectorVolume->GetRequestedRegion() );
+  veVolume->Allocate();
+  veVolume->FillBuffer(0);
+
+  OutputVolumeType* maxSlopeVolume = this->GetMaxSlopeVolume();
+  maxSlopeVolume->SetRegions(inputVectorVolume->GetRequestedRegion() );
+  maxSlopeVolume->Allocate();
+  maxSlopeVolume->FillBuffer(0);
+
+  OutputVolumeType* aucVolume = this->GetAUCVolume();
+  aucVolume->SetRegions(inputVectorVolume->GetRequestedRegion() );
+  aucVolume->Allocate();
+  aucVolume->FillBuffer(0);
+
   
-  outputPtr->SetLargestPossibleRegion( outputImageRegion );
-}
+  int timeSize = (int)inputVectorVolume->GetNumberOfComponentsPerPixel();
 
-template <class TInputImage, class TOutputImage>
-void ConcentrationToQuantitativeImageFilter<TInputImage,TOutputImage>::BeforeThreadedGenerateData()
-{
-
-  m_inputMultiVolume = this->GetInputMultiVolume();
-  m_inputVolume = this->GetInputVolume();
-
-  //transfer input multiVolume to vector image
-  m_inputVectorVolume =
-    this->MultiVolumeToVectorVolume(const_cast<MultiVolumeType *>(static_cast<const MultiVolumeType * >(m_inputMultiVolume) ) );
-
-  VectorVolumeSizeType vectorVolumeSize = m_inputVectorVolume->GetLargestPossibleRegion().GetSize();
-
-  //calculate parameters
-  m_ktransVolume = VolumeType::New();
-  m_ktransVolume->SetRegions(m_inputVolume->GetLargestPossibleRegion() );
-  m_ktransVolume->Allocate();
-  m_ktransVolume->FillBuffer(0);
-  m_veVolume = VolumeType::New();
-  m_veVolume->SetRegions(m_inputVolume->GetLargestPossibleRegion() );
-  m_veVolume->Allocate();
-  m_veVolume->FillBuffer(0);
-  m_maxSlopeVolume = VolumeType::New();
-  m_maxSlopeVolume->SetRegions(m_inputVolume->GetLargestPossibleRegion() );
-  m_maxSlopeVolume->Allocate();
-  m_maxSlopeVolume->FillBuffer(0);
-  m_aucVolume = VolumeType::New();
-  m_aucVolume->SetRegions(m_inputVolume->GetLargestPossibleRegion() );
-  m_aucVolume->Allocate();
-  m_aucVolume->FillBuffer(0);
-
-  m_timeSize = (int)m_inputVectorVolume->GetNumberOfComponentsPerPixel();
-
-  m_TimeMinute = new float[m_inputMultiVolume->GetLargestPossibleRegion().GetSize()[3]]();
-  
-  //convert second to minute for time series
-  for(unsigned int i =0; i<(m_inputMultiVolume->GetLargestPossibleRegion().GetSize()[3]); i++)
-    {
-    m_TimeMinute[i] = m_timeAxis[i]/60;    
-    }
-
-  m_averageAIFCon = new float[m_timeSize]();
   int   aif_BATIndex = 0;
   int   aif_FirstPeakIndex = 0;
   float aif_MaxSlope = 0.0f;
   
-  //Calculate AUC of AIF area  
-  CalculateAverageAIF(m_inputVectorVolume, m_inputVolume, m_averageAIFCon);  
-  compute_bolus_arrival_time (m_timeSize, m_averageAIFCon, aif_BATIndex, aif_FirstPeakIndex, aif_MaxSlope);  
-  m_aifAUC = area_under_curve(m_timeSize, m_timeAxis, m_averageAIFCon, aif_BATIndex, m_AUCTimeInterval);
+  // calculate AUC of AIF area  
+  m_averageAIFConcentration = this->CalculateAverageAIF(inputVectorVolume, maskVolume); 
+  compute_bolus_arrival_time (timeSize, &m_averageAIFConcentration[0], aif_BATIndex, aif_FirstPeakIndex, aif_MaxSlope);  
+  m_aifAUC = area_under_curve(timeSize, &m_TimeAxis[0], &m_averageAIFConcentration[0], aif_BATIndex, m_AUCTimeInterval);
   
   std::cerr<<"beforeThreaded done!"<<std::endl;
 }
 
-template <class TInputImage, class TOutputImage>
-void ConcentrationToQuantitativeImageFilter<TInputImage,TOutputImage>
+template <class TInputImage, class TMaskImage, class TOutputImage>
+void 
+ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
 #if ITK_VERSION_MAJOR < 4
 ::ThreadedGenerateData( const typename Superclass::OutputImageRegionType & outputRegionForThread, int itkNotUsed(
                           threadId) )
@@ -205,52 +155,52 @@ void ConcentrationToQuantitativeImageFilter<TInputImage,TOutputImage>
   int   BATIndex = 0;
   int   FirstPeakIndex = 0;
 
-  VectorVolumeIterType inputVectorVolumeIter(m_inputVectorVolume, outputRegionForThread);
-  VolumeIterType       ktransVolumeIter(m_ktransVolume, outputRegionForThread);
-  VolumeIterType       veVolumeIter(m_veVolume, outputRegionForThread);
-  VolumeIterType       maxSlopeVolumeIter(m_maxSlopeVolume, outputRegionForThread);
-  VolumeIterType       aucVolumeIter(m_aucVolume, outputRegionForThread);
+  const VectorVolumeType* inputVectorVolume = this->GetInput();
+
+  VectorVolumeConstIterType inputVectorVolumeIter(inputVectorVolume, outputRegionForThread);
+  OutputVolumeIterType ktransVolumeIter(this->GetKTransVolume(), outputRegionForThread);
+  OutputVolumeIterType veVolumeIter(this->GetVEVolume(), outputRegionForThread);
+  OutputVolumeIterType maxSlopeVolumeIter(this->GetMaxSlopeVolume(), outputRegionForThread);
+  OutputVolumeIterType aucVolumeIter(this->GetAUCVolume(), outputRegionForThread);
 
   //set up optimizer and cost function
   itk::LevenbergMarquardtOptimizer::Pointer optimizer = itk::LevenbergMarquardtOptimizer::New(); 
   LMCostFunction::Pointer                   costFunction = LMCostFunction::New();                
-  
-  costFunction->SetNumberOfValues (m_timeSize);   
-  costFunction->set_hematocrit (m_hematocrit);   
-    
-  optimizer->UseCostFunctionGradientOff();   
-  optimizer->SetUseCostFunctionGradient(0);  
+  int timeSize = (int)inputVectorVolume->GetNumberOfComponentsPerPixel();
 
-  CommandIterationUpdateLevenbergMarquardt::Pointer observer = CommandIterationUpdateLevenbergMarquardt::New(); 
-  optimizer->AddObserver( itk::IterationEvent(), observer );                                                    
-  optimizer->AddObserver( itk::FunctionEvaluationIterationEvent(), observer );                                  
-  
+  std::vector<float> timeMinute;
+  timeMinute = m_TimeAxis;
+  for(unsigned int i = 0; i < timeMinute.size(); i++)
+    {
+    timeMinute[i] = m_TimeAxis[i]/60.0;    
+    }
+
   while (!inputVectorVolumeIter.IsAtEnd() )
     {
-
     vectorVoxel = inputVectorVolumeIter.Get();    
 	
-	// Calculate parameter ktrans and ve
-    pk_solver_boost(m_timeSize, m_TimeMinute,
-                    const_cast<float *>(vectorVoxel.GetDataPointer() ),m_averageAIFCon,
-                    tempKtrans, tempVe, tempFpv,
-                    m_fTol,m_gTol,m_xTol,
-                    m_epsilon,m_maxIter,
-                    optimizer,costFunction);
+    // Calculate parameter ktrans and ve
+    pk_solver(timeSize, &timeMinute[0],
+              const_cast<float *>(vectorVoxel.GetDataPointer() ),
+              &m_averageAIFConcentration[0],
+              tempKtrans, tempVe, tempFpv,
+              m_fTol,m_gTol,m_xTol,
+              m_epsilon,m_maxIter, m_hematocrit,
+              optimizer,costFunction);
+
     // Calculate parameter maxSlope
-	compute_bolus_arrival_time (m_timeSize,
-                                const_cast<float *>(vectorVoxel.GetDataPointer() ), BATIndex, FirstPeakIndex,
-                                tempMaxSlope);
-	// Calculate parameter AUC, normalized by AIF AUC
+    compute_bolus_arrival_time (timeSize,
+                                const_cast<float *>(vectorVoxel.GetDataPointer() ), BATIndex, FirstPeakIndex, tempMaxSlope);
+
+    // Calculate parameter AUC, normalized by AIF AUC
     tempAUC =
-      (area_under_curve(m_timeSize, m_timeAxis, const_cast<float *>(vectorVoxel.GetDataPointer() ), BATIndex,
-                        m_AUCTimeInterval) )/m_aifAUC;
+      (area_under_curve(timeSize, &m_TimeAxis[0], const_cast<float *>(vectorVoxel.GetDataPointer() ), BATIndex,  m_AUCTimeInterval) )/m_aifAUC;
   
 
-    ktransVolumeIter.Set(static_cast<VolumePixelType>(tempKtrans) );
-    veVolumeIter.Set(static_cast<VolumePixelType>(tempVe) );
-    maxSlopeVolumeIter.Set(static_cast<VolumePixelType>(tempMaxSlope) );
-    aucVolumeIter.Set(static_cast<VolumePixelType>(tempAUC) );
+    ktransVolumeIter.Set(static_cast<OutputVolumePixelType>(tempKtrans) );
+    veVolumeIter.Set(static_cast<OutputVolumePixelType>(tempVe) );
+    maxSlopeVolumeIter.Set(static_cast<OutputVolumePixelType>(tempMaxSlope) );
+    aucVolumeIter.Set(static_cast<OutputVolumePixelType>(tempAUC) );
 
     ++ktransVolumeIter;
     ++veVolumeIter;
@@ -260,125 +210,68 @@ void ConcentrationToQuantitativeImageFilter<TInputImage,TOutputImage>
     }
   }
 
-template <class TInputImage, class TOutputImage>
-void ConcentrationToQuantitativeImageFilter<TInputImage,TOutputImage>::AfterThreadedGenerateData()
-{
-  std::cerr << "Prepare for output" << std::endl;
-  this->SetNthOutput(0,m_ktransVolume);
-  this->SetNthOutput(1,m_veVolume);
-  this->SetNthOutput(2,m_maxSlopeVolume);
-  this->SetNthOutput(3,m_aucVolume);
-
-  delete [] m_timeAxis;
-  delete [] m_TimeMinute;
-  delete [] m_averageAIFCon;
-}
 
 // Calculate average AIF according to the AIF mask
-template <class TInputImage, class TOutputImage>
-void
-ConcentrationToQuantitativeImageFilter<TInputImage, TOutputImage>::CalculateAverageAIF(
-  VectorVolumePointerType inputVectorVolume, VolumeConstPointerType inputVolume,float*& averageAIF)
+template <class TInputImage, class TMaskImage, class TOutputImage>
+std::vector<float>
+ConcentrationToQuantitativeImageFilter<TInputImage, TMaskImage, TOutputImage>
+::CalculateAverageAIF(const VectorVolumeType*  inputVectorVolume, const MaskVolumeType* maskVolume)
 {
-  VectorVolumeIterType inputVectorVolumeIter(inputVectorVolume, inputVectorVolume->GetRequestedRegion() );
-  VolumeConstIterType  inputVolumeIter(inputVolume, inputVolume->GetRequestedRegion() );
+  std::vector<float> averageAIF;
+
+  VectorVolumeConstIterType inputVectorVolumeIter(inputVectorVolume, inputVectorVolume->GetRequestedRegion() );
+  MaskVolumeConstIterType  maskVolumeIter(maskVolume, maskVolume->GetRequestedRegion() );
 
   inputVectorVolumeIter.GoToBegin();
-  inputVolumeIter.GoToBegin();
+  maskVolumeIter.GoToBegin();
+
   VectorVoxelType vectorVoxel;
-  VolumeIndexType volumeIndex;
-  int             numberVoxels = 0;
- 
+  long            numberVoxels = 0;
+  long            numberOfSamples = inputVectorVolume->GetNumberOfComponentsPerPixel();
+  averageAIF = std::vector<float>(numberOfSamples, 0.0);
+
   while (!inputVectorVolumeIter.IsAtEnd() )
     {
-    if (inputVolumeIter.Get()!=0) //Pixel value >0 will be consider to be a
+    if (maskVolumeIter.Get()!=0) //Pixel value >0 will be consider to be a
                                   // landmark pixel.
       {
-      volumeIndex = inputVolumeIter.GetIndex();      
-    
-      numberVoxels +=1;
+      numberVoxels++;
       vectorVoxel = inputVectorVolumeIter.Get();
       
-      for(int i = 0; i < (int)inputVectorVolume->GetNumberOfComponentsPerPixel(); i++)
+      for(long i = 0; i < numberOfSamples; i++)
         {
-        averageAIF[i]+=(float)vectorVoxel.GetDataPointer()[i];    
+        averageAIF[i] += vectorVoxel[i];    
         }      
       }
-    ++inputVolumeIter;
+    ++maskVolumeIter;
     ++inputVectorVolumeIter;
     }
   
-  for(int i = 0; i < (int)inputVectorVolume->GetNumberOfComponentsPerPixel(); i++)
+  for(long i = 0; i < numberOfSamples; i++)
     {
-    averageAIF[i]=averageAIF[i]/numberVoxels;
+    averageAIF[i] /= (double)numberVoxels;
     }
+
+  return averageAIF;
 }
 
-template <class TInputImage, class TOutputImage>
-typename ConcentrationToQuantitativeImageFilter<TInputImage, TOutputImage>::VectorVolumePointerType
-ConcentrationToQuantitativeImageFilter<TInputImage, TOutputImage>::MultiVolumeToVectorVolume(MultiVolumePointerType inputMultiVolume)
-{ 
-  typename ImageToVectorImageFilterType::Pointer imageToVectorImageFilter = ImageToVectorImageFilterType::New();
 
-  VolumePointerType       volumeTemp;
-  VectorVolumePointerType outputVectorVolume;
-
-  MultiVolumeRegionType inputMultiVolumeRegion = inputMultiVolume->GetLargestPossibleRegion();
-  MultiVolumeSizeType   inputMultiVolumeSize = inputMultiVolumeRegion.GetSize();
- 
-  typename MultiVolumeType::IndexType extractStartIndex;
-  MultiVolumeSizeType   extractSize;
-  MultiVolumeRegionType extractRegion;
- 
-  extractStartIndex[0] = 0;
-  extractStartIndex[1] = 0;
-  extractStartIndex[2] = 0;
-  extractSize[0] = inputMultiVolumeSize[0];
-  extractSize[1] = inputMultiVolumeSize[1];
-  extractSize[2] = inputMultiVolumeSize[2];
-  extractSize[3] = 0;
-
-  for (int i = 0; i < (int)inputMultiVolumeSize[3]; i++)
-    {
-    typename ExtractImageFilterType::Pointer extractImageFilter = ExtractImageFilterType::New();
-    extractStartIndex[3] = i;
-    extractRegion.SetIndex(extractStartIndex);
-    extractRegion.SetSize(extractSize);
-    extractImageFilter->SetExtractionRegion(extractRegion);
-    extractImageFilter->SetInput(inputMultiVolume);
-    extractImageFilter->Update();
-    extractImageFilter->ReleaseDataFlagOn();
-    volumeTemp = extractImageFilter->GetOutput();
-    imageToVectorImageFilter->SetNthInput(i, volumeTemp);
-    }
-  
-  imageToVectorImageFilter->Update();
-  outputVectorVolume = dynamic_cast<VectorVolumeType *>(imageToVectorImageFilter->GetOutput() );
-  
-  return outputVectorVolume;
-}
-
-template <class TInputImage, class TOutputImage>
-void ConcentrationToQuantitativeImageFilter<TInputImage,TOutputImage>
-::SetTimeAxis(vcl_vector<float> inputTimeAxis)
+template <class TInputImage, class TMaskImage, class TOutputImage>
+void ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
+::SetTimeAxis(const std::vector<float>& inputTimeAxis)
 {  
-  m_timeAxis = new float[inputTimeAxis.size()]();
-
-  for(int i=0; i<(int)inputTimeAxis.size(); ++i)
-    {
-    m_timeAxis[i] = static_cast<float>(inputTimeAxis[i]);
-    }
+  m_TimeAxis = inputTimeAxis;
 }
 
-template <class TInputImage, class TOutputImage>
-float* ConcentrationToQuantitativeImageFilter<TInputImage,TOutputImage>
+template <class TInputImage, class TMaskImage, class TOutputImage>
+const std::vector<float>& ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
 ::GetTimeAxis()
 {
-  return m_timeAxis;
+  return m_TimeAxis;
 }
 
-template <class TInputImage, class TOutputImage>
-void ConcentrationToQuantitativeImageFilter<TInputImage,TOutputImage>
+template <class TInputImage, class TMaskImage, class TOutputImage>
+void ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
 ::PrintSelf( std::ostream& os, Indent indent ) const
 {
   Superclass::PrintSelf( os, indent );

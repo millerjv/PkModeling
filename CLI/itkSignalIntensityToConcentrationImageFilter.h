@@ -1,14 +1,14 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $SignalIntensitiesToConcentrationValues: itkConvertSignalIntensitiesToConcentrationValuesFilter.h $
+  Module:    $SignalIntensitiesToConcentrationValues: itkSignalIntensityToConcentrationImageFilter.h $
   Language:  C++
   Date:      $Date: 2012/03/07 $
   Version:   $Revision: 0.0 $
 
 =========================================================================*/
-#ifndef __itkConvertSignalIntensitiesToConcentrationValuesFilter_h
-#define __itkConvertSignalIntensitiesToConcentrationValuesFilter_h
+#ifndef __itkSignalIntensityToConcentrationImageFilter_h
+#define __itkSignalIntensityToConcentrationImageFilter_h
 
 #include "itkImageToImageFilter.h"
 #include "itkImage.h"
@@ -16,14 +16,14 @@
 #include "itkImageToVectorImageFilter.h"
 #include "itkExtractImageFilter.h"
 #include "itkImageRegionIterator.h"
-#include "itkS0CalculationFilter.h"
+#include "itkSignalIntensityToS0ImageFilter.h"
 #include "itkImageFileWriter.h"
 
 #include "PkSolver.h"
 
 namespace itk
 {
-/** \class ConvertSignalIntensitiesToConcentrationValuesFilter 
+/** \class SignalIntensityToConcentrationImageFilter 
  * \brief Convert from signal intensities to concentrations.
  *
  * This converts an VectorImage of signal intensities into a
@@ -40,7 +40,7 @@ namespace itk
  * 
  */
 template <class TInputImage, class TMaskImage, class TOutputImage>
-class ConvertSignalIntensitiesToConcentrationValuesFilter : public ImageToImageFilter<TInputImage, TOutputImage>
+class SignalIntensityToConcentrationImageFilter : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Convenient typedefs for simplifying declarations. */
@@ -50,9 +50,10 @@ public:
   typedef typename InputImageType::PixelType      InputPixelType;
   typedef typename InputImageType::RegionType     InputImageRegionType;
   typedef typename InputImageType::SizeType       InputSizeType;
+  typedef itk::ImageRegionConstIterator<InputImageType> InputImageConstIterType;
 
   typedef TMaskImage                              InputMaskType;
-  typedef itk::ImageRegionIterator<InputMaskType> InputMaskIterType;
+  typedef itk::ImageRegionConstIterator<InputMaskType> InputMaskConstIterType;
 
   typedef TOutputImage                           OutputImageType;
   typedef typename OutputImageType::Pointer      OutputImagePointer;
@@ -71,14 +72,14 @@ public:
 
   typedef itk::VectorImage<FloatPixelType, TInputImage::ImageDimension> InternalVectorVolumeType;
   typedef typename InternalVectorVolumeType::Pointer         InternalVectorVolumePointerType;
-  typedef itk::ImageRegionIterator<InternalVectorVolumeType> InternalVectorVolumeIterType;
+  typedef itk::ImageRegionConstIterator<InternalVectorVolumeType> InternalVectorVolumeConstIterType;
   typedef typename InternalVectorVolumeType::RegionType      InternalVectorVolumeRegionType;
   typedef typename InternalVectorVolumeType::SizeType        InternalVectorVolumeSizeType;
 
   typedef itk::VariableLengthVector<float> InternalVectorVoxelType;
 
   /** Standard class typedefs. */
-  typedef ConvertSignalIntensitiesToConcentrationValuesFilter Self;
+  typedef SignalIntensityToConcentrationImageFilter Self;
   typedef ImageToImageFilter<InputImageType, OutputImageType> Superclass;
   typedef SmartPointer<Self>                                  Pointer;
   typedef SmartPointer<const Self>                            ConstPointer;
@@ -87,7 +88,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( ConvertSignalIntensitiesToConcentrationValuesFilter, ImageToImageFilter );
+  itkTypeMacro( SignalIntensityToConcentrationImageFilter, ImageToImageFilter );
 
   /** Set and get the number of DWI channels. */
   itkGetMacro( T1PreBlood, float);
@@ -107,18 +108,18 @@ public:
   // input function
   void SetAIFMask(InputMaskType* aifMaskVolume)
   {
-    this->SetNthInput(1, aifMaskVolume);
+    this->SetNthInput(1, const_cast<InputMaskType*>(aifMaskVolume));
   }
 
   // Get the mask image assigned as the arterial input function
   const InputMaskType* GetAIFMask() const
   {
-    return dynamic_cast<InputMastType*>(this->GetNthInput(1));
+    return dynamic_cast<const InputMaskType*>(this->ProcessObject::GetInput(1));
   }
 
 protected:
-  ConvertSignalIntensitiesToConcentrationValuesFilter();
-  virtual ~ConvertSignalIntensitiesToConcentrationValuesFilter()
+  SignalIntensityToConcentrationImageFilter();
+  virtual ~SignalIntensityToConcentrationImageFilter()
   {
   }
 
@@ -127,7 +128,7 @@ protected:
   void GenerateData();
 
 private:
-  ConvertSignalIntensitiesToConcentrationValuesFilter(const Self &); //
+  SignalIntensityToConcentrationImageFilter(const Self &); //
                                                                      // purposely
                                                                      // not
                                                                      // implemented
@@ -147,7 +148,7 @@ private:
 }; // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkConvertSignalIntensitiesToConcentrationValuesFilter.hxx"
+#include "itkSignalIntensityToConcentrationImageFilter.hxx"
 #endif
 
 #endif
