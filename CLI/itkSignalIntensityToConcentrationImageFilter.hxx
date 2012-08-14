@@ -23,8 +23,6 @@ SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage,
 template<class TInputImage, class TMaskImage, class TOutputImage>
 void SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::GenerateData()
 {
-  std::cout << "Signal Intensity To Concentration" << std::endl;
-
   const InputImageType* inputVectorVolume = this->GetInput();
 
   OutputImageType* outputVolume = this->GetOutput();

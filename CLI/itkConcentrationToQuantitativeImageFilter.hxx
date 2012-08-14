@@ -130,7 +130,6 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
   compute_bolus_arrival_time (timeSize, &m_averageAIFConcentration[0], aif_BATIndex, aif_FirstPeakIndex, aif_MaxSlope);  
   m_aifAUC = area_under_curve(timeSize, &m_TimeAxis[0], &m_averageAIFConcentration[0], aif_BATIndex, m_AUCTimeInterval);
   
-  std::cerr<<"beforeThreaded done!"<<std::endl;
 }
 
 template <class TInputImage, class TMaskImage, class TOutputImage>

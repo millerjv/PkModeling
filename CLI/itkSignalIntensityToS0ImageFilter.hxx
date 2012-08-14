@@ -33,7 +33,6 @@ void SignalIntensityToS0ImageFilter<TInputImage, TOutputImage>
 #endif
   {
   //Input is vector volume, output is volume
-  std::cerr << std::endl << "Calculate S0" << std::endl;
 
   const InputImageType* inputVectorVolume = this->GetInput();
   OutputImageType* S0Volume = this->GetOutput();
