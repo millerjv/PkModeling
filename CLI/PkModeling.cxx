@@ -65,7 +65,7 @@ std::vector<float> GetTriggerTimes(itk::MetaDataDictionary& dictionary)
       std::string frameLabelsString;
       itk::ExposeMetaData(dictionary, "MultiVolume.FrameLabels", frameLabelsString);
       std::stringstream frameLabelsStream(frameLabelsString);
-      if (tag == "Trigger Time")
+      if (tag == "TriggerTime" || tag == "AcquisitionTime")
         {
         float t;
         while (frameLabelsStream >> t)
@@ -73,6 +73,10 @@ std::vector<float> GetTriggerTimes(itk::MetaDataDictionary& dictionary)
           t /= 1000.0; // convert to seconds (are times in milliseconds?)
           triggerTimes.push_back(t);
           }
+        }
+      else
+        {
+        itkGenericExceptionMacro("Unrecognized frame identifying DICOM tag name " << tag);
         }
       // what other frame identification methods are there?
       }
