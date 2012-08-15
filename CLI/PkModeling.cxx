@@ -238,6 +238,17 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   converter->SetS0GradThresh(S0GradValue);
   converter->Update();
 
+  // itk::Index<3> ind;
+  // ind[0] = 30;
+  // ind[1] = 100;
+  // ind[2] = 0;
+  // itk::ImageRegion<3> reg;
+  // itk::Size<3> sz;
+  // sz.Fill(1);
+  // sz[1]=99;
+  // reg.SetIndex(ind);
+  // reg.SetSize(sz);
+
   //Calculate parameters
   typedef itk::ConcentrationToQuantitativeImageFilter<FloatVectorVolumeType, MaskVolumeType, OutputVolumeType> QuantifierType;
   typename QuantifierType::Pointer quantifier = QuantifierType::New();
@@ -252,8 +263,13 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   quantifier->Setepsilon(Epsilon);
   quantifier->SetmaxIter(MaxIter);
   quantifier->Sethematocrit(Hematocrit);
+//  quantifier->GetOutput()->SetRequestedRegion(reg);
   quantifier->Update();
 
+  // std::cout << "Ktrans: " << quantifier->GetKTransOutput()->GetPixel(ind) << std::endl;
+  // std::cout << "Ve: " << quantifier->GetVEOutput()->GetPixel(ind) << std::endl;
+  // std::cout << "MaxSlope: " << quantifier->GetMaxSlopeOutput()->GetPixel(ind) << std::endl;
+  // std::cout << "AUC: " << quantifier->GetAUCOutput()->GetPixel(ind) << std::endl;
   //set output
   typename OutputVolumeWriterType::Pointer ktranswriter = OutputVolumeWriterType::New();
   ktranswriter->SetInput(const_cast<OutputVolumeType *>(quantifier->GetOutput() ) );
