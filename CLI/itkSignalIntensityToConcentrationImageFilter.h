@@ -27,7 +27,8 @@ namespace itk
  * \brief Convert from signal intensities to concentrations.
  *
  * This converts an VectorImage of signal intensities into a
- * VectorImage of concentration values.
+ * VectorImage of concentration values. Typical use if for the output
+ * image's pixel component type to be floating point.
  *
  * An second input, specifying the location of the arterial input
  * function, allows for the calculation to be adjusted for blood
@@ -105,7 +106,8 @@ public:
   itkSetMacro( S0GradThresh, float);
 
   // Set a mask image for specifying the location of the arterial
-  // input function
+  // input function. This is interpretted as a binary image with
+  // nonzero values only at the arterial input function locations.
   void SetAIFMask(InputMaskType* aifMaskVolume)
   {
     this->SetNthInput(1, const_cast<InputMaskType*>(aifMaskVolume));
