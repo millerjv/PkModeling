@@ -97,28 +97,6 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
   const VectorVolumeType* inputVectorVolume = this->GetInput();
   const MaskVolumeType* maskVolume = this->GetAIFMask();
 
-  // Allocate the buffers for the output images
-  OutputVolumeType* ktransVolume = this->GetKTransVolume();
-  ktransVolume->SetRegions(inputVectorVolume->GetRequestedRegion() );
-  ktransVolume->Allocate();
-  ktransVolume->FillBuffer(0);
-
-  OutputVolumeType* veVolume = this->GetVEVolume();
-  veVolume->SetRegions(inputVectorVolume->GetRequestedRegion() );
-  veVolume->Allocate();
-  veVolume->FillBuffer(0);
-
-  OutputVolumeType* maxSlopeVolume = this->GetMaxSlopeVolume();
-  maxSlopeVolume->SetRegions(inputVectorVolume->GetRequestedRegion() );
-  maxSlopeVolume->Allocate();
-  maxSlopeVolume->FillBuffer(0);
-
-  OutputVolumeType* aucVolume = this->GetAUCVolume();
-  aucVolume->SetRegions(inputVectorVolume->GetRequestedRegion() );
-  aucVolume->Allocate();
-  aucVolume->FillBuffer(0);
-
-  
   int timeSize = (int)inputVectorVolume->GetNumberOfComponentsPerPixel();
 
   int   aif_BATIndex = 0;
