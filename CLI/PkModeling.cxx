@@ -270,24 +270,25 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   // std::cout << "Ve: " << quantifier->GetVEOutput()->GetPixel(ind) << std::endl;
   // std::cout << "MaxSlope: " << quantifier->GetMaxSlopeOutput()->GetPixel(ind) << std::endl;
   // std::cout << "AUC: " << quantifier->GetAUCOutput()->GetPixel(ind) << std::endl;
+
   //set output
   typename OutputVolumeWriterType::Pointer ktranswriter = OutputVolumeWriterType::New();
-  ktranswriter->SetInput(const_cast<OutputVolumeType *>(quantifier->GetOutput() ) );
+  ktranswriter->SetInput(quantifier->GetKTransOutput() );
   ktranswriter->SetFileName(OutputKtransFileName.c_str() );
   ktranswriter->Update();
 
   typename OutputVolumeWriterType::Pointer vewriter = OutputVolumeWriterType::New();
-  vewriter->SetInput(quantifier->GetOutput(1) );
+  vewriter->SetInput(quantifier->GetVEOutput() );
   vewriter->SetFileName(OutputVeFileName.c_str() );
   vewriter->Update();
 
   typename OutputVolumeWriterType::Pointer maxSlopewriter = OutputVolumeWriterType::New();
-  maxSlopewriter->SetInput(quantifier->GetOutput(2) );
+  maxSlopewriter->SetInput(quantifier->GetMaxSlopeOutput() );
   maxSlopewriter->SetFileName(OutputMaxSlopeFileName.c_str() );
   maxSlopewriter->Update();
 
   typename OutputVolumeWriterType::Pointer aucwriter = OutputVolumeWriterType::New();
-  aucwriter->SetInput(quantifier->GetOutput(3) );
+  aucwriter->SetInput(quantifier->GetAUCOutput() );
   aucwriter->SetFileName(OutputAUCFileName.c_str() );
   aucwriter->Update();
 
