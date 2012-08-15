@@ -69,7 +69,7 @@ void SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputI
     vectorVoxel += inputVectorVoxel; // shorthand for a copy/cast
 
     // if we have an AIF mask
-    if( this->GetAIFMask() && (this->GetAIFMask()->GetLargestPossibleRegion().GetSize()[0])!=0)
+    if( this->GetAIFMask() && (this->GetAIFMask()->GetBufferedRegion().GetSize()[0])!=0)
       {
       // if the mask is set, use blood T1, else use tissue T1
       if(aifMaskVolumeIter.Get()!=0)
