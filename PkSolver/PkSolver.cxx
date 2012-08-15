@@ -154,7 +154,6 @@ bool pk_solver(int signalSize, const float* timeAxis,
   costFunction->GetValue (initialValue); //...
 
   optimizer->UseCostFunctionGradientOff();   
-  optimizer->SetUseCostFunctionGradient(0);  
 
   try {
      optimizer->SetCostFunction( costFunction ); 
