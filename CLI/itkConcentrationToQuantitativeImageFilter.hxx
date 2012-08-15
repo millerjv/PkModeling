@@ -58,7 +58,7 @@ ConcentrationToQuantitativeImageFilter< TInputImage, TMaskImage, TOutputImage >
 template< class TInputImage, class TMaskImage, class TOutputImage >
 TOutputImage* 
 ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
-::GetKTransVolume() 
+::GetKTransOutput() 
 {
   return dynamic_cast< TOutputImage * >( this->ProcessObject::GetOutput(0) );
 }
@@ -66,7 +66,7 @@ ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
 template< class TInputImage, class TMaskImage, class TOutputImage >
 TOutputImage* 
 ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
-::GetVEVolume() 
+::GetVEOutput() 
 {
   return dynamic_cast< TOutputImage * >( this->ProcessObject::GetOutput(1) );
 }
@@ -74,7 +74,7 @@ ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
 template< class TInputImage, class TMaskImage, class TOutputImage >
 TOutputImage* 
 ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
-::GetMaxSlopeVolume() 
+::GetMaxSlopeOutput() 
 {
   return dynamic_cast< TOutputImage * >( this->ProcessObject::GetOutput(2) );
 }
@@ -82,7 +82,7 @@ ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
 template< class TInputImage, class TMaskImage, class TOutputImage >
 TOutputImage* 
 ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
-::GetAUCVolume() 
+::GetAUCOutput() 
 {
   return dynamic_cast< TOutputImage * >( this->ProcessObject::GetOutput(3) );
 }
@@ -135,10 +135,10 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
   const VectorVolumeType* inputVectorVolume = this->GetInput();
 
   VectorVolumeConstIterType inputVectorVolumeIter(inputVectorVolume, outputRegionForThread);
-  OutputVolumeIterType ktransVolumeIter(this->GetKTransVolume(), outputRegionForThread);
-  OutputVolumeIterType veVolumeIter(this->GetVEVolume(), outputRegionForThread);
-  OutputVolumeIterType maxSlopeVolumeIter(this->GetMaxSlopeVolume(), outputRegionForThread);
-  OutputVolumeIterType aucVolumeIter(this->GetAUCVolume(), outputRegionForThread);
+  OutputVolumeIterType ktransVolumeIter(this->GetKTransOutput(), outputRegionForThread);
+  OutputVolumeIterType veVolumeIter(this->GetVEOutput(), outputRegionForThread);
+  OutputVolumeIterType maxSlopeVolumeIter(this->GetMaxSlopeOutput(), outputRegionForThread);
+  OutputVolumeIterType aucVolumeIter(this->GetAUCOutput(), outputRegionForThread);
 
   //set up optimizer and cost function
   itk::LevenbergMarquardtOptimizer::Pointer optimizer = itk::LevenbergMarquardtOptimizer::New(); 

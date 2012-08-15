@@ -123,10 +123,10 @@ public:
   void SetAIFMask(const MaskVolumeType* volume);
   const TMaskImage* GetAIFMask() const;
 
-  TOutputImage* GetKTransVolume();
-  TOutputImage* GetVEVolume();
-  TOutputImage* GetMaxSlopeVolume();
-  TOutputImage* GetAUCVolume();
+  TOutputImage* GetKTransOutput();
+  TOutputImage* GetVEOutput();
+  TOutputImage* GetMaxSlopeOutput();
+  TOutputImage* GetAUCOutput();
 
 protected:
   ConcentrationToQuantitativeImageFilter();
