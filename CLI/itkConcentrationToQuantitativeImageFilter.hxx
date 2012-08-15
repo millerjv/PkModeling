@@ -209,8 +209,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage, TMaskImage, TOutputImage>
 
   while (!inputVectorVolumeIter.IsAtEnd() )
     {
-    if (maskVolumeIter.Get()!=0) //Pixel value >0 will be consider to be a
-                                  // landmark pixel.
+    if (maskVolumeIter.Get()!=0) // Mask pixel with value !0 will is part of AIF
       {
       numberVoxels++;
       vectorVoxel = inputVectorVolumeIter.Get();
