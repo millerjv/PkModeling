@@ -61,17 +61,44 @@ std::vector<float> GetTriggerTimes(itk::MetaDataDictionary& dictionary)
     itk::ExposeMetaData(dictionary, "MultiVolume.FrameIdentifyingDICOMTagName", tag);
     if (dictionary.HasKey("MultiVolume.FrameLabels"))
       {
-      // Acquisition parameters stored as text
+      // Acquisition parameters stored as text, FrameLabels are comma separated
       std::string frameLabelsString;
       itk::ExposeMetaData(dictionary, "MultiVolume.FrameLabels", frameLabelsString);
       std::stringstream frameLabelsStream(frameLabelsString);
       if (tag == "TriggerTime" || tag == "AcquisitionTime")
         {
         float t;
+        float t0 = 0.0;
+        bool first = true;
         while (frameLabelsStream >> t)
           {
-          t /= 1000.0; // convert to seconds (are times in milliseconds?)
+          if (tag == "TriggerTime")
+            {
+            // Convert from ms to seconds
+            t /= 1000.0; // convert to seconds 
+            }
+          else if (tag == "AcquisitionTime")
+            {
+            // Convert from hhmmss.frac to seconds
+            long hhmmss = (long) t;
+            float frac = t - hhmmss;
+            long hh = hhmmss / 10000;
+            long mmss;
+            mmss = hhmmss - hh * 10000;
+            long mm = mmss / 100;
+            long ss = mmss - mm*100;
+
+            t = hh*3600.0 + mm*60.0 + ss*1.0 + frac;
+            }
+          if (first)
+            {
+            t0 = t;
+            first = false;
+            }
+          t = t - t0;
+
           triggerTimes.push_back(t);
+          frameLabelsStream.ignore(1); // skip the comma
           }
         }
       else
@@ -134,6 +161,10 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   try
     {
     TriggerTimes = GetTriggerTimes(inputVectorVolume->GetMetaDataDictionary());
+    std::cout << "TriggerTimes: ";
+    for (int i=0; i < TriggerTimes.size(); ++i)
+      std::cout << TriggerTimes[i] << ", ";
+    std::cout << std::endl;
     }
   catch (itk::ExceptionObject &exc)
     {
