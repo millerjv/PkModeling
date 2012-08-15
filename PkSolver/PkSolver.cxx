@@ -189,9 +189,11 @@ bool pk_solver(int signalSize, const float* timeAxis,
   std::cerr << "Description = " << e.GetDescription() << std::endl;
   return false;
   }
+  //vnlOptimizer->diagnose_outcome();
   //std::cerr << "after optimizer!" << std::endl;
   itk::LevenbergMarquardtOptimizer::ParametersType finalPosition;
   finalPosition = optimizer->GetCurrentPosition();
+  //std::cerr << finalPosition[0] << ", " << finalPosition[1] << ", " << finalPosition[2] << std::endl;
         
   //Solution: remove the scale of 100  
   Ktrans = finalPosition[0];
