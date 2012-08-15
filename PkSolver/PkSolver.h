@@ -43,8 +43,7 @@ public:
         
   float m_Hematocrit;
         
-  LMCostFunction():
-    m_Measure(700)
+  LMCostFunction()
   {
   }
         
@@ -59,41 +58,33 @@ public:
         
   void SetCb (const float* cb, int sz) //BloodConcentrationCurve.
   {
-    double *tmp;
-    tmp = new double[sz];
     Cb.set_size(sz);
     for( int i = 0; i < sz; ++i )
-      tmp[i] = cb[i];
-    Cb.set(tmp);
-    delete [] tmp;
+      Cb[i] = cb[i];
+    //std::cout << "Cb: " << Cb << std::endl;
   }
         
         
   void SetCv (const float* cv, int sz) //Self signal Y
   {    
-    double *tmp;
-    tmp = new double[sz];
     Cv.set_size (sz);
     for (int i = 0; i < sz; ++i)
-      tmp[i] = cv[i];
-    Cv.set(tmp);
-    delete [] tmp;
+      Cv[i] = cv[i];
+    //std::cout << "Cv: " << Cv << std::endl;
   }
         
   void SetTime (const float* cx, int sz) //Self signal X
   {
-    double *tmp;
-    tmp = new double[sz];
     Time.set_size (sz);
     for( int i = 0; i < sz; ++i )
-      tmp[i] = cx[i];
-    Time.set(tmp);
-    delete [] tmp;
+      Time[i] = cx[i];
+    //std::cout << "Time: " << Time << std::endl;
   }
         
   MeasureType GetValue( const ParametersType & parameters) const
   {
-    m_Measure.SetSize(RangeDimension);
+    MeasureType measure(RangeDimension);
+
     ValueType Ktrans = parameters[0];
     ValueType Ve = parameters[1];
     ValueType f_pv = parameters[2];
@@ -101,9 +92,10 @@ public:
     ArrayType VeTerm;
     VeTerm = -Ktrans/Ve*Time;
     ValueType deltaT = Time(1) - Time(0);
-    m_Measure = Cv - (1/(1.0-m_Hematocrit)*(Ktrans*deltaT*Convolution(Cb,Exponential(VeTerm)) + f_pv*Cb));
+    
+    measure = Cv - (1/(1.0-m_Hematocrit)*(Ktrans*deltaT*Convolution(Cb,Exponential(VeTerm)) + f_pv*Cb));
             
-    return m_Measure; 
+    return measure; 
   }
         
   //Not going to be used
@@ -126,18 +118,12 @@ protected:
   virtual ~LMCostFunction(){}
 private:
         
-  mutable MeasureType       m_Measure;
-  mutable DerivativeType    m_Derivative;
-        
   ArrayType Cv, Cb, Time;
         
   ArrayType Convolution(ArrayType X, ArrayType Y) const
   {
     ArrayType Z;
-    Z.set_size(X.size());
-    ArrayType temp;
-    temp = vnl_convolve(X,Y);
-    Z = temp.extract(X.size(),0);
+    Z = vnl_convolve(X,Y).extract(X.size(),0);
     return Z;
   };
         
