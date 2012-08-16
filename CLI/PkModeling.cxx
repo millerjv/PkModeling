@@ -162,8 +162,10 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
     {
     TriggerTimes = GetTriggerTimes(inputVectorVolume->GetMetaDataDictionary());
     std::cout << "TriggerTimes: ";
-    for (int i=0; i < TriggerTimes.size(); ++i)
+    for (std::vector<float>::size_type i=0; i < TriggerTimes.size(); ++i)
+      {
       std::cout << TriggerTimes[i] << ", ";
+      }
     std::cout << std::endl;
     }
   catch (itk::ExceptionObject &exc)
