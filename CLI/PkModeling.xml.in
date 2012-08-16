@@ -3,9 +3,9 @@
   <category>Quantification</category>
   <title>PkModeling</title>
   <index>2</index>
-  <description><![CDATA[Calculate concentration and parameters in Pk Modeling.\n\nThis module was originally distributed as "Linear registration" but has been renamed to eliminate confusion with the "Affine registration" module.\n\nThis module is often used to align images of different subjects or images of the same subject from different modalities.\n\n]]></description>
+  <description><![CDATA[Calculates quantitative imaging parameters from dynamic contrast enhanced MRI (DCE MRI) using a pharmacokinetic model. Inputs are a multivolume (vector image) where each voxel contains a time series and a label map (binary image) indicating where to define the arterial input function.\n\n]]></description>
   <version>0.1.0.$Revision: 19276 $(alpha)</version>
-  <documentation-url>http://wiki.slicer.org/slicerWiki/index.php/Documentation/4.0/Modules/RigidRegistration</documentation-url>
+  <documentation-url>http://wiki.slicer.org/slicerWiki/index.php/Documentation/4.1/Extensions/PkModeling</documentation-url>
   <license/>
   <contributor>Yingxuan Zhu</contributor>
   <acknowledgements><![CDATA[This module was developed by Yingxuan Zhu at GE Research with contributions from Jim Miller.\n\nThis work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.]]></acknowledgements>
