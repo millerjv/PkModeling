@@ -8,9 +8,6 @@
 #include "itkConcentrationToQuantitativeImageFilter.h"
 
 #include "itkLevenbergMarquardtOptimizer.h"
-#include <ostream>
-#include "stdlib.h"
-#include "stdio.h"
 
 namespace itk
 {

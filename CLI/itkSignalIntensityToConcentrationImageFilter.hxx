@@ -1,8 +1,6 @@
 #ifndef _itkSignalIntensityToConcentrationImageFilter_hxx
 #define _itkSignalIntensityToConcentrationImageFilter_hxx
 #include "itkSignalIntensityToConcentrationImageFilter.h"
-#include "itkImageFileReader.h"
-#include "itkCastImageFilter.h"
 
 namespace itk
 {
