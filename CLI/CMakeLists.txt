@@ -1,10 +1,5 @@
 # Configure XML description
 set(PKM PkModeling)
-configure_file(
-  ${PKM}.xml.in
-  ${CMAKE_CURRENT_BINARY_DIR}/${PKM}.xml
-  @ONLY
-  )
   
 # Additional includes
 set(cli_module_include_directories
