@@ -4,10 +4,12 @@
 
 #include "itkImageRegionConstIterator.h"
 #include "itkImageRegionIterator.h"
+#include "itkProgressReporter.h"
+#include "itkLevenbergMarquardtOptimizer.h"
 #include "vnl/vnl_math.h"
+
 #include "itkConcentrationToQuantitativeImageFilter.h"
 
-#include "itkLevenbergMarquardtOptimizer.h"
 
 namespace itk
 {
@@ -111,12 +113,9 @@ template <class TInputImage, class TMaskImage, class TOutputImage>
 void 
 ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
 #if ITK_VERSION_MAJOR < 4
-::ThreadedGenerateData( const typename Superclass::OutputImageRegionType & outputRegionForThread, int itkNotUsed(
-                          threadId) )
+::ThreadedGenerateData( const typename Superclass::OutputImageRegionType & outputRegionForThread, int threadId )
 #else
-::ThreadedGenerateData( const typename Superclass::OutputImageRegionType& outputRegionForThread,
-                        ThreadIdType itkNotUsed(
-                          threadId) )
+::ThreadedGenerateData( const typename Superclass::OutputImageRegionType& outputRegionForThread, ThreadIdType threadId )
 #endif
   {
   VectorVoxelType vectorVoxel;
@@ -148,6 +147,10 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
     {
     timeMinute[i] = m_TimeAxis[i]/60.0;    
     }
+
+
+  ProgressReporter progress(this, threadId, outputRegionForThread.GetNumberOfPixels());
+  
 
   while (!ktransVolumeIter.IsAtEnd() )
     {
@@ -181,6 +184,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
     ++maxSlopeVolumeIter;
     ++aucVolumeIter;
     ++inputVectorVolumeIter;
+    progress.CompletedPixel();
     }
   }
 

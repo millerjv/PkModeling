@@ -238,6 +238,7 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   converter->SetFA(FAValue);
   converter->SetRGD_relaxivity(RelaxivityValue);
   converter->SetS0GradThresh(S0GradValue);
+  itk::PluginFilterWatcher watchConverter(converter, "Concentrations",  CLPProcessInformation,  1.0 / 20.0, 0.0);
   converter->Update();
 
   // itk::Index<3> ind;
@@ -266,6 +267,7 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   quantifier->SetmaxIter(MaxIter);
   quantifier->Sethematocrit(Hematocrit);
 //  quantifier->GetOutput()->SetRequestedRegion(reg);
+  itk::PluginFilterWatcher watchQuantifier(quantifier, "Quantifying",  CLPProcessInformation,  19.0 / 20.0, 1.0 / 20.0);
   quantifier->Update();
 
   // std::cout << "Ktrans: " << quantifier->GetKTransOutput()->GetPixel(ind) << std::endl;

@@ -1,6 +1,7 @@
 #ifndef _itkSignalIntensityToConcentrationImageFilter_hxx
 #define _itkSignalIntensityToConcentrationImageFilter_hxx
 #include "itkSignalIntensityToConcentrationImageFilter.h"
+#include "itkProgressReporter.h"
 
 namespace itk
 {
@@ -57,6 +58,8 @@ void SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputI
   InputPixelType inputVectorVoxel;
   InternalVectorVoxelType vectorVoxel;
   OutputPixelType outputVectorVoxel;
+
+  ProgressReporter progress(this, 0, outputVolume->GetRequestedRegion().GetNumberOfPixels());
   
   // Convert signal intensities to concentration values
   while (!oit.IsAtEnd() )
@@ -118,6 +121,7 @@ void SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputI
     ++S0VolumeIter;
     ++inputVectorVolumeIter;
     ++oit;
+    progress.CompletedPixel();
     }
 
   delete [] concentrationVectorVoxelTemp;
