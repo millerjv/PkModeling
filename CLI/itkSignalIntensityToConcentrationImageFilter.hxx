@@ -61,7 +61,7 @@ void SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputI
   OutputPixelType outputVectorVoxel;
   
   // Convert signal intensities to concentration values
-  while (!inputVectorVolumeIter.IsAtEnd() )
+  while (!oit.IsAtEnd() )
     {
     inputVectorVoxel = inputVectorVolumeIter.Get();
     vectorVoxel.SetSize(inputVectorVoxel.GetSize());

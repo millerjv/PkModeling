@@ -152,7 +152,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
     timeMinute[i] = m_TimeAxis[i]/60.0;    
     }
 
-  while (!inputVectorVolumeIter.IsAtEnd() )
+  while (!ktransVolumeIter.IsAtEnd() )
     {
     vectorVoxel = inputVectorVolumeIter.Get();    
 	
