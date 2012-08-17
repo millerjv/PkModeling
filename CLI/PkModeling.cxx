@@ -72,24 +72,7 @@ std::vector<float> GetTriggerTimes(itk::MetaDataDictionary& dictionary)
         bool first = true;
         while (frameLabelsStream >> t)
           {
-          if (tag == "TriggerTime")
-            {
-            // Convert from ms to seconds
-            t /= 1000.0; // convert to seconds 
-            }
-          else if (tag == "AcquisitionTime")
-            {
-            // Convert from hhmmss.frac to seconds
-            long hhmmss = (long) t;
-            float frac = t - hhmmss;
-            long hh = hhmmss / 10000;
-            long mmss;
-            mmss = hhmmss - hh * 10000;
-            long mm = mmss / 100;
-            long ss = mmss - mm*100;
-
-            t = hh*3600.0 + mm*60.0 + ss*1.0 + frac;
-            }
+          t /= 1000.0;  // convert to seconds
           if (first)
             {
             t0 = t;
