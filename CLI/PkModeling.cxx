@@ -51,7 +51,7 @@ type Get##name(itk::MetaDataDictionary& dictionary)           \
 SimpleAttributeGetMethodMacro(RepetitionTime, "MultiVolume.DICOM.RepetitionTime",float);
 SimpleAttributeGetMethodMacro(FlipAngle, "MultiVolume.DICOM.FlipAngle", float);
 
-std::vector<float> GetTriggerTimes(itk::MetaDataDictionary& dictionary)
+std::vector<float> GetTiming(itk::MetaDataDictionary& dictionary)
 {
   std::vector<float> triggerTimes;
 
@@ -140,14 +140,14 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   //
 
   // Trigger times
-  std::vector<float> TriggerTimes;
+  std::vector<float> Timing;
   try
     {
-    TriggerTimes = GetTriggerTimes(inputVectorVolume->GetMetaDataDictionary());
-    std::cout << "TriggerTimes: ";
-    for (std::vector<float>::size_type i=0; i < TriggerTimes.size(); ++i)
+    Timing = GetTiming(inputVectorVolume->GetMetaDataDictionary());
+    std::cout << "Timing: ";
+    for (std::vector<float>::size_type i=0; i < Timing.size(); ++i)
       {
-      std::cout << TriggerTimes[i] << ", ";
+      std::cout << Timing[i] << ", ";
       }
     std::cout << std::endl;
     }
@@ -242,7 +242,7 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   quantifier->SetAIFMask(maskVolume );
 
   quantifier->SetAUCTimeInterval(AUCTimeInterval);
-  quantifier->SetTimeAxis(TriggerTimes);
+  quantifier->SetTimeAxis(Timing);
   quantifier->SetfTol(FTolerance);
   quantifier->SetgTol(GTolerance);
   quantifier->SetxTol(XTolerance);
