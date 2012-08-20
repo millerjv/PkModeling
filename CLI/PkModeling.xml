@@ -120,6 +120,7 @@
     </image>
     <measurement fileExtensions="csv">
       <name>PrescribedAIFFileName</name>
+      <label>Prescribed AIF</label>
       <longflag>prescribedAIF</longflag>
       <channel>input</channel>
       <description><![CDATA[Prescribed arterial input function (AIF). AIF can either be calculated from the input using the aifMask option or can be prescribed directly in concentration units using the prescribedAIF option.]]></description>
