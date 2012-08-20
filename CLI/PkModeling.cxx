@@ -119,7 +119,12 @@ bool GetPrescribedAIF(const std::string& fileName,
   std::string line;
   std::ifstream csv;
   csv.open(fileName.c_str());
-    
+  if (csv.fail())
+    {
+    std::cerr << "Cannot open file " << fileName << std::endl;
+    return false;
+    }
+
   while (!csv.eof())
     {
     getline(csv, line);
@@ -290,6 +295,12 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
     usingPrescribedAIF = GetPrescribedAIF(PrescribedAIFFileName, prescribedAIFTiming, prescribedAIF);
     }
  
+  if (AIFMaskFileName == "" && !usingPrescribedAIF)
+    {
+    std::cerr << "Either a mask localizing the region over which to calculate the arterial input function or a prescribed arterial input function must be specified." << std::endl;
+    return EXIT_FAILURE;
+    }
+
   //Convert to concentration values
   typedef itk::SignalIntensityToConcentrationImageFilter<VectorVolumeType,MaskVolumeType,FloatVectorVolumeType> ConvertFilterType;
   typename ConvertFilterType::Pointer converter = ConvertFilterType::New();
