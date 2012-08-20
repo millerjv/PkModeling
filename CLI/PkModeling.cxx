@@ -141,10 +141,22 @@ bool GetPrescribedAIF(const std::string& fileName,
     // only keep the time and concentration value
     std::stringstream tstream;
     float time, value;
+
     tstream << svalues[0];
     tstream >> time;
+    if (tstream.fail())
+      {
+      // not a float, could be column labels, skip the row
+      continue;
+      }
+
     tstream << svalues[1];
     tstream >> value;
+    if (tstream.fail())
+      {
+      // not a float, could be column labels, skip the row
+      continue;
+      }
       
     timing.push_back(time);
     aif.push_back(value);
