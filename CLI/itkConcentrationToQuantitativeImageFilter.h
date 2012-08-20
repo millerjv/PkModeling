@@ -150,6 +150,7 @@ public:
   /// Get the quantitative output images
   TOutputImage* GetKTransOutput();
   TOutputImage* GetVEOutput();
+  TOutputImage* GetFPVOutput();
   TOutputImage* GetMaxSlopeOutput();
   TOutputImage* GetAUCOutput();
 

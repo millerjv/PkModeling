@@ -30,11 +30,11 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>::Con
   m_hematocrit = 0.4f;
   m_aifAUC = 0.0f;
   m_UsePrescribedAIF = false;
-  this->Superclass::SetNumberOfRequiredInputs(2);
-  this->Superclass::SetNumberOfRequiredOutputs(4);
+  this->Superclass::SetNumberOfRequiredInputs(1);
   this->Superclass::SetNthOutput(1, static_cast<TOutputImage*>(this->MakeOutput(0).GetPointer()));
   this->Superclass::SetNthOutput(2, static_cast<TOutputImage*>(this->MakeOutput(0).GetPointer()));
   this->Superclass::SetNthOutput(3, static_cast<TOutputImage*>(this->MakeOutput(0).GetPointer()));
+  this->Superclass::SetNthOutput(4, static_cast<TOutputImage*>(this->MakeOutput(0).GetPointer()));
 }
 
 // Set a prescribed AIF.  This is not currrently in the input vector,
@@ -93,7 +93,7 @@ ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
 template< class TInputImage, class TMaskImage, class TOutputImage >
 TOutputImage* 
 ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
-::GetMaxSlopeOutput() 
+::GetFPVOutput() 
 {
   return dynamic_cast< TOutputImage * >( this->ProcessObject::GetOutput(2) );
 }
@@ -101,11 +101,18 @@ ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
 template< class TInputImage, class TMaskImage, class TOutputImage >
 TOutputImage* 
 ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
-::GetAUCOutput() 
+::GetMaxSlopeOutput() 
 {
   return dynamic_cast< TOutputImage * >( this->ProcessObject::GetOutput(3) );
 }
 
+template< class TInputImage, class TMaskImage, class TOutputImage >
+TOutputImage* 
+ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
+::GetAUCOutput() 
+{
+  return dynamic_cast< TOutputImage * >( this->ProcessObject::GetOutput(4) );
+}
 
 
 template <class TInputImage, class TMaskImage, class TOutputImage>
@@ -218,6 +225,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
   VectorVolumeConstIterType inputVectorVolumeIter(inputVectorVolume, outputRegionForThread);
   OutputVolumeIterType ktransVolumeIter(this->GetKTransOutput(), outputRegionForThread);
   OutputVolumeIterType veVolumeIter(this->GetVEOutput(), outputRegionForThread);
+  OutputVolumeIterType fpvVolumeIter(this->GetFPVOutput(), outputRegionForThread);
   OutputVolumeIterType maxSlopeVolumeIter(this->GetMaxSlopeOutput(), outputRegionForThread);
   OutputVolumeIterType aucVolumeIter(this->GetAUCOutput(), outputRegionForThread);
 
@@ -241,7 +249,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
     {
     vectorVoxel = inputVectorVolumeIter.Get();    
 	
-    // Calculate parameter ktrans and ve
+    // Calculate parameter ktrans, ve, and fpv
     pk_solver(timeSize, &timeMinute[0],
               const_cast<float *>(vectorVoxel.GetDataPointer() ),
               &m_AIF[0],
@@ -261,11 +269,13 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
 
     ktransVolumeIter.Set(static_cast<OutputVolumePixelType>(tempKtrans) );
     veVolumeIter.Set(static_cast<OutputVolumePixelType>(tempVe) );
+    fpvVolumeIter.Set(static_cast<OutputVolumePixelType>(tempFpv));
     maxSlopeVolumeIter.Set(static_cast<OutputVolumePixelType>(tempMaxSlope) );
     aucVolumeIter.Set(static_cast<OutputVolumePixelType>(tempAUC) );
 
     ++ktransVolumeIter;
     ++veVolumeIter;
+    ++fpvVolumeIter;
     ++maxSlopeVolumeIter;
     ++aucVolumeIter;
     ++inputVectorVolumeIter;

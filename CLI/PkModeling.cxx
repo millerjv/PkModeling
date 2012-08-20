@@ -121,7 +121,7 @@ bool GetPrescribedAIF(const std::string& fileName,
   csv.open(fileName.c_str());
   if (csv.fail())
     {
-    std::cerr << "Cannot open file " << fileName << std::endl;
+    std::cout << "Cannot open file " << fileName << std::endl;
     return false;
     }
 
@@ -136,7 +136,7 @@ bool GetPrescribedAIF(const std::string& fileName,
       
     std::vector<std::string> svalues;
     splitString(line, ",", svalues);  /// from PkModelingCLP.h
-      
+
     if (svalues.size() < 2)
       {
       // not enough values on the line
@@ -145,15 +145,17 @@ bool GetPrescribedAIF(const std::string& fileName,
 
     // only keep the time and concentration value
     std::stringstream tstream;
-    float time, value;
+    float time=-1.0, value=-1.0;
 
     tstream << svalues[0];
     tstream >> time;
     if (tstream.fail())
       {
-      // not a float, could be column labels, skip the row
+      // not a float, probably the column labels, skip the row
       continue;
       }
+    tstream.str("");
+    tstream.clear(); // need to clear the flags since at eof of the stream
 
     tstream << svalues[1];
     tstream >> value;
@@ -162,7 +164,9 @@ bool GetPrescribedAIF(const std::string& fileName,
       // not a float, could be column labels, skip the row
       continue;
       }
-      
+    tstream.str("");
+    tstream.clear(); // need to clear the flags since at eof of the stream
+
     timing.push_back(time);
     aif.push_back(value);
     }
@@ -318,17 +322,6 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   itk::PluginFilterWatcher watchConverter(converter, "Concentrations",  CLPProcessInformation,  1.0 / 20.0, 0.0);
   converter->Update();
 
-  // itk::Index<3> ind;
-  // ind[0] = 30;
-  // ind[1] = 100;
-  // ind[2] = 0;
-  // itk::ImageRegion<3> reg;
-  // itk::Size<3> sz;
-  // sz.Fill(1);
-  // sz[1]=99;
-  // reg.SetIndex(ind);
-  // reg.SetSize(sz);
-
   //Calculate parameters
   typedef itk::ConcentrationToQuantitativeImageFilter<FloatVectorVolumeType, MaskVolumeType, OutputVolumeType> QuantifierType;
   typename QuantifierType::Pointer quantifier = QuantifierType::New();
@@ -351,14 +344,9 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   quantifier->Setepsilon(Epsilon);
   quantifier->SetmaxIter(MaxIter);
   quantifier->Sethematocrit(Hematocrit);
-//  quantifier->GetOutput()->SetRequestedRegion(reg);
   itk::PluginFilterWatcher watchQuantifier(quantifier, "Quantifying",  CLPProcessInformation,  19.0 / 20.0, 1.0 / 20.0);
   quantifier->Update();
 
-  // std::cout << "Ktrans: " << quantifier->GetKTransOutput()->GetPixel(ind) << std::endl;
-  // std::cout << "Ve: " << quantifier->GetVEOutput()->GetPixel(ind) << std::endl;
-  // std::cout << "MaxSlope: " << quantifier->GetMaxSlopeOutput()->GetPixel(ind) << std::endl;
-  // std::cout << "AUC: " << quantifier->GetAUCOutput()->GetPixel(ind) << std::endl;
 
   //set output
   typename OutputVolumeWriterType::Pointer ktranswriter = OutputVolumeWriterType::New();
@@ -370,6 +358,11 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   vewriter->SetInput(quantifier->GetVEOutput() );
   vewriter->SetFileName(OutputVeFileName.c_str() );
   vewriter->Update();
+
+  typename OutputVolumeWriterType::Pointer fpvwriter =OutputVolumeWriterType::New();
+  fpvwriter->SetInput(quantifier->GetFPVOutput() );
+  fpvwriter->SetFileName(OutputFpvFileName.c_str() );
+  fpvwriter->Update();
 
   typename OutputVolumeWriterType::Pointer maxSlopewriter = OutputVolumeWriterType::New();
   maxSlopewriter->SetInput(quantifier->GetMaxSlopeOutput() );
