@@ -83,7 +83,16 @@ public:
   /** Run-time type information (and related methods). */
   itkTypeMacro( ConcentrationToQuantitativeImageFilter, ImageToImageFilter );
 
-  /** Set and get the number of DWI channels. */
+  /** ImageDimension enumeration */
+  itkStaticConstMacro(VectorVolumeDimension, unsigned int,
+                      VectorVolumeType::ImageDimension);
+  itkStaticConstMacro(MaskVolumeDimension, unsigned int,
+                      MaskVolumeType::ImageDimension);
+  itkStaticConstMacro(OutputVolumeDimension, unsigned int,
+                      OutputVolumeType::ImageDimension);
+
+  /** Set and get the parameters to control the calculation of
+  quantified valued */
   itkGetMacro( T1Pre, float);
   itkSetMacro( T1Pre, float);
   itkGetMacro( TR, float);
@@ -108,21 +117,37 @@ public:
   itkSetMacro( hematocrit, float);
   itkGetMacro( AUCTimeInterval, float);
   itkSetMacro( AUCTimeInterval, float);
-  void SetTimeAxis(const std::vector<float>& inputTimeAxis);
+  void SetTiming(const std::vector<float>& inputTiming);
+  const std::vector<float>& GetTiming();
 
-  const std::vector<float>& GetTimeAxis();
+  /// Control whether a prescribed AIF vector is used or whether the
+  /// AIF is specified by a mask. If UsePrescribedAIF is true, then
+  /// an AIF supplied as a vector is used rather than being derived
+  /// from a mask applied to the input concentration values. Default
+  /// is off.
+  itkSetMacro( UsePrescribedAIF, bool );
+  itkGetMacro( UsePrescribedAIF, bool );
+  itkBooleanMacro( UsePrescribedAIF );
 
-  /** ImageDimension enumeration */
-  itkStaticConstMacro(VectorVolumeDimension, unsigned int,
-                      VectorVolumeType::ImageDimension);
-  itkStaticConstMacro(MaskVolumeDimension, unsigned int,
-                      MaskVolumeType::ImageDimension);
-  itkStaticConstMacro(OutputVolumeDimension, unsigned int,
-                      OutputVolumeType::ImageDimension);
-
+  /// Set a mask to specify where the AIF is be calculated from the
+  /// input concentration image.
   void SetAIFMask(const MaskVolumeType* volume);
+
+  /// Get the mask that specifies from where the AIF is calculated
   const TMaskImage* GetAIFMask() const;
 
+  /// Set the AIF as a vector of timing and concentration
+  /// values. Timing specified in seconds.
+  void SetPrescribedAIF(const std::vector<float>& timing,
+                        const std::vector<float>& aif);
+
+  /// Get the prescribed AIF
+  itkGetMacro( PrescribedAIF, std::vector<float> );
+
+  /// Get the timing of the prescribed AIF (ms)
+  itkGetMacro( PrescribedAIFTiming, std::vector<float> );
+
+  /// Get the quantitative output images
   TOutputImage* GetKTransOutput();
   TOutputImage* GetVEOutput();
   TOutputImage* GetMaxSlopeOutput();
@@ -164,10 +189,14 @@ private:
   int    m_maxIter;
   float  m_hematocrit;
   float  m_AUCTimeInterval;
-  std::vector<float> m_TimeAxis;
+  std::vector<float> m_Timing;
+
+  bool m_UsePrescribedAIF;
+  std::vector<float> m_PrescribedAIF;
+  std::vector<float> m_PrescribedAIFTiming;
 
   // variables to cache information to share between threads
-  std::vector<float> m_averageAIFConcentration;
+  std::vector<float> m_AIF;
   float  m_aifAUC;
 };
 

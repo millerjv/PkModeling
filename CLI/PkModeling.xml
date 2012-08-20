@@ -113,11 +113,17 @@
     </image>	 
     <image type="label">
       <name>AIFMaskFileName</name>
+      <longflag>aifMask</longflag>
       <label>AIF Mask Image</label>
       <channel>input</channel>
-      <index>1</index>
-      <description><![CDATA[Mask designating the location of the arterial input function (AIF).]]></description>
+      <description><![CDATA[Mask designating the location of the arterial input function (AIF). AIF can either be calculated from the input using the aifMask or can be prescribed directly in concentration units using the prescribedAIF option.]]></description>
     </image>
+    <measurement fileExtensions="csv">
+      <name>PrescribedAIFFileName</name>
+      <longflag>prescribedAIF</longflag>
+      <channel>input</channel>
+      <description><![CDATA[Prescribed arterial input function (AIF). AIF can either be calculated from the input using the aifMask option or can be prescribed directly in concentration units using the prescribedAIF option.]]></description>
+    </measurement>
     <image>
       <name>OutputKtransFileName</name>
       <longflag>outputKtrans</longflag>

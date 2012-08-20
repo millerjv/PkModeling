@@ -29,6 +29,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>::Con
   m_maxIter = 200;
   m_hematocrit = 0.4f;
   m_aifAUC = 0.0f;
+  m_UsePrescribedAIF = false;
   this->Superclass::SetNumberOfRequiredInputs(2);
   this->Superclass::SetNumberOfRequiredOutputs(4);
   this->Superclass::SetNthOutput(1, static_cast<TOutputImage*>(this->MakeOutput(0).GetPointer()));
@@ -36,6 +37,25 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>::Con
   this->Superclass::SetNthOutput(3, static_cast<TOutputImage*>(this->MakeOutput(0).GetPointer()));
 }
 
+// Set a prescribed AIF.  This is not currrently in the input vector,
+// though it could be if we used a Decorator.
+template< class TInputImage, class TMaskImage, class TOutputImage >
+void 
+ConcentrationToQuantitativeImageFilter< TInputImage, TMaskImage, TOutputImage >
+::SetPrescribedAIF(const std::vector<float>& timing, const std::vector<float>& aif)
+{
+  if (aif.size() < 2)
+    {
+    itkExceptionMacro(<< "Prescribed AIF must contain at least two time points");
+    }
+  if (aif.size() != timing.size())
+    {
+    itkExceptionMacro("Timing vector and concentration vector for AIF must be the same size.");
+    }
+    
+  m_PrescribedAIF = aif;
+  m_PrescribedAIFTiming = timing;
+}
 
 // Set 3D AIF mask as second input
 template< class TInputImage, class TMaskImage, class TOutputImage >
@@ -102,10 +122,75 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
   int   aif_FirstPeakIndex = 0;
   float aif_MaxSlope = 0.0f;
   
-  // calculate AUC of AIF area  
-  m_averageAIFConcentration = this->CalculateAverageAIF(inputVectorVolume, maskVolume); 
-  compute_bolus_arrival_time (timeSize, &m_averageAIFConcentration[0], aif_BATIndex, aif_FirstPeakIndex, aif_MaxSlope);  
-  m_aifAUC = area_under_curve(timeSize, &m_TimeAxis[0], &m_averageAIFConcentration[0], aif_BATIndex, m_AUCTimeInterval);
+  // calculate AIF
+  if (m_UsePrescribedAIF)
+    {
+    // resample the prescribed AIF vector to be at the specifed
+    // m_Timing points and then assign to m_AIF
+    m_AIF = std::vector<float>(timeSize);
+    
+    std::vector<float>::iterator ait = m_AIF.begin();
+    std::vector<float>::iterator tit = m_Timing.begin();
+
+    std::vector<float>::iterator pait = m_PrescribedAIF.begin();
+    std::vector<float>::iterator ptit = m_PrescribedAIFTiming.begin();
+
+    std::vector<float>::iterator paitnext = pait;
+    paitnext++;
+    std::vector<float>::iterator ptitnext = ptit;
+    ptitnext++;
+
+    for (; tit != m_Timing.end(); ++tit, ++ait)
+      {
+      // Three cases
+      // (1) extrapolate the aif on the low end of the range of prescribed timings
+      // (2) interpolate the aif
+      // (3) extrapolate the aif on the high end of the range of prescribed timings
+      // 
+      // Case (1) is handled implictly by the initialization and conditionals.
+      if (*ptit <= *tit)
+        {
+        // Case (2) from above)
+        // find the prescribed times that straddle the current time to interpolate
+        while (*ptitnext < *tit && ptitnext != m_PrescribedAIFTiming.end())
+          {
+          ++ptit;
+          ++ptitnext;
+          ++pait;
+          ++paitnext;
+          }
+        }
+      if (ptitnext == m_PrescribedAIFTiming.end())
+        {
+        // we'll need to extrapolate (Case (3) from above)
+        ptitnext = ptit;
+        --ptit;
+        paitnext = pait;
+        --pait;
+        }
+
+      // interpolate aif;
+      float a;
+      a = *pait + ((*tit-*ptit) / (*ptitnext - *ptit)) * (*paitnext - *pait);
+      *ait = a;
+      }
+    }
+  else if (maskVolume)
+    {
+    // calculate the AIF from the image using the data under the
+    // specified mask
+    m_AIF = this->CalculateAverageAIF(inputVectorVolume, maskVolume); 
+    }
+  else
+    {
+    itkExceptionMacro("A mask image over which to establish the AIF or a prescribed AIF must be assigned. If prescribing an AIF, then UsePrescribedAIF must be set to true.");
+    }
+
+  // Compute the bolus arrival time
+  compute_bolus_arrival_time (timeSize, &m_AIF[0], aif_BATIndex, aif_FirstPeakIndex, aif_MaxSlope);  
+
+  // Compute the area under the curve for the AIF
+  m_aifAUC = area_under_curve(timeSize, &m_Timing[0], &m_AIF[0], aif_BATIndex, m_AUCTimeInterval);
   
 }
 
@@ -142,10 +227,10 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
   int timeSize = (int)inputVectorVolume->GetNumberOfComponentsPerPixel();
 
   std::vector<float> timeMinute;
-  timeMinute = m_TimeAxis;
+  timeMinute = m_Timing;
   for(unsigned int i = 0; i < timeMinute.size(); i++)
     {
-    timeMinute[i] = m_TimeAxis[i]/60.0;    
+    timeMinute[i] = m_Timing[i]/60.0;    
     }
 
 
@@ -159,7 +244,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
     // Calculate parameter ktrans and ve
     pk_solver(timeSize, &timeMinute[0],
               const_cast<float *>(vectorVoxel.GetDataPointer() ),
-              &m_averageAIFConcentration[0],
+              &m_AIF[0],
               tempKtrans, tempVe, tempFpv,
               m_fTol,m_gTol,m_xTol,
               m_epsilon,m_maxIter, m_hematocrit,
@@ -171,7 +256,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
 
     // Calculate parameter AUC, normalized by AIF AUC
     tempAUC =
-      (area_under_curve(timeSize, &m_TimeAxis[0], const_cast<float *>(vectorVoxel.GetDataPointer() ), BATIndex,  m_AUCTimeInterval) )/m_aifAUC;
+      (area_under_curve(timeSize, &m_Timing[0], const_cast<float *>(vectorVoxel.GetDataPointer() ), BATIndex,  m_AUCTimeInterval) )/m_aifAUC;
   
 
     ktransVolumeIter.Set(static_cast<OutputVolumePixelType>(tempKtrans) );
@@ -235,16 +320,16 @@ ConcentrationToQuantitativeImageFilter<TInputImage, TMaskImage, TOutputImage>
 
 template <class TInputImage, class TMaskImage, class TOutputImage>
 void ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
-::SetTimeAxis(const std::vector<float>& inputTimeAxis)
+::SetTiming(const std::vector<float>& inputTiming)
 {  
-  m_TimeAxis = inputTimeAxis;
+  m_Timing = inputTiming;
 }
 
 template <class TInputImage, class TMaskImage, class TOutputImage>
 const std::vector<float>& ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
-::GetTimeAxis()
+::GetTiming()
 {
-  return m_TimeAxis;
+  return m_Timing;
 }
 
 template <class TInputImage, class TMaskImage, class TOutputImage>

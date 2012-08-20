@@ -23,6 +23,9 @@
 #include "itkSignalIntensityToConcentrationImageFilter.h"
 #include "itkConcentrationToQuantitativeImageFilter.h"
 
+#include <sstream>
+#include <fstream>
+
 #define TESTMODE_ERROR_TOLERANCE 0.1
 
 namespace
@@ -104,6 +107,58 @@ std::vector<float> GetTiming(itk::MetaDataDictionary& dictionary)
 }
 
 
+// Read an AIF from a CSV style file.  Columns are timing and concentration.
+//
+//
+bool GetPrescribedAIF(const std::string& fileName, 
+                      std::vector<float>& timing, std::vector<float>& aif)
+{
+  timing.clear();
+  aif.clear();
+
+  std::string line;
+  std::ifstream csv;
+  csv.open(fileName.c_str());
+    
+  while (!csv.eof())
+    {
+    getline(csv, line);
+      
+    if (line[0] == '#')
+      {
+      continue;
+      }
+      
+    std::vector<std::string> svalues;
+    splitString(line, ",", svalues);  /// from PkModelingCLP.h
+      
+    if (svalues.size() < 2)
+      {
+      // not enough values on the line
+      continue;
+      }
+
+    // only keep the time and concentration value
+    std::stringstream tstream;
+    float time, value;
+    tstream << svalues[0];
+    tstream >> time;
+    tstream << svalues[1];
+    tstream >> value;
+      
+    timing.push_back(time);
+    aif.push_back(value);
+    }
+
+  csv.close();
+
+  if (timing.size() > 0)
+    {
+    return true;
+    }
+
+  return false;
+}
 
 template <class T1, class T2>
 int DoIt( int argc, char * argv[], const T1 &, const T2 &)
@@ -206,15 +261,31 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
 
   //Read mask
   typename MaskVolumeReaderType::Pointer maskVolumeReader = MaskVolumeReaderType::New();
-  maskVolumeReader->SetFileName(AIFMaskFileName.c_str() );
-  maskVolumeReader->Update();
-  typename MaskVolumeType::Pointer maskVolume = maskVolumeReader->GetOutput();
+  typename MaskVolumeType::Pointer maskVolume = 0;
+  if (AIFMaskFileName != "")
+    {
+    maskVolumeReader->SetFileName(AIFMaskFileName.c_str() );
+    maskVolumeReader->Update();
+    maskVolume = maskVolumeReader->GetOutput();
+    }
+
+  //Read prescribed aif
+  bool usingPrescribedAIF = false;
+  std::vector<float> prescribedAIFTiming;
+  std::vector<float> prescribedAIF;
+  if (PrescribedAIFFileName != "")
+    {
+    usingPrescribedAIF = GetPrescribedAIF(PrescribedAIFFileName, prescribedAIFTiming, prescribedAIF);
+    }
  
   //Convert to concentration values
   typedef itk::SignalIntensityToConcentrationImageFilter<VectorVolumeType,MaskVolumeType,FloatVectorVolumeType> ConvertFilterType;
   typename ConvertFilterType::Pointer converter = ConvertFilterType::New();
   converter->SetInput(inputVectorVolume);
-  converter->SetAIFMask(maskVolume);
+  if (!usingPrescribedAIF)
+    {
+    converter->SetAIFMask(maskVolume);
+    }
   converter->SetT1PreBlood(T1PreBloodValue);
   converter->SetT1PreTissue(T1PreTissueValue);
   converter->SetTR(TRValue);
@@ -239,10 +310,18 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   typedef itk::ConcentrationToQuantitativeImageFilter<FloatVectorVolumeType, MaskVolumeType, OutputVolumeType> QuantifierType;
   typename QuantifierType::Pointer quantifier = QuantifierType::New();
   quantifier->SetInput(converter->GetOutput());
-  quantifier->SetAIFMask(maskVolume );
+  if (usingPrescribedAIF)
+    {
+    quantifier->SetPrescribedAIF(prescribedAIFTiming, prescribedAIF);
+    quantifier->UsePrescribedAIFOn();
+    }
+  else
+    {
+    quantifier->SetAIFMask(maskVolume );
+    }
 
   quantifier->SetAUCTimeInterval(AUCTimeInterval);
-  quantifier->SetTimeAxis(Timing);
+  quantifier->SetTiming(Timing);
   quantifier->SetfTol(FTolerance);
   quantifier->SetgTol(GTolerance);
   quantifier->SetxTol(XTolerance);
