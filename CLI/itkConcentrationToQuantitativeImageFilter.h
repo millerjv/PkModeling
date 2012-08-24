@@ -142,10 +142,12 @@ public:
                         const std::vector<float>& aif);
 
   /// Get the prescribed AIF
-  itkGetMacro( PrescribedAIF, std::vector<float> );
+  const std::vector<float>& GetPrescribedAIF()
+  { return m_PrescribedAIF; }
 
   /// Get the timing of the prescribed AIF (ms)
-  itkGetMacro( PrescribedAIFTiming, std::vector<float> );
+  const std::vector<float>& GetPrescribedAIFTiming()
+  { return m_PrescribedAIFTiming; }
 
   /// Get the quantitative output images
   TOutputImage* GetKTransOutput();
