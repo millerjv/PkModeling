@@ -174,6 +174,7 @@ bool pk_solver(int signalSize, const float* timeAxis,
   costFunction->SetTime (timeAxis, signalSize); //Signal X
   costFunction->SetHematocrit (hematocrit);
   costFunction->GetValue (initialValue); //...
+  costFunction->SetModelType(modelType);
 
   optimizer->UseCostFunctionGradientOff();   
 
