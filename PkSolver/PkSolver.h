@@ -34,6 +34,8 @@ public:
         
   enum { SpaceDimension =  3 };
   unsigned int RangeDimension; 
+
+  enum ModelType { TOFTS_2_PARAMETER = 1, TOFTS_3_PARAMETER};
         
   typedef Superclass::ParametersType              ParametersType;
   typedef Superclass::DerivativeType              DerivativeType;
@@ -42,6 +44,8 @@ public:
 		      
         
   float m_Hematocrit;
+
+  int m_ModelType;
         
   LMCostFunction()
   {
@@ -49,6 +53,10 @@ public:
         
   void SetHematocrit (float hematocrit) {
     m_Hematocrit = hematocrit;
+  }
+
+  void SetModelType (int model) {
+    m_ModelType = model;
   }
         
   void SetNumberOfValues(unsigned int NumberOfValues)
@@ -87,13 +95,20 @@ public:
 
     ValueType Ktrans = parameters[0];
     ValueType Ve = parameters[1];
-    ValueType f_pv = parameters[2];
             
     ArrayType VeTerm;
     VeTerm = -Ktrans/Ve*Time;
     ValueType deltaT = Time(1) - Time(0);
     
-    measure = Cv - (1/(1.0-m_Hematocrit)*(Ktrans*deltaT*Convolution(Cb,Exponential(VeTerm)) + f_pv*Cb));
+    if( m_ModelType == TOFTS_3_PARAMETER)
+      {
+      ValueType f_pv = parameters[2];
+      measure = Cv - (1/(1.0-m_Hematocrit)*(Ktrans*deltaT*Convolution(Cb,Exponential(VeTerm)) + f_pv*Cb));
+      }
+    else if(m_ModelType == TOFTS_2_PARAMETER)
+      {
+      measure = Cv - (1/(1.0-m_Hematocrit)*(Ktrans*deltaT*Convolution(Cb,Exponential(VeTerm))));
+      }
             
     return measure; 
   }
@@ -106,7 +121,14 @@ public:
         
   unsigned int GetNumberOfParameters(void) const
   {
-    return SpaceDimension;
+    if(m_ModelType == TOFTS_2_PARAMETER)
+      {
+      return 2;
+      }
+    else // if(m_ModelType == TOFTS_3_PARAMETER)
+      {
+      return 3;
+      }
   }
         
   unsigned int GetNumberOfValues(void) const
@@ -205,7 +227,8 @@ bool pk_solver(int signalSize, const float* timeAxis,
                float xTol = 1e-5f,
                float epsilon = 1e-9f, 
                int maxIter = 200,
-               float hematocrit = 0.4f);
+               float hematocrit = 0.4f,
+               int modelType = itk::LMCostFunction::TOFTS_2_PARAMETER);
 
 bool pk_solver(int signalSize, const float* timeAxis, 
                const float* PixelConcentrationCurve, const float* BloodConcentrationCurve, 
@@ -213,8 +236,8 @@ bool pk_solver(int signalSize, const float* timeAxis,
                float fTol, float gTol,float xTol,
                float epsilon, int maxIter, float hematocrit,
                itk::LevenbergMarquardtOptimizer* optimizer,
-               LMCostFunction* costFunction
-  );
+               LMCostFunction* costFunction,
+               int modelType = itk::LMCostFunction::TOFTS_2_PARAMETER);
 
 void pk_report();
 void pk_clear();

@@ -344,6 +344,14 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   quantifier->Setepsilon(Epsilon);
   quantifier->SetmaxIter(MaxIter);
   quantifier->Sethematocrit(Hematocrit);
+  if(ComputeFpv)
+    {
+    quantifier->SetModelType(itk::LMCostFunction::TOFTS_3_PARAMETER);
+    }
+  else
+    {
+    quantifier->SetModelType(itk::LMCostFunction::TOFTS_2_PARAMETER);
+    }
   itk::PluginFilterWatcher watchQuantifier(quantifier, "Quantifying",  CLPProcessInformation,  19.0 / 20.0, 1.0 / 20.0);
   quantifier->Update();
 
@@ -359,10 +367,13 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   vewriter->SetFileName(OutputVeFileName.c_str() );
   vewriter->Update();
 
-  typename OutputVolumeWriterType::Pointer fpvwriter =OutputVolumeWriterType::New();
-  fpvwriter->SetInput(quantifier->GetFPVOutput() );
-  fpvwriter->SetFileName(OutputFpvFileName.c_str() );
-  fpvwriter->Update();
+  if(ComputeFpv)
+    {
+    typename OutputVolumeWriterType::Pointer fpvwriter =OutputVolumeWriterType::New();
+    fpvwriter->SetInput(quantifier->GetFPVOutput() );
+    fpvwriter->SetFileName(OutputFpvFileName.c_str() );
+    fpvwriter->Update();
+    }
 
   typename OutputVolumeWriterType::Pointer maxSlopewriter = OutputVolumeWriterType::New();
   maxSlopewriter->SetInput(quantifier->GetMaxSlopeOutput() );
