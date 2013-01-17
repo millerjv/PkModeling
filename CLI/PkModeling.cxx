@@ -17,6 +17,7 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkTimeProbesCollectorBase.h"
+#include "itkMultiThreader.h"
 
 #include "itkPluginUtilities.h"
 
@@ -188,6 +189,9 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   // Command line processing
   //
   PARSE_ARGS;
+
+  // itk::MultiThreader::Pointer threader = itk::MultiThreader::New();
+  // threader->SetGlobalMaximumNumberOfThreads(1);
 
   const   unsigned int VectorVolumeDimension = 3;
   typedef T1                                                 VectorVolumePixelType;

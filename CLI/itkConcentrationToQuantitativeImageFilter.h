@@ -192,6 +192,7 @@ private:
   int    m_maxIter;
   float  m_hematocrit;
   float  m_AUCTimeInterval;
+  int    m_AIFBATIndex;
   std::vector<float> m_Timing;
 
   bool m_UsePrescribedAIF;

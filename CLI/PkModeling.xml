@@ -66,7 +66,7 @@
       <longflag>xTolerance</longflag>      
       <label>X Tolerance Value</label>
       <channel>input</channel>
-      <default>1e-4</default>      
+      <default>1e-5</default>
     </float>
     <float hidden="true">
       <name>Epsilon</name>   

@@ -54,7 +54,7 @@ bool pk_solver (int signalSize, const float* timeAxis,
   LMCostFunction::ParametersType initialValue(LMCostFunction::SpaceDimension);
   initialValue[0] = 0.1;     //Ktrans
   initialValue[1] = 0.5;     //ve 
-  initialValue[2] = 0.1;     //f_pv
+//  initialValue[2] = 0.1;     //f_pv
 
   costFunction->SetNumberOfValues (signalSize);
 
@@ -142,7 +142,7 @@ bool pk_solver(int signalSize, const float* timeAxis,
   LMCostFunction::ParametersType initialValue(LMCostFunction::SpaceDimension); ///...
   initialValue[0] = 0.1;     //Ktrans //...
   initialValue[1] = 0.5;     //ve //...
-  initialValue[2] = 0.1;     //f_pv //...
+//  initialValue[2] = 0.1;     //f_pv //...
         
   costFunction->SetNumberOfValues (signalSize);
   
@@ -176,7 +176,7 @@ bool pk_solver(int signalSize, const float* timeAxis,
   // We start not so far from the solution 
         
   optimizer->SetInitialPosition( initialValue ); //...       
-        
+  
   try {
   //  probe.Start("optimizer");
   optimizer->StartOptimization();
@@ -194,11 +194,13 @@ bool pk_solver(int signalSize, const float* timeAxis,
   itk::LevenbergMarquardtOptimizer::ParametersType finalPosition;
   finalPosition = optimizer->GetCurrentPosition();
   //std::cerr << finalPosition[0] << ", " << finalPosition[1] << ", " << finalPosition[2] << std::endl;
+
         
   //Solution: remove the scale of 100  
   Ktrans = finalPosition[0];
   Ve = finalPosition[1];
-  Fpv = finalPosition[2];  
+  //Fpv = finalPosition[2];  
+  Fpv = 0.0;
   if(Ve<0) Ve = 0;
   if(Ve>1) Ve = 1;
   if(Ktrans<0) Ktrans = 0;
@@ -375,12 +377,16 @@ void compute_derivative_backward (int signalSize,
   }
 }
 
-float get_signal_max (int signalSize, const float* SignalY)
+float get_signal_max (int signalSize, const float* SignalY, int& index)
 {
   float max = -1E10f;
+  index = -1;
   for (int i=0; i<signalSize; i++)
     if (SignalY[i] > max)
+      {
       max = SignalY[i];
+      index = i;
+      }
   return max;
 }
 
@@ -397,30 +403,17 @@ bool compute_bolus_arrival_time (int signalSize, const float* SignalY,
   //int* t = new int[signalSize];       // time value
   float* yd = new float[signalSize];  // working buffer
 
-  float Cp = get_signal_max (signalSize, SignalY); //this->m_TimeSeriesY->max_value();
   int CpIndex = 0;
-
-  // Find index of Cp
-  // !!!Note the indention here. Any problem??
-  for(  i = 0; i < signalSize; ++i ) {
-    if( SignalY[i] == Cp ) {
-      CpIndex = i;
-      break;
-    }
-  }
-
-  // Correct skip1 for cases with Cp less than skip1
-  if( CpIndex <= skip1 )
-    skip1 = CpIndex - 2;
+  float Cp = get_signal_max (signalSize, SignalY, CpIndex); //this->m_TimeSeriesY->max_value();
 
   // Detect ArrivalTime Detection failure and report indeterminate results.
-  if( skip1 < 0) {
+  if( CpIndex < 0) {
     ArrivalTime = 0;
     FirstPeak = 0;
     MaxSlope = 0;
-	delete [] y0;
-	//delete [] t;
-	delete [] yd;
+    delete [] y0;
+    //delete [] t;
+    delete [] yd;
     return false;
   }
   
@@ -458,11 +451,13 @@ bool compute_bolus_arrival_time (int signalSize, const float* SignalY,
 
   // Step 5: Peak Time detection
   //for( i=min_index; i<signalSize-1-skip2; i++) {
-  for( i=skip1; i<signalSize-1-skip2; i++) {
-    if(yd[i] >= thresh || y0[i] >= y0[i-1])
-      break;
-  }
-  FirstPeak = i; 
+  /// jvm - removing this loop as it is not used
+  // for( i=skip1; i<signalSize-1-skip2; i++) {
+  //   if(yd[i] >= thresh || y0[i] >= y0[i-1])
+  //     break;
+  // }
+  // FirstPeak = i; 
+  // jvm - end of remove
   //changing the peak as global peak 
   FirstPeak = CpIndex;
 

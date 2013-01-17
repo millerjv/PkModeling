@@ -29,6 +29,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>::Con
   m_maxIter = 200;
   m_hematocrit = 0.4f;
   m_aifAUC = 0.0f;
+  m_AIFBATIndex = 0;
   m_UsePrescribedAIF = false;
   this->Superclass::SetNumberOfRequiredInputs(1);
   this->Superclass::SetNthOutput(1, static_cast<TOutputImage*>(this->MakeOutput(0).GetPointer()));
@@ -125,7 +126,6 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
 
   int timeSize = (int)inputVectorVolume->GetNumberOfComponentsPerPixel();
 
-  int   aif_BATIndex = 0;
   int   aif_FirstPeakIndex = 0;
   float aif_MaxSlope = 0.0f;
   
@@ -194,10 +194,10 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
     }
 
   // Compute the bolus arrival time
-  compute_bolus_arrival_time (timeSize, &m_AIF[0], aif_BATIndex, aif_FirstPeakIndex, aif_MaxSlope);  
+  compute_bolus_arrival_time (timeSize, &m_AIF[0], m_AIFBATIndex, aif_FirstPeakIndex, aif_MaxSlope);  
 
   // Compute the area under the curve for the AIF
-  m_aifAUC = area_under_curve(timeSize, &m_Timing[0], &m_AIF[0], aif_BATIndex, m_AUCTimeInterval);
+  m_aifAUC = area_under_curve(timeSize, &m_Timing[0], &m_AIF[0], m_AIFBATIndex, m_AUCTimeInterval);
   
 }
 
@@ -209,7 +209,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
 #else
 ::ThreadedGenerateData( const typename Superclass::OutputImageRegionType& outputRegionForThread, ThreadIdType threadId )
 #endif
-  {
+{
   VectorVoxelType vectorVoxel;
 
   float tempFpv = 0.0f;
@@ -241,37 +241,153 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
     timeMinute[i] = m_Timing[i]/60.0;    
     }
 
+  // std::cout << "AIF = ";
+  // for (std::vector<float>::iterator ait = m_AIF.begin(); ait != m_AIF.end(); ++ait)
+  //   {
+  //   std::cout << *ait << ", ";
+  //   }
+  // std::cout << std::endl;
 
   ProgressReporter progress(this, threadId, outputRegionForThread.GetNumberOfPixels());
-  
 
+  // Cache the RMS error of fitting the model to the AIF
+  // pk_solver(timeSize, &timeMinute[0],
+  //           &m_AIF[0],
+  //           &m_AIF[0],
+  //           tempKtrans, tempVe, tempFpv,
+  //           m_fTol,m_gTol,m_xTol,
+  //           m_epsilon,m_maxIter, m_hematocrit,
+  //           optimizer,costFunction);
+  
+  // double aifRMS = optimizer->GetOptimizer()->get_end_error();
+  // std::cout << "AIF RMS: " << aifRMS  << std::endl;
+
+  
+  VectorVoxelType shiftedVectorVoxel(timeSize);
+  int shift;
+  unsigned int shiftStart = 0, shiftEnd = 0;
+  bool success = true;
   while (!ktransVolumeIter.IsAtEnd() )
     {
+    success = true;
+    tempKtrans = tempVe = tempFpv = tempMaxSlope = tempAUC = 0.0;
+    BATIndex = FirstPeakIndex = 0;
+
     vectorVoxel = inputVectorVolumeIter.Get();    
 	
-    // Calculate parameter ktrans, ve, and fpv
-    pk_solver(timeSize, &timeMinute[0],
-              const_cast<float *>(vectorVoxel.GetDataPointer() ),
-              &m_AIF[0],
-              tempKtrans, tempVe, tempFpv,
-              m_fTol,m_gTol,m_xTol,
-              m_epsilon,m_maxIter, m_hematocrit,
-              optimizer,costFunction);
+    // dump a specific voxel
+    // std::cout << "VectorVoxel = " << vectorVoxel;
+    // if (ktransVolumeIter.GetIndex()[0] == 122 
+    //     && ktransVolumeIter.GetIndex()[1] == 118
+    //     && ktransVolumeIter.GetIndex()[2] == 6)
+    //   {
+    //   std::cerr << "VectorVoxel = " << vectorVoxel;
+    //   }
 
-    // Calculate parameter maxSlope
-    compute_bolus_arrival_time (timeSize,
-                                const_cast<float *>(vectorVoxel.GetDataPointer() ), BATIndex, FirstPeakIndex, tempMaxSlope);
+    // voxel needs to experience the bolus to perform modeling.
+    // if the concentration curve is not "consistently close" to the AIF curve for an
+    // extended period, then skip it.
+    // if (success)
+    //   {
+    //   unsigned int count = 0;
+    //   double AIFRangeRatio = 0.6; // signal must be greater than 60% of AIF at a time point
+    //   unsigned int AIFDomainRatio = 0.5; // amount of timepoints signal > AIFRangeRatio
+    //   for (unsigned int i = 0; i < vectorVoxel.Size(); ++i)
+    //     {
+    //     if (vectorVoxel[i] > AIFRangeRatio * m_AIF[i])
+    //       {
+    //       ++count;
+    //       }
+    //     }
+    //   if (count < AIFDomainRatio * vectorVoxel.Size())   
+    //     {
+    //     success = false;
+    //     }
+    //   }
+
+    // Compute the bolus arrival time and the max slope parameter
+    if (success)
+      {
+      int status = compute_bolus_arrival_time(timeSize, &vectorVoxel[0], BATIndex, FirstPeakIndex, tempMaxSlope);
+      if (!status)
+        {
+        success = false;
+        }
+      }
+
+    
+    // Shift the current time course to align with the BAT of the AIF
+    // (note the sense of the shift)
+    if (success)
+      {
+      shift = m_AIFBATIndex - BATIndex;
+      //std::cerr << "AIF BAT: " << m_AIFBATIndex << ", BAT: " << BATIndex << std::endl;
+      shiftedVectorVoxel.Fill(0.0);
+      if (shift <= 0)
+        {
+        // AIF BAT before current BAT, should always be the case
+        shiftStart = 0;
+        shiftEnd = vectorVoxel.Size() + shift;
+        }      
+      else
+        {
+        success = false;
+        }
+      }
+    if (success)
+      {
+      for (unsigned int i = shiftStart; i < shiftEnd; ++i)
+        {
+        shiftedVectorVoxel[i] = vectorVoxel[i - shift];
+        }
+      }
+
+    // Calculate parameter ktrans, ve, and fpv
+    if (success)
+      {
+      pk_solver(timeSize, &timeMinute[0],
+                const_cast<float *>(shiftedVectorVoxel.GetDataPointer() ),
+                &m_AIF[0],
+                tempKtrans, tempVe, tempFpv,
+                m_fTol,m_gTol,m_xTol,
+                m_epsilon,m_maxIter, m_hematocrit,
+                optimizer,costFunction);
+
+      // Only keep the estimated values if the optimization produced a good answer
+      double rmsThreshold = 0.1;
+      if (optimizer->GetOptimizer()->get_end_error() > rmsThreshold)
+        {
+        success = false;
+        }
+      }
 
     // Calculate parameter AUC, normalized by AIF AUC
-    tempAUC =
-      (area_under_curve(timeSize, &m_Timing[0], const_cast<float *>(vectorVoxel.GetDataPointer() ), BATIndex,  m_AUCTimeInterval) )/m_aifAUC;
-  
-
-    ktransVolumeIter.Set(static_cast<OutputVolumePixelType>(tempKtrans) );
-    veVolumeIter.Set(static_cast<OutputVolumePixelType>(tempVe) );
-    fpvVolumeIter.Set(static_cast<OutputVolumePixelType>(tempFpv));
-    maxSlopeVolumeIter.Set(static_cast<OutputVolumePixelType>(tempMaxSlope) );
-    aucVolumeIter.Set(static_cast<OutputVolumePixelType>(tempAUC) );
+    if (success)
+      {
+      tempAUC =
+        (area_under_curve(timeSize, &m_Timing[0], const_cast<float *>(shiftedVectorVoxel.GetDataPointer() ), BATIndex,  m_AUCTimeInterval) )/m_aifAUC;
+      }
+    
+    // If we were successful, save the estimated values, otherwise
+    // default to zero
+    if (success)
+      {
+      ktransVolumeIter.Set(static_cast<OutputVolumePixelType>(tempKtrans) );
+      veVolumeIter.Set(static_cast<OutputVolumePixelType>(tempVe) );
+      fpvVolumeIter.Set(static_cast<OutputVolumePixelType>(tempFpv));
+      maxSlopeVolumeIter.Set(static_cast<OutputVolumePixelType>(tempMaxSlope) );
+      aucVolumeIter.Set(static_cast<OutputVolumePixelType>(tempAUC) );
+      //aucVolumeIter.Set(static_cast<OutputVolumePixelType>(optimizer->GetOptimizer()->get_end_error()) );
+      }
+    else
+      {
+      ktransVolumeIter.Set(static_cast<OutputVolumePixelType>(0) );
+      veVolumeIter.Set(static_cast<OutputVolumePixelType>(0) );
+      fpvVolumeIter.Set(static_cast<OutputVolumePixelType>(0));
+      maxSlopeVolumeIter.Set(static_cast<OutputVolumePixelType>(0) );
+      aucVolumeIter.Set(static_cast<OutputVolumePixelType>(0) );
+      //aucVolumeIter.Set(static_cast<OutputVolumePixelType>(optimizer->GetOptimizer()->get_end_error()) );
+      }
 
     ++ktransVolumeIter;
     ++veVolumeIter;
@@ -280,9 +396,8 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
     ++aucVolumeIter;
     ++inputVectorVolumeIter;
     progress.CompletedPixel();
-    }
   }
-
+}
 
 // Calculate average AIF according to the AIF mask
 template <class TInputImage, class TMaskImage, class TOutputImage>

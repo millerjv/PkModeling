@@ -32,7 +32,7 @@ public:
   typedef itk::SmartPointer<const Self>     ConstPointer;
   itkNewMacro( Self );
         
-  enum { SpaceDimension =  3 };
+  enum { SpaceDimension =  2 };
   unsigned int RangeDimension; 
         
   typedef Superclass::ParametersType              ParametersType;
@@ -93,7 +93,8 @@ public:
     VeTerm = -Ktrans/Ve*Time;
     ValueType deltaT = Time(1) - Time(0);
     
-    measure = Cv - (1/(1.0-m_Hematocrit)*(Ktrans*deltaT*Convolution(Cb,Exponential(VeTerm)) + f_pv*Cb));
+    //measure = Cv - (1/(1.0-m_Hematocrit)*(Ktrans*deltaT*Convolution(Cb,Exponential(VeTerm)) + f_pv*Cb));
+    measure = Cv - (1/(1.0-m_Hematocrit)*(Ktrans*deltaT*Convolution(Cb,Exponential(VeTerm))));
             
     return measure; 
   }
@@ -237,7 +238,7 @@ void compute_derivative_forward (int signalSize, const float* SignalY, float* YD
 
 void compute_derivative_backward (int signalSize, const float* SignalY, float* YDeriv);
 
-float get_signal_max (int signalSize, const float* SignalY);
+float get_signal_max (int signalSize, const float* SignalY, int& index);
 
 bool compute_bolus_arrival_time (int signalSize, const float* SignalY,
                                  int& ArrivalTime, int& FirstPeak, float& MaxSlope);
