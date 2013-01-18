@@ -354,11 +354,32 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
                 optimizer,costFunction);
 
       // Only keep the estimated values if the optimization produced a good answer
-      double rmsThreshold = 0.1;
-      if (optimizer->GetOptimizer()->get_end_error() > rmsThreshold)
+      // Check R-squared:
+      //   R2 = 1 - SSerr / SStot
+      // where
+      //   SSerr = \sum (y_i - f_i)^2
+      //   SStot = \sum (y_i - \bar{y})^2
+
+      // SSerr we can get easily from the optimizer
+      double rms = optimizer->GetOptimizer()->get_end_error();
+      double SSerr = rms*rms*shiftedVectorVoxel.GetSize();
+
+      // SStot we need to calculate
+      double sumSquared = 0.0;
+      double sum = 0.0;
+      for (unsigned int i=0; i < shiftedVectorVoxel.GetSize(); ++i)
         {
-        success = false;
+        sum += shiftedVectorVoxel[i];
+        sumSquared += (shiftedVectorVoxel[i]*shiftedVectorVoxel[i]);
         }
+      double SStot = sumSquared - sum*sum/(double)shiftedVectorVoxel.GetSize();
+
+      double rSquared = 1.0 - (SSerr / SStot);
+      double rSquaredThreshold = 0.15;
+      if (rSquared < rSquaredThreshold)
+       {
+       success = false;
+       }
       }
 
     // Calculate parameter AUC, normalized by AIF AUC
