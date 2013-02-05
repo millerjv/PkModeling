@@ -24,7 +24,7 @@ set(MODULE_TARGET_LIBRARIES
   )
 
 #-----------------------------------------------------------------------------
-slicerMacroBuildCLI(
+SEMMacroBuildCLI(
   NAME ${MODULE_NAME}
   INCLUDE_DIRECTORIES ${MODULE_INCLUDE_DIRECTORIES}  
   ADDITIONAL_SRCS ${MODULE_SRCS}
