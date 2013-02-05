@@ -1,14 +1,11 @@
-# Configure XML description
-set(PKM PkModeling)
-  
-# Additional includes
-set(cli_module_include_directories
-   ${PkModeling_SOURCE_DIR}/PkSolver
+#----------------------------------------------------------------------------- 
+set(MODULE_INCLUDE_DIRECTORIES
+  ${${MODULE_NAME}_SOURCE_DIR}/PkSolver
   )
 
-# Additional source files
-set(cli_module_SRCS
-  PkModeling.cxx
+#-----------------------------------------------------------------------------
+set(MODULE_SRCS
+  ${MODULE_NAME}.cxx
   itkSignalIntensityToS0ImageFilter.h
   itkSignalIntensityToS0ImageFilter.hxx
   itkSignalIntensityToConcentrationImageFilter.h
@@ -16,20 +13,17 @@ set(cli_module_SRCS
   itkConcentrationToQuantitativeImageFilter.h
   itkConcentrationToQuantitativeImageFilter.hxx
   )
-  
-# Additional Target libraries
-set(cli_module_target_libraries
- ${ITK_LIBRARIES} PkSolver
-)
-
 
 #-----------------------------------------------------------------------------
-# Build
+set(MODULE_TARGET_LIBRARIES
+  ${ITK_LIBRARIES} PkSolver
+  )
+
 #-----------------------------------------------------------------------------
 slicerMacroBuildCLI(
-  NAME ${PKM}
-  INCLUDE_DIRECTORIES ${cli_module_include_directories}  
-  ADDITIONAL_SRCS ${cli_module_SRCS}
-  TARGET_LIBRARIES ${cli_module_target_libraries}  
+  NAME ${MODULE_NAME}
+  INCLUDE_DIRECTORIES ${MODULE_INCLUDE_DIRECTORIES}  
+  ADDITIONAL_SRCS ${MODULE_SRCS}
+  TARGET_LIBRARIES ${MODULE_TARGET_LIBRARIES}  
   )
 

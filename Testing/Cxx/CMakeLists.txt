@@ -22,7 +22,7 @@ add_test(NAME ${testname} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
 set_property(TEST ${testname} PROPERTY LABELS ${CLP})
 
 #-----------------------------------------------------------------------------
-if (DUKEDATA_DIR_DIR)
+if(DUKEDATA_DIR_DIR)
   set(testname ${CLP}TestDukeSyntheticData)
   add_test(NAME ${testname} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
     ModuleEntryPoint        
