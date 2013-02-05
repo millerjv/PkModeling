@@ -13,9 +13,6 @@ if (NOT Slicer_SOURCE_DIR)
 endif()
 
 #-----------------------------------------------------------------------------
-set(MODULE_NAME PkModeling)
-
-#-----------------------------------------------------------------------------
 if(NOT Slicer_SOURCE_DIR)
   find_package(Slicer REQUIRED)
   include(${Slicer_USE_FILE})
