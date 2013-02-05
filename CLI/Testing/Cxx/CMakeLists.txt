@@ -6,8 +6,7 @@ set(TEMP ${PkModeling_BINARY_DIR}/Testing/Temporary)
 #set(DUKEDATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/DukeData)
 #set(SYNDATA ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/SyntheticData)
 
-
-set(CLP ${EXTENSION_NAME})
+set(CLP ${MODULE_NAME})
 
 #-----------------------------------------------------------------------------
 add_executable(${CLP}Test ${CLP}Test.cxx)
