@@ -1,1 +1,2 @@
-subdirs(Cxx)
+add_subdirectory(Cxx)
+
