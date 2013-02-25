@@ -295,26 +295,6 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
     //   std::cerr << "VectorVoxel = " << vectorVoxel;
     //   }
 
-    // voxel needs to experience the bolus to perform modeling.
-    // if the concentration curve is not "consistently close" to the AIF curve for an
-    // extended period, then skip it.
-    // if (success)
-    //   {
-    //   unsigned int count = 0;
-    //   double AIFRangeRatio = 0.6; // signal must be greater than 60% of AIF at a time point
-    //   unsigned int AIFDomainRatio = 0.5; // amount of timepoints signal > AIFRangeRatio
-    //   for (unsigned int i = 0; i < vectorVoxel.Size(); ++i)
-    //     {
-    //     if (vectorVoxel[i] > AIFRangeRatio * m_AIF[i])
-    //       {
-    //       ++count;
-    //       }
-    //     }
-    //   if (count < AIFDomainRatio * vectorVoxel.Size())   
-    //     {
-    //     success = false;
-    //     }
-    //   }
 
     // Compute the bolus arrival time and the max slope parameter
     if (success)
