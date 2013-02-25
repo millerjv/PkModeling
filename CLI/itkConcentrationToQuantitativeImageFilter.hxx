@@ -130,6 +130,11 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
 
   int   aif_FirstPeakIndex = 0;
   float aif_MaxSlope = 0.0f;
+
+  // Some of the outputs are optional and may not be calculated.
+  // Let's initialize those to all zeros
+  OutputVolumeType *fpv = this->GetFPVOutput();
+  fpv->FillBuffer(0.0);
   
   // calculate AIF
   if (m_UsePrescribedAIF)
