@@ -117,6 +117,8 @@ public:
   itkSetMacro( hematocrit, float);
   itkGetMacro( AUCTimeInterval, float);
   itkSetMacro( AUCTimeInterval, float);
+  itkGetMacro( ModelType, int);
+  itkSetMacro( ModelType, int);
   void SetTiming(const std::vector<float>& inputTiming);
   const std::vector<float>& GetTiming();
 
@@ -193,6 +195,8 @@ private:
   float  m_hematocrit;
   float  m_AUCTimeInterval;
   int    m_AIFBATIndex;
+  int    m_ModelType;
+
   std::vector<float> m_Timing;
 
   bool m_UsePrescribedAIF;

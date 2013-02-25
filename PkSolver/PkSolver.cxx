@@ -38,7 +38,8 @@ bool pk_solver (int signalSize, const float* timeAxis,
                 float& Ktrans, float& Ve, float& Fpv,
                 float fTol, float gTol, float xTol,
                 float epsilon, int maxIter,
-                float hematocrit)
+                float hematocrit,
+                int modelType)
 {
   // Note the unit: timeAxis should be in minutes!! This could be related to the following parameters!!
   // fTol      =  1e-4;  // Function value tolerance
@@ -51,11 +52,19 @@ bool pk_solver (int signalSize, const float* timeAxis,
   itk::LevenbergMarquardtOptimizer::Pointer  optimizer = itk::LevenbergMarquardtOptimizer::New();
   LMCostFunction::Pointer costFunction = LMCostFunction::New();
 
-  LMCostFunction::ParametersType initialValue(LMCostFunction::SpaceDimension);
-  initialValue[0] = 0.1;     //Ktrans
-  initialValue[1] = 0.5;     //ve 
-//  initialValue[2] = 0.1;     //f_pv
-
+  LMCostFunction::ParametersType initialValue;
+  if(modelType == itk::LMCostFunction::TOFTS_2_PARAMETER)
+    {
+    initialValue = LMCostFunction::ParametersType(2); ///...
+    }
+  else
+    {
+    initialValue = LMCostFunction::ParametersType(3);
+    initialValue[2] = 0.1;     //f_pv //...
+    }
+  initialValue[0] = 0.1;     //Ktrans //...
+  initialValue[1] = 0.5;     //ve //...
+ 
   costFunction->SetNumberOfValues (signalSize);
 
   costFunction->SetCb (BloodConcentrationCurve, signalSize); //BloodConcentrationCurve
@@ -63,6 +72,7 @@ bool pk_solver (int signalSize, const float* timeAxis,
   costFunction->SetTime (timeAxis, signalSize); //Signal X
   costFunction->SetHematocrit (hematocrit);
   costFunction->GetValue (initialValue);
+  costFunction->SetModelType(modelType);
 
   try {
     optimizer->SetCostFunction( costFunction.GetPointer() );
@@ -112,7 +122,10 @@ bool pk_solver (int signalSize, const float* timeAxis,
   //Solution: remove the scale of 100  
   Ktrans = finalPosition[0];
   Ve = finalPosition[1];
-  Fpv = finalPosition[2];  
+  if(modelType == itk::LMCostFunction::TOFTS_3_PARAMETER)
+    {
+    Fpv = finalPosition[2];  
+    }
 
   return true;
 }
@@ -125,7 +138,8 @@ bool pk_solver(int signalSize, const float* timeAxis,
                float epsilon, int maxIter,
                float hematocrit,
                itk::LevenbergMarquardtOptimizer* optimizer,
-               LMCostFunction* costFunction)
+               LMCostFunction* costFunction,
+               int modelType)
 {
   //std::cout << "in pk solver" << std::endl;
   // probe.Start("pk_solver");
@@ -139,10 +153,18 @@ bool pk_solver(int signalSize, const float* timeAxis,
   // Levenberg Marquardt optimizer  
         
   //////////////
-  LMCostFunction::ParametersType initialValue(LMCostFunction::SpaceDimension); ///...
+  LMCostFunction::ParametersType initialValue;
+  if(modelType == itk::LMCostFunction::TOFTS_2_PARAMETER)
+    {
+    initialValue = LMCostFunction::ParametersType(2); ///...
+    }
+  else
+    {
+    initialValue = LMCostFunction::ParametersType(3);
+    initialValue[2] = 0.1;     //f_pv //...
+    }
   initialValue[0] = 0.1;     //Ktrans //...
   initialValue[1] = 0.5;     //ve //...
-//  initialValue[2] = 0.1;     //f_pv //...
         
   costFunction->SetNumberOfValues (signalSize);
   
@@ -152,6 +174,7 @@ bool pk_solver(int signalSize, const float* timeAxis,
   costFunction->SetTime (timeAxis, signalSize); //Signal X
   costFunction->SetHematocrit (hematocrit);
   costFunction->GetValue (initialValue); //...
+  costFunction->SetModelType(modelType);
 
   optimizer->UseCostFunctionGradientOff();   
 
@@ -199,8 +222,11 @@ bool pk_solver(int signalSize, const float* timeAxis,
   //Solution: remove the scale of 100  
   Ktrans = finalPosition[0];
   Ve = finalPosition[1];
-  //Fpv = finalPosition[2];  
-  Fpv = 0.0;
+  if(modelType == itk::LMCostFunction::TOFTS_3_PARAMETER)
+    {
+    Fpv = finalPosition[2];  
+    }
+
   if(Ve<0) Ve = 0;
   if(Ve>1) Ve = 1;
   if(Ktrans<0) Ktrans = 0;

@@ -124,6 +124,8 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
   const VectorVolumeType* inputVectorVolume = this->GetInput();
   const MaskVolumeType* maskVolume = this->GetAIFMask();
 
+  std::cout << "Model type: " << m_ModelType << std::endl;
+
   int timeSize = (int)inputVectorVolume->GetNumberOfComponentsPerPixel();
 
   int   aif_FirstPeakIndex = 0;
@@ -225,7 +227,11 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
   VectorVolumeConstIterType inputVectorVolumeIter(inputVectorVolume, outputRegionForThread);
   OutputVolumeIterType ktransVolumeIter(this->GetKTransOutput(), outputRegionForThread);
   OutputVolumeIterType veVolumeIter(this->GetVEOutput(), outputRegionForThread);
-  OutputVolumeIterType fpvVolumeIter(this->GetFPVOutput(), outputRegionForThread);
+  OutputVolumeIterType fpvVolumeIter;
+  if(m_ModelType == itk::LMCostFunction::TOFTS_3_PARAMETER)
+    {
+    fpvVolumeIter = OutputVolumeIterType(this->GetFPVOutput(), outputRegionForThread);
+    }
   OutputVolumeIterType maxSlopeVolumeIter(this->GetMaxSlopeOutput(), outputRegionForThread);
   OutputVolumeIterType aucVolumeIter(this->GetAUCOutput(), outputRegionForThread);
 
@@ -351,7 +357,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
                 tempKtrans, tempVe, tempFpv,
                 m_fTol,m_gTol,m_xTol,
                 m_epsilon,m_maxIter, m_hematocrit,
-                optimizer,costFunction);
+                optimizer,costFunction,m_ModelType);
 
       // Only keep the estimated values if the optimization produced a good answer
       // Check R-squared:
@@ -395,16 +401,18 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
       {
       ktransVolumeIter.Set(static_cast<OutputVolumePixelType>(tempKtrans) );
       veVolumeIter.Set(static_cast<OutputVolumePixelType>(tempVe) );
-      fpvVolumeIter.Set(static_cast<OutputVolumePixelType>(tempFpv));
       maxSlopeVolumeIter.Set(static_cast<OutputVolumePixelType>(tempMaxSlope) );
       aucVolumeIter.Set(static_cast<OutputVolumePixelType>(tempAUC) );
       //aucVolumeIter.Set(static_cast<OutputVolumePixelType>(optimizer->GetOptimizer()->get_end_error()) );
+      if(m_ModelType == itk::LMCostFunction::TOFTS_3_PARAMETER)
+        {
+        fpvVolumeIter.Set(static_cast<OutputVolumePixelType>(tempFpv));
+        }
       }
     else
       {
       ktransVolumeIter.Set(static_cast<OutputVolumePixelType>(0) );
       veVolumeIter.Set(static_cast<OutputVolumePixelType>(0) );
-      fpvVolumeIter.Set(static_cast<OutputVolumePixelType>(0));
       maxSlopeVolumeIter.Set(static_cast<OutputVolumePixelType>(0) );
       aucVolumeIter.Set(static_cast<OutputVolumePixelType>(0) );
       //aucVolumeIter.Set(static_cast<OutputVolumePixelType>(optimizer->GetOptimizer()->get_end_error()) );
@@ -412,10 +420,15 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
 
     ++ktransVolumeIter;
     ++veVolumeIter;
-    ++fpvVolumeIter;
     ++maxSlopeVolumeIter;
     ++aucVolumeIter;
     ++inputVectorVolumeIter;
+
+    if(m_ModelType == itk::LMCostFunction::TOFTS_3_PARAMETER)
+      {
+      ++fpvVolumeIter;
+      }
+
     progress.CompletedPixel();
   }
 }
