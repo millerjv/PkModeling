@@ -100,6 +100,13 @@
       <channel>input</channel>
       <default>90</default>      
     </float>
+    <boolean>
+      <name>ComputeFpv</name>
+      <longflag>computeFpv</longflag>
+      <label>Compute fpv (3-parameter model)</label>
+      <description><![CDATA[Enable estimation of fractional plasma volume at each voxel.]]></description>
+      <default>False</default>
+    </boolean>
   </parameters>
   <parameters>
     <label>IO</label>
@@ -139,13 +146,6 @@
       <channel>output</channel>      
       <description><![CDATA[Output fractional volume for extracellular space at each voxel.]]></description>
     </image>
-    <boolean>
-      <name>ComputeFpv</name>
-      <longflag>computeFpv</longflag>
-      <label>Compute fpv (3-parameter model)</label>
-      <description><![CDATA[Enable estimation of fractional plasma volume at each voxel.]]></description>
-      <default>False</default>
-    </boolean>
     <image>
       <name>OutputFpvFileName</name>
       <longflag>outputFpv</longflag>
