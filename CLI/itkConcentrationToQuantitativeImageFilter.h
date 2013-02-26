@@ -151,12 +151,19 @@ public:
   const std::vector<float>& GetPrescribedAIFTiming()
   { return m_PrescribedAIFTiming; }
 
+  /// Control whether the output volumes are masked by a threshold on
+  /// the R-squared goodness of fit
+  itkSetMacro( MaskByRSquared, bool);
+  itkGetMacro( MaskByRSquared, bool);
+  itkBooleanMacro( MaskByRSquared );
+
   /// Get the quantitative output images
   TOutputImage* GetKTransOutput();
   TOutputImage* GetVEOutput();
   TOutputImage* GetFPVOutput();
   TOutputImage* GetMaxSlopeOutput();
   TOutputImage* GetAUCOutput();
+  TOutputImage* GetRSquaredOutput();
 
 protected:
   ConcentrationToQuantitativeImageFilter();
@@ -196,6 +203,7 @@ private:
   float  m_AUCTimeInterval;
   int    m_AIFBATIndex;
   int    m_ModelType;
+  bool   m_MaskByRSquared;
 
   std::vector<float> m_Timing;
 

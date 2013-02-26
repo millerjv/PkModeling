@@ -356,6 +356,8 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
     {
     quantifier->SetModelType(itk::LMCostFunction::TOFTS_2_PARAMETER);
     }
+  quantifier->SetMaskByRSquared(OutputRSquaredFileName.empty());
+
   itk::PluginFilterWatcher watchQuantifier(quantifier, "Quantifying",  CLPProcessInformation,  19.0 / 20.0, 1.0 / 20.0);
   quantifier->Update();
 
@@ -404,6 +406,13 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
     aucwriter->Update();
     }
 
+  if (!OutputRSquaredFileName.empty())
+    {
+    typename OutputVolumeWriterType::Pointer rsqwriter =OutputVolumeWriterType::New();
+    rsqwriter->SetInput(quantifier->GetRSquaredOutput() );
+    rsqwriter->SetFileName(OutputRSquaredFileName.c_str() );
+    rsqwriter->Update();
+    }
 
   return EXIT_SUCCESS;
 }  

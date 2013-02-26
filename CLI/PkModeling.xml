@@ -168,4 +168,15 @@
       <description><![CDATA[Output area under the curve (AUC) of each voxel, measured from bolus arrival time to the end time of interval, normalized by the AUC of the AIF.]]></description>
     </image>
   </parameters>
+  <parameters advanced="true">
+    <label>Advanced options</label>
+    <description><![CDATA[Debugging and advanced research options.]]></description> 
+    <image>
+      <name>OutputRSquaredFileName</name>
+      <longflag>outputRSquared</longflag>
+      <label>Output R-squared goodness of fit image</label>
+      <channel>output</channel>      
+      <description><![CDATA[R-squared goodness of fit of the model to each voxel. Setting this output changes the returned images.  When this output is not used, the output parameter volumes only contain the voxels where good fits were obtained.  When this output is set, the parameter volumes for every voxel is output and may be masked by the R-squared volume in a separate module.]]></description>
+    </image>
+  </parameters>
 </executable>
