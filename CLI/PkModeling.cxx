@@ -361,33 +361,49 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
 
 
   //set output
-  typename OutputVolumeWriterType::Pointer ktranswriter = OutputVolumeWriterType::New();
-  ktranswriter->SetInput(quantifier->GetKTransOutput() );
-  ktranswriter->SetFileName(OutputKtransFileName.c_str() );
-  ktranswriter->Update();
+  if (!OutputKtransFileName.empty())
+    {
+    typename OutputVolumeWriterType::Pointer ktranswriter = OutputVolumeWriterType::New();
+    ktranswriter->SetInput(quantifier->GetKTransOutput() );
+    ktranswriter->SetFileName(OutputKtransFileName.c_str() );
+    ktranswriter->Update();
+    }
 
-  typename OutputVolumeWriterType::Pointer vewriter = OutputVolumeWriterType::New();
-  vewriter->SetInput(quantifier->GetVEOutput() );
-  vewriter->SetFileName(OutputVeFileName.c_str() );
-  vewriter->Update();
+  if (!OutputVeFileName.empty())
+    {
+    typename OutputVolumeWriterType::Pointer vewriter = OutputVolumeWriterType::New();
+    vewriter->SetInput(quantifier->GetVEOutput() );
+    vewriter->SetFileName(OutputVeFileName.c_str() );
+    vewriter->Update();
+    }
 
   if(ComputeFpv)
     {
-    typename OutputVolumeWriterType::Pointer fpvwriter =OutputVolumeWriterType::New();
-    fpvwriter->SetInput(quantifier->GetFPVOutput() );
-    fpvwriter->SetFileName(OutputFpvFileName.c_str() );
-    fpvwriter->Update();
+    if (!OutputFpvFileName.empty())
+      {
+      typename OutputVolumeWriterType::Pointer fpvwriter =OutputVolumeWriterType::New();
+      fpvwriter->SetInput(quantifier->GetFPVOutput() );
+      fpvwriter->SetFileName(OutputFpvFileName.c_str() );
+      fpvwriter->Update();
+      }
     }
 
-  typename OutputVolumeWriterType::Pointer maxSlopewriter = OutputVolumeWriterType::New();
-  maxSlopewriter->SetInput(quantifier->GetMaxSlopeOutput() );
-  maxSlopewriter->SetFileName(OutputMaxSlopeFileName.c_str() );
-  maxSlopewriter->Update();
+  if (!OutputMaxSlopeFileName.empty())
+    {
+    typename OutputVolumeWriterType::Pointer maxSlopewriter = OutputVolumeWriterType::New();
+    maxSlopewriter->SetInput(quantifier->GetMaxSlopeOutput() );
+    maxSlopewriter->SetFileName(OutputMaxSlopeFileName.c_str() );
+    maxSlopewriter->Update();
+    }
 
-  typename OutputVolumeWriterType::Pointer aucwriter = OutputVolumeWriterType::New();
-  aucwriter->SetInput(quantifier->GetAUCOutput() );
-  aucwriter->SetFileName(OutputAUCFileName.c_str() );
-  aucwriter->Update();
+  if (!OutputAUCFileName.empty())
+    {
+    typename OutputVolumeWriterType::Pointer aucwriter = OutputVolumeWriterType::New();
+    aucwriter->SetInput(quantifier->GetAUCOutput() );
+    aucwriter->SetFileName(OutputAUCFileName.c_str() );
+    aucwriter->Update();
+    }
+
 
   return EXIT_SUCCESS;
 }  
