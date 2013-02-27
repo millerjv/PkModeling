@@ -363,10 +363,22 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
       // where
       //   SSerr = \sum (y_i - f_i)^2
       //   SStot = \sum (y_i - \bar{y})^2
+      //
+      // Note: R-squared is not a good metric for nonlinear function
+      // fitting. R-squared values are not bound between [0,1] when
+      // fitting nonlinear functions. 
 
       // SSerr we can get easily from the optimizer
       double rms = optimizer->GetOptimizer()->get_end_error();
       double SSerr = rms*rms*shiftedVectorVoxel.GetSize();
+
+      // if we couldn't get rms from the optimizer, we would calculate SSerr ourselves
+      // LMCostFunction::MeasureType residuals = costFunction->GetValue(optimizer->GetCurrentPosition());
+      // double SSerr = 0.0;
+      // for (unsigned int i=0; i < residuals.size(); ++i)
+      //   {
+      //   SSerr += (residuals[i]*residuals[i]);
+      //   }
 
       // SStot we need to calculate
       double sumSquared = 0.0;
@@ -379,7 +391,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
       double SStot = sumSquared - sum*sum/(double)shiftedVectorVoxel.GetSize();
 
       rSquared = 1.0 - (SSerr / SStot);
-      
+
       double rSquaredThreshold = 0.15;
       if (rSquared < rSquaredThreshold)
        {
