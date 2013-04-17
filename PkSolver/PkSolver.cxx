@@ -227,10 +227,12 @@ bool pk_solver(int signalSize, const float* timeAxis,
     Fpv = finalPosition[2];  
     }
 
+  // "Project" back onto the feasible set.  Should really be done as a
+  // constraint in the optimization.
   if(Ve<0) Ve = 0;
   if(Ve>1) Ve = 1;
   if(Ktrans<0) Ktrans = 0;
-  if(Ktrans>100) Ktrans = 100;
+  if(Ktrans>5) Ktrans = 5;
 		
   //if((Fpv>1)||(Fpv<0)) Fpv = 0;
   //  probe.Stop("pk_solver");
