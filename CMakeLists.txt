@@ -19,6 +19,21 @@ if(NOT Slicer_SOURCE_DIR)
 endif()
 
 #-----------------------------------------------------------------------------
+# PkModeling has a support library that needs to be installed as part
+# of the packaging
+option(PkModeling_BUILD_SLICER_EXTENSION "Build as a Slicer extension" OFF)
+
+set(PkModeling_INSTALL_SUPPORT_RUNTIME_DESTINATION bin)
+set(PkModeling_INSTALL_SUPPORT_LIBRARY_DESTINATION lib)
+set(PkModeling_INSTALL_SUPPORT_ARCHIVE_DESTINATION lib)
+if(PkModeling_BUILD_SLICER_EXTENSION)
+  set(PkModeling_INSTALL_SUPPORT_RUNTIME_DESTINATION ${Slicer_INSTALL_BIN_DIR})
+  set(PkModeling_INSTALL_SUPPORT_LIBRARY_DESTINATION ${Slicer_INSTALL_LIB_DIR})
+  set(PkModeling_INSTALL_SUPPORT_ARCHIVE_DESTINATION ${Slicer_INSTALL_LIB_DIR})
+endif()
+
+
+#-----------------------------------------------------------------------------
 add_subdirectory(PkSolver)
 add_subdirectory(CLI)
 
