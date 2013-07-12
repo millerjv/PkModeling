@@ -30,11 +30,11 @@
     </float>    
     <float>
       <name>RelaxivityValue</name>   
-      <description><![CDATA[Relaxivity value.]]></description>
+      <description><![CDATA[Contrast agent relaxivity value. Default value corresponds to Gd-DPTA (Magnevist) at 3T.]]></description>
       <longflag>relaxivity</longflag>      
       <label>Relaxivity Value</label>
       <channel>input</channel>
-      <default>0.0049</default>      
+      <default>0.0039</default>      
     </float>
     <float hidden="true">
       <name>S0GradValue</name>   
