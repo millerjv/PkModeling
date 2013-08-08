@@ -44,7 +44,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>::Con
 // Set a prescribed AIF.  This is not currrently in the input vector,
 // though it could be if we used a Decorator.
 template< class TInputImage, class TMaskImage, class TOutputImage >
-void 
+void
 ConcentrationToQuantitativeImageFilter< TInputImage, TMaskImage, TOutputImage >
 ::SetPrescribedAIF(const std::vector<float>& timing, const std::vector<float>& aif)
 {
@@ -56,14 +56,14 @@ ConcentrationToQuantitativeImageFilter< TInputImage, TMaskImage, TOutputImage >
     {
     itkExceptionMacro("Timing vector and concentration vector for AIF must be the same size.");
     }
-    
+
   m_PrescribedAIF = aif;
   m_PrescribedAIFTiming = timing;
 }
 
 // Set 3D AIF mask as second input
 template< class TInputImage, class TMaskImage, class TOutputImage >
-void 
+void
 ConcentrationToQuantitativeImageFilter< TInputImage, TMaskImage, TOutputImage >
 ::SetAIFMask(const TMaskImage* volume)
 {
@@ -71,7 +71,7 @@ ConcentrationToQuantitativeImageFilter< TInputImage, TMaskImage, TOutputImage >
 }
 
 template< class TInputImage, class TMaskImage, class TOutputImage >
-const TMaskImage* 
+const TMaskImage*
 ConcentrationToQuantitativeImageFilter< TInputImage, TMaskImage, TOutputImage >
 ::GetAIFMask() const
 {
@@ -79,56 +79,56 @@ ConcentrationToQuantitativeImageFilter< TInputImage, TMaskImage, TOutputImage >
 }
 
 template< class TInputImage, class TMaskImage, class TOutputImage >
-TOutputImage* 
+TOutputImage*
 ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
-::GetKTransOutput() 
+::GetKTransOutput()
 {
   return dynamic_cast< TOutputImage * >( this->ProcessObject::GetOutput(0) );
 }
 
 template< class TInputImage, class TMaskImage, class TOutputImage >
-TOutputImage* 
+TOutputImage*
 ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
-::GetVEOutput() 
+::GetVEOutput()
 {
   return dynamic_cast< TOutputImage * >( this->ProcessObject::GetOutput(1) );
 }
 
 template< class TInputImage, class TMaskImage, class TOutputImage >
-TOutputImage* 
+TOutputImage*
 ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
-::GetFPVOutput() 
+::GetFPVOutput()
 {
   return dynamic_cast< TOutputImage * >( this->ProcessObject::GetOutput(2) );
 }
 
 template< class TInputImage, class TMaskImage, class TOutputImage >
-TOutputImage* 
+TOutputImage*
 ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
-::GetMaxSlopeOutput() 
+::GetMaxSlopeOutput()
 {
   return dynamic_cast< TOutputImage * >( this->ProcessObject::GetOutput(3) );
 }
 
 template< class TInputImage, class TMaskImage, class TOutputImage >
-TOutputImage* 
+TOutputImage*
 ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
-::GetAUCOutput() 
+::GetAUCOutput()
 {
   return dynamic_cast< TOutputImage * >( this->ProcessObject::GetOutput(4) );
 }
 
 template< class TInputImage, class TMaskImage, class TOutputImage >
-TOutputImage* 
+TOutputImage*
 ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
-::GetRSquaredOutput() 
+::GetRSquaredOutput()
 {
   return dynamic_cast< TOutputImage * >( this->ProcessObject::GetOutput(5) );
 }
 
 
 template <class TInputImage, class TMaskImage, class TOutputImage>
-void 
+void
 ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
 ::BeforeThreadedGenerateData()
 {
@@ -146,14 +146,14 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
   // Let's initialize those to all zeros
   OutputVolumeType *fpv = this->GetFPVOutput();
   fpv->FillBuffer(0.0);
-  
+
   // calculate AIF
   if (m_UsePrescribedAIF)
     {
     // resample the prescribed AIF vector to be at the specifed
     // m_Timing points and then assign to m_AIF
     m_AIF = std::vector<float>(timeSize);
-    
+
     std::vector<float>::iterator ait = m_AIF.begin();
     std::vector<float>::iterator tit = m_Timing.begin();
 
@@ -171,7 +171,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
       // (1) extrapolate the aif on the low end of the range of prescribed timings
       // (2) interpolate the aif
       // (3) extrapolate the aif on the high end of the range of prescribed timings
-      // 
+      //
       // Case (1) is handled implictly by the initialization and conditionals.
       if (*ptit <= *tit)
         {
@@ -204,7 +204,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
     {
     // calculate the AIF from the image using the data under the
     // specified mask
-    m_AIF = this->CalculateAverageAIF(inputVectorVolume, maskVolume); 
+    m_AIF = this->CalculateAverageAIF(inputVectorVolume, maskVolume);
     }
   else
     {
@@ -212,20 +212,20 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
     }
 
   // Compute the bolus arrival time
-  compute_bolus_arrival_time (timeSize, &m_AIF[0], m_AIFBATIndex, aif_FirstPeakIndex, aif_MaxSlope);  
+  compute_bolus_arrival_time (timeSize, &m_AIF[0], m_AIFBATIndex, aif_FirstPeakIndex, aif_MaxSlope);
 
   // Compute the area under the curve for the AIF
   m_aifAUC = area_under_curve(timeSize, &m_Timing[0], &m_AIF[0], m_AIFBATIndex, m_AUCTimeInterval);
-  
+
 }
 
 template <class TInputImage, class TMaskImage, class TOutputImage>
-void 
+void
 ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
 #if ITK_VERSION_MAJOR < 4
-::ThreadedGenerateData( const typename Superclass::OutputImageRegionType & outputRegionForThread, int threadId )
+::ThreadedGenerateData( const OutputVolumeRegionType & outputRegionForThread, int threadId )
 #else
-::ThreadedGenerateData( const typename Superclass::OutputImageRegionType& outputRegionForThread, ThreadIdType threadId )
+::ThreadedGenerateData( const OutputVolumeRegionType& outputRegionForThread, ThreadIdType threadId )
 #endif
 {
   VectorVoxelType vectorVoxel;
@@ -253,15 +253,15 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
   OutputVolumeIterType rsqVolumeIter(this->GetRSquaredOutput(), outputRegionForThread);
 
   //set up optimizer and cost function
-  itk::LevenbergMarquardtOptimizer::Pointer optimizer = itk::LevenbergMarquardtOptimizer::New(); 
-  LMCostFunction::Pointer                   costFunction = LMCostFunction::New();                
+  itk::LevenbergMarquardtOptimizer::Pointer optimizer = itk::LevenbergMarquardtOptimizer::New();
+  LMCostFunction::Pointer                   costFunction = LMCostFunction::New();
   int timeSize = (int)inputVectorVolume->GetNumberOfComponentsPerPixel();
 
   std::vector<float> timeMinute;
   timeMinute = m_Timing;
   for(unsigned int i = 0; i < timeMinute.size(); i++)
     {
-    timeMinute[i] = m_Timing[i]/60.0;    
+    timeMinute[i] = m_Timing[i]/60.0;
     }
 
   // std::cout << "AIF = ";
@@ -281,11 +281,11 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
   //           m_fTol,m_gTol,m_xTol,
   //           m_epsilon,m_maxIter, m_hematocrit,
   //           optimizer,costFunction);
-  
+
   // double aifRMS = optimizer->GetOptimizer()->get_end_error();
   // std::cout << "AIF RMS: " << aifRMS  << std::endl;
 
-  
+
   VectorVoxelType shiftedVectorVoxel(timeSize);
   int shift;
   unsigned int shiftStart = 0, shiftEnd = 0;
@@ -296,11 +296,11 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
     tempKtrans = tempVe = tempFpv = tempMaxSlope = tempAUC = 0.0;
     BATIndex = FirstPeakIndex = 0;
 
-    vectorVoxel = inputVectorVolumeIter.Get();    
-	
+    vectorVoxel = inputVectorVolumeIter.Get();
+
     // dump a specific voxel
     // std::cout << "VectorVoxel = " << vectorVoxel;
-    // if (ktransVolumeIter.GetIndex()[0] == 122 
+    // if (ktransVolumeIter.GetIndex()[0] == 122
     //     && ktransVolumeIter.GetIndex()[1] == 118
     //     && ktransVolumeIter.GetIndex()[2] == 6)
     //   {
@@ -318,7 +318,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
         }
       }
 
-    
+
     // Shift the current time course to align with the BAT of the AIF
     // (note the sense of the shift)
     if (success)
@@ -331,7 +331,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
         // AIF BAT before current BAT, should always be the case
         shiftStart = 0;
         shiftEnd = vectorVoxel.Size() + shift;
-        }      
+        }
       else
         {
         success = false;
@@ -366,7 +366,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
       //
       // Note: R-squared is not a good metric for nonlinear function
       // fitting. R-squared values are not bound between [0,1] when
-      // fitting nonlinear functions. 
+      // fitting nonlinear functions.
 
       // SSerr we can get easily from the optimizer
       double rms = optimizer->GetOptimizer()->get_end_error();
@@ -405,7 +405,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
       tempAUC =
         (area_under_curve(timeSize, &m_Timing[0], const_cast<float *>(shiftedVectorVoxel.GetDataPointer() ), BATIndex,  m_AUCTimeInterval) )/m_aifAUC;
       }
-    
+
     // Do we mask the output volumes by the R-squared value?
     if (m_MaskByRSquared)
       {
@@ -486,16 +486,16 @@ ConcentrationToQuantitativeImageFilter<TInputImage, TMaskImage, TOutputImage>
       {
       numberVoxels++;
       vectorVoxel = inputVectorVolumeIter.Get();
-      
+
       for(long i = 0; i < numberOfSamples; i++)
         {
-        averageAIF[i] += vectorVoxel[i];    
-        }      
+        averageAIF[i] += vectorVoxel[i];
+        }
       }
     ++maskVolumeIter;
     ++inputVectorVolumeIter;
     }
-  
+
   for(long i = 0; i < numberOfSamples; i++)
     {
     averageAIF[i] /= (double)numberVoxels;
@@ -508,7 +508,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage, TMaskImage, TOutputImage>
 template <class TInputImage, class TMaskImage, class TOutputImage>
 void ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
 ::SetTiming(const std::vector<float>& inputTiming)
-{  
+{
   m_Timing = inputTiming;
 }
 

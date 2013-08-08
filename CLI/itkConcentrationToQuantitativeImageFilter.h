@@ -20,7 +20,7 @@
 
 namespace itk
 {
-/** \class ConcentrationToQuantitativeImageFilter 
+/** \class ConcentrationToQuantitativeImageFilter
  * \brief Calculates quantitative imaging parameters from concentration curves.
  *
  * This filter computes Pk modeling quantitative images from
@@ -33,10 +33,10 @@ namespace itk
  * verses tissue.
  *
  * \note
- * This work is part of the National Alliance for Medical Image Computing 
+ * This work is part of the National Alliance for Medical Image Computing
  * (NAMIC), funded by the National Institutes of Health through the NIH Roadmap
  * for Medical Research, Grant U54 EB005149.
- * 
+ *
  */
 
 template <class TInputImage, class TMaskImage, class TOutputImage>
@@ -174,10 +174,10 @@ protected:
   void BeforeThreadedGenerateData();
 
 #if ITK_VERSION_MAJOR < 4
-  void ThreadedGenerateData( const typename Superclass::OutputImageRegionType& outputRegionForThread, int threadId );
+  void ThreadedGenerateData( const OutputVolumeRegionType& outputRegionForThread, int threadId );
 
 #else
-  void ThreadedGenerateData( const typename Superclass::OutputImageRegionType& outputRegionForThread,
+  void ThreadedGenerateData( const OutputVolumeRegionType& outputRegionForThread,
                              ThreadIdType threadId );
 
 #endif
