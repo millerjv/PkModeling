@@ -138,6 +138,14 @@ public:
   /// Get the mask that specifies from where the AIF is calculated
   const TMaskImage* GetAIFMask() const;
 
+  /// Set a mask to specify where the model fit is be calculated from the
+  /// input concentration image.
+  void SetROIMask(const MaskVolumeType* volume);
+
+  /// Get the mask that specifies from where the model fit is calculated
+  const TMaskImage* GetROIMask() const;
+
+
   /// Set the AIF as a vector of timing and concentration
   /// values. Timing specified in seconds.
   void SetPrescribedAIF(const std::vector<float>& timing,

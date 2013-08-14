@@ -178,5 +178,14 @@
       <channel>output</channel>      
       <description><![CDATA[R-squared goodness of fit of the model to each voxel. Setting this output changes the returned images.  When this output is not used, the output parameter volumes only contain the voxels where good fits were obtained.  When this output is set, the parameter volumes for every voxel is output and may be masked by the R-squared volume in a separate module.]]></description>
     </image>
+
+    <image type="label">
+      <name>ROIMaskFileName</name>
+      <longflag>roiMask</longflag>
+      <label>ROI Mask Image</label>
+      <channel>input</channel>
+      <description><![CDATA[Mask designating the voxels (non-zero) where the model should be fit. If not specified, the model will be fit to all voxels in the image.]]></description>
+    </image>
+
   </parameters>
 </executable>

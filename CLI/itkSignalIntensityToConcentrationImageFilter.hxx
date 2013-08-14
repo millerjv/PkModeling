@@ -48,6 +48,13 @@ void SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputI
     aifMaskVolumeIter.GoToBegin();
     }
 
+  InputMaskConstIterType roiMaskVolumeIter;
+  if (this->GetROIMask())
+    {
+    roiMaskVolumeIter = InputMaskConstIterType(this->GetROIMask(),this->GetROIMask()->GetRequestedRegion() );
+    roiMaskVolumeIter.GoToBegin();
+    }
+
   S0VolumeIter.GoToBegin();
   inputVectorVolumeIter.GoToBegin();
   oit.GoToBegin();
@@ -69,54 +76,50 @@ void SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputI
     vectorVoxel.Fill(0.0);
     vectorVoxel += inputVectorVoxel; // shorthand for a copy/cast
 
-    // if we have an AIF mask
+    float T1Pre = m_T1PreTissue;
+
+    // if we have ROI, and T1Pre is set to tissue value, check if we need to skip this voxel
+    if( this->GetROIMask() && (this->GetROIMask()->GetBufferedRegion().GetSize()[0])!=0)
+      {
+      if(!roiMaskVolumeIter.Get())
+        {
+        T1Pre = 0;
+        }
+      ++roiMaskVolumeIter;
+      }
+
+    // if we have an AIF mask, use blood T1Pre; even if this voxel was unselected by ROI,
+    // select it for AIF calculation if non-0
     if( this->GetAIFMask() && (this->GetAIFMask()->GetBufferedRegion().GetSize()[0])!=0)
       {
-      // if the mask is set, use blood T1, else use tissue T1
-      if(aifMaskVolumeIter.Get()!=0)
+      if(aifMaskVolumeIter.Get())
         {
-        isConvert = convert_signal_to_concentration (inputVectorVolume->GetNumberOfComponentsPerPixel(),
-                                                     vectorVoxel.GetDataPointer(),
-                                                     m_T1PreBlood, m_TR, m_FA,
-                                                     concentrationVectorVoxelTemp,
-                                                     m_RGD_relaxivity,
-                                                     S0VolumeIter.Get(),
-                                                     m_S0GradThresh);
-        }
-      else
-        {
-        isConvert = convert_signal_to_concentration (inputVectorVolume->GetNumberOfComponentsPerPixel(),
-                                                     vectorVoxel.GetDataPointer(),
-                                                     m_T1PreTissue, m_TR, m_FA,
-                                                     concentrationVectorVoxelTemp,
-                                                     m_RGD_relaxivity,
-                                                     S0VolumeIter.Get(),
-                                                     m_S0GradThresh);
+        T1Pre = m_T1PreBlood;
         }
       ++aifMaskVolumeIter;
       }
-    else
-      {
-      // no AIF, use tissue
-      isConvert = convert_signal_to_concentration (inputVectorVolume->GetNumberOfComponentsPerPixel(),
-                                                   vectorVoxel.GetDataPointer(),
-                                                   m_T1PreTissue, m_TR, m_FA,
-                                                   concentrationVectorVoxelTemp,
-                                                   m_RGD_relaxivity,
-                                                   S0VolumeIter.Get(),
-                                                   m_S0GradThresh);
 
-      }
+     if(T1Pre)
+       {
+       std::cout << "SignalToConcentration" << std::endl;
+       isConvert = convert_signal_to_concentration (inputVectorVolume->GetNumberOfComponentsPerPixel(),
+                                                     vectorVoxel.GetDataPointer(),
+                                                     T1Pre, m_TR, m_FA,
+                                                     concentrationVectorVoxelTemp,
+                                                     m_RGD_relaxivity,
+                                                     S0VolumeIter.Get(),
+                                                     m_S0GradThresh);
 
-    // copy the concentration vector to the output
-    outputVectorVoxel.SetSize(inputVectorVoxel.GetSize());
-    for (typename OutputPixelType::ElementIdentifier i = 0; 
-         i < outputVectorVoxel.GetSize(); ++i)
-      {
-      outputVectorVoxel[i] 
-        = static_cast<typename OutputPixelType::ValueType>(concentrationVectorVoxelTemp[i]);
-      }
-    oit.Set(outputVectorVoxel);
+       // copy the concentration vector to the output
+       outputVectorVoxel.SetSize(inputVectorVoxel.GetSize());
+       for (typename OutputPixelType::ElementIdentifier i = 0; 
+                     i < outputVectorVoxel.GetSize(); ++i)
+         {
+         outputVectorVoxel[i] 
+           = static_cast<typename OutputPixelType::ValueType>(concentrationVectorVoxelTemp[i]);
+         }
+         oit.Set(outputVectorVoxel);
+       }
 
     ++S0VolumeIter;
     ++inputVectorVolumeIter;

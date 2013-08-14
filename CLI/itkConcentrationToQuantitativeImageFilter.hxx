@@ -78,6 +78,23 @@ ConcentrationToQuantitativeImageFilter< TInputImage, TMaskImage, TOutputImage >
   return dynamic_cast< const TMaskImage * >( this->ProcessObject::GetInput(1) );
 }
 
+// Set 3D ROI mask as third input
+template< class TInputImage, class TMaskImage, class TOutputImage >
+void
+ConcentrationToQuantitativeImageFilter< TInputImage, TMaskImage, TOutputImage >
+::SetROIMask(const TMaskImage* volume)
+{
+  this->SetNthInput(2, const_cast<TMaskImage*>(volume) );
+}
+
+template< class TInputImage, class TMaskImage, class TOutputImage >
+const TMaskImage*
+ConcentrationToQuantitativeImageFilter< TInputImage, TMaskImage, TOutputImage >
+::GetROIMask() const
+{
+  return dynamic_cast< const TMaskImage * >( this->ProcessObject::GetInput(2) );
+}
+
 template< class TInputImage, class TMaskImage, class TOutputImage >
 TOutputImage*
 ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
@@ -243,6 +260,12 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
   VectorVolumeConstIterType inputVectorVolumeIter(inputVectorVolume, outputRegionForThread);
   OutputVolumeIterType ktransVolumeIter(this->GetKTransOutput(), outputRegionForThread);
   OutputVolumeIterType veVolumeIter(this->GetVEOutput(), outputRegionForThread);
+  MaskVolumeConstIterType roiMaskVolumeIter;
+  if(this->GetROIMask())
+    {
+    roiMaskVolumeIter = MaskVolumeConstIterType(this->GetROIMask(), outputRegionForThread);
+    }
+
   OutputVolumeIterType fpvVolumeIter;
   if(m_ModelType == itk::LMCostFunction::TOFTS_3_PARAMETER)
     {
@@ -296,161 +319,170 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
     tempKtrans = tempVe = tempFpv = tempMaxSlope = tempAUC = 0.0;
     BATIndex = FirstPeakIndex = 0;
 
-    vectorVoxel = inputVectorVolumeIter.Get();
+    if(this->GetROIMask())
+    {
+      std::cout << "ConcentrationToQuant" << std::endl;
+      vectorVoxel = inputVectorVolumeIter.Get();
 
-    // dump a specific voxel
-    // std::cout << "VectorVoxel = " << vectorVoxel;
-    // if (ktransVolumeIter.GetIndex()[0] == 122
-    //     && ktransVolumeIter.GetIndex()[1] == 118
-    //     && ktransVolumeIter.GetIndex()[2] == 6)
-    //   {
-    //   std::cerr << "VectorVoxel = " << vectorVoxel;
-    //   }
-
-
-    // Compute the bolus arrival time and the max slope parameter
-    if (success)
-      {
-      int status = compute_bolus_arrival_time(timeSize, &vectorVoxel[0], BATIndex, FirstPeakIndex, tempMaxSlope);
-      if (!status)
-        {
-        success = false;
-        }
-      }
-
-
-    // Shift the current time course to align with the BAT of the AIF
-    // (note the sense of the shift)
-    if (success)
-      {
-      shift = m_AIFBATIndex - BATIndex;
-      //std::cerr << "AIF BAT: " << m_AIFBATIndex << ", BAT: " << BATIndex << std::endl;
-      shiftedVectorVoxel.Fill(0.0);
-      if (shift <= 0)
-        {
-        // AIF BAT before current BAT, should always be the case
-        shiftStart = 0;
-        shiftEnd = vectorVoxel.Size() + shift;
-        }
-      else
-        {
-        success = false;
-        }
-      }
-    if (success)
-      {
-      for (unsigned int i = shiftStart; i < shiftEnd; ++i)
-        {
-        shiftedVectorVoxel[i] = vectorVoxel[i - shift];
-        }
-      }
-
-    // Calculate parameter ktrans, ve, and fpv
-    double rSquared = 0.0;
-    if (success)
-      {
-      pk_solver(timeSize, &timeMinute[0],
-                const_cast<float *>(shiftedVectorVoxel.GetDataPointer() ),
-                &m_AIF[0],
-                tempKtrans, tempVe, tempFpv,
-                m_fTol,m_gTol,m_xTol,
-                m_epsilon,m_maxIter, m_hematocrit,
-                optimizer,costFunction,m_ModelType);
-
-      // Only keep the estimated values if the optimization produced a good answer
-      // Check R-squared:
-      //   R2 = 1 - SSerr / SStot
-      // where
-      //   SSerr = \sum (y_i - f_i)^2
-      //   SStot = \sum (y_i - \bar{y})^2
-      //
-      // Note: R-squared is not a good metric for nonlinear function
-      // fitting. R-squared values are not bound between [0,1] when
-      // fitting nonlinear functions.
-
-      // SSerr we can get easily from the optimizer
-      double rms = optimizer->GetOptimizer()->get_end_error();
-      double SSerr = rms*rms*shiftedVectorVoxel.GetSize();
-
-      // if we couldn't get rms from the optimizer, we would calculate SSerr ourselves
-      // LMCostFunction::MeasureType residuals = costFunction->GetValue(optimizer->GetCurrentPosition());
-      // double SSerr = 0.0;
-      // for (unsigned int i=0; i < residuals.size(); ++i)
+      // dump a specific voxel
+      // std::cout << "VectorVoxel = " << vectorVoxel;
+      // if (ktransVolumeIter.GetIndex()[0] == 122
+      //     && ktransVolumeIter.GetIndex()[1] == 118
+      //     && ktransVolumeIter.GetIndex()[2] == 6)
       //   {
-      //   SSerr += (residuals[i]*residuals[i]);
+      //   std::cerr << "VectorVoxel = " << vectorVoxel;
       //   }
+     
 
-      // SStot we need to calculate
-      double sumSquared = 0.0;
-      double sum = 0.0;
-      for (unsigned int i=0; i < shiftedVectorVoxel.GetSize(); ++i)
-        {
-        sum += shiftedVectorVoxel[i];
-        sumSquared += (shiftedVectorVoxel[i]*shiftedVectorVoxel[i]);
-        }
-      double SStot = sumSquared - sum*sum/(double)shiftedVectorVoxel.GetSize();
-
-      rSquared = 1.0 - (SSerr / SStot);
-
-      double rSquaredThreshold = 0.15;
-      if (rSquared < rSquaredThreshold)
-       {
-       success = false;
-       }
-      }
-
-    // Calculate parameter AUC, normalized by AIF AUC
-    if (success)
-      {
-      tempAUC =
-        (area_under_curve(timeSize, &m_Timing[0], const_cast<float *>(shiftedVectorVoxel.GetDataPointer() ), BATIndex,  m_AUCTimeInterval) )/m_aifAUC;
-      }
-
-    // Do we mask the output volumes by the R-squared value?
-    if (m_MaskByRSquared)
-      {
-      // If we were successful, save the estimated values, otherwise
-      // default to zero
+      // Compute the bolus arrival time and the max slope parameter
       if (success)
         {
-        ktransVolumeIter.Set(static_cast<OutputVolumePixelType>(tempKtrans) );
-        veVolumeIter.Set(static_cast<OutputVolumePixelType>(tempVe) );
-        maxSlopeVolumeIter.Set(static_cast<OutputVolumePixelType>(tempMaxSlope) );
-        aucVolumeIter.Set(static_cast<OutputVolumePixelType>(tempAUC) );
-        if(m_ModelType == itk::LMCostFunction::TOFTS_3_PARAMETER)
+        int status = compute_bolus_arrival_time(timeSize, &vectorVoxel[0], BATIndex, FirstPeakIndex, tempMaxSlope);
+        if (!status)
           {
-          fpvVolumeIter.Set(static_cast<OutputVolumePixelType>(tempFpv));
+          success = false;
+          }
+        }
+     
+     
+      // Shift the current time course to align with the BAT of the AIF
+      // (note the sense of the shift)
+      if (success)
+        {
+        shift = m_AIFBATIndex - BATIndex;
+        //std::cerr << "AIF BAT: " << m_AIFBATIndex << ", BAT: " << BATIndex << std::endl;
+        shiftedVectorVoxel.Fill(0.0);
+        if (shift <= 0)
+          {
+          // AIF BAT before current BAT, should always be the case
+          shiftStart = 0;
+          shiftEnd = vectorVoxel.Size() + shift;
+          }
+        else
+          {
+          success = false;
+          }
+        }
+      if (success)
+        {
+        for (unsigned int i = shiftStart; i < shiftEnd; ++i)
+          {
+          shiftedVectorVoxel[i] = vectorVoxel[i - shift];
+          }
+        }
+     
+      // Calculate parameter ktrans, ve, and fpv
+      double rSquared = 0.0;
+      if (success)
+        {
+        pk_solver(timeSize, &timeMinute[0],
+          	const_cast<float *>(shiftedVectorVoxel.GetDataPointer() ),
+          	&m_AIF[0],
+          	tempKtrans, tempVe, tempFpv,
+          	m_fTol,m_gTol,m_xTol,
+          	m_epsilon,m_maxIter, m_hematocrit,
+          	optimizer,costFunction,m_ModelType);
+     
+        // Only keep the estimated values if the optimization produced a good answer
+        // Check R-squared:
+        //   R2 = 1 - SSerr / SStot
+        // where
+        //   SSerr = \sum (y_i - f_i)^2
+        //   SStot = \sum (y_i - \bar{y})^2
+        //
+        // Note: R-squared is not a good metric for nonlinear function
+        // fitting. R-squared values are not bound between [0,1] when
+        // fitting nonlinear functions.
+     
+        // SSerr we can get easily from the optimizer
+        double rms = optimizer->GetOptimizer()->get_end_error();
+        double SSerr = rms*rms*shiftedVectorVoxel.GetSize();
+     
+        // if we couldn't get rms from the optimizer, we would calculate SSerr ourselves
+        // LMCostFunction::MeasureType residuals = costFunction->GetValue(optimizer->GetCurrentPosition());
+        // double SSerr = 0.0;
+        // for (unsigned int i=0; i < residuals.size(); ++i)
+        //   {
+        //   SSerr += (residuals[i]*residuals[i]);
+        //   }
+     
+        // SStot we need to calculate
+        double sumSquared = 0.0;
+        double sum = 0.0;
+        for (unsigned int i=0; i < shiftedVectorVoxel.GetSize(); ++i)
+          {
+          sum += shiftedVectorVoxel[i];
+          sumSquared += (shiftedVectorVoxel[i]*shiftedVectorVoxel[i]);
+          }
+        double SStot = sumSquared - sum*sum/(double)shiftedVectorVoxel.GetSize();
+     
+        rSquared = 1.0 - (SSerr / SStot);
+     
+        double rSquaredThreshold = 0.15;
+        if (rSquared < rSquaredThreshold)
+         {
+         success = false;
+         }
+        }
+     
+      // Calculate parameter AUC, normalized by AIF AUC
+      if (success)
+        {
+        tempAUC =
+          (area_under_curve(timeSize, &m_Timing[0], const_cast<float *>(shiftedVectorVoxel.GetDataPointer() ), BATIndex,  m_AUCTimeInterval) )/m_aifAUC;
+        }
+     
+      // Do we mask the output volumes by the R-squared value?
+      if (m_MaskByRSquared)
+        {
+        // If we were successful, save the estimated values, otherwise
+        // default to zero
+        if (success)
+          {
+          ktransVolumeIter.Set(static_cast<OutputVolumePixelType>(tempKtrans) );
+          veVolumeIter.Set(static_cast<OutputVolumePixelType>(tempVe) );
+          maxSlopeVolumeIter.Set(static_cast<OutputVolumePixelType>(tempMaxSlope) );
+          aucVolumeIter.Set(static_cast<OutputVolumePixelType>(tempAUC) );
+          if(m_ModelType == itk::LMCostFunction::TOFTS_3_PARAMETER)
+            {
+            fpvVolumeIter.Set(static_cast<OutputVolumePixelType>(tempFpv));
+            }
+          }
+        else
+          {
+          ktransVolumeIter.Set(static_cast<OutputVolumePixelType>(0) );
+          veVolumeIter.Set(static_cast<OutputVolumePixelType>(0) );
+          maxSlopeVolumeIter.Set(static_cast<OutputVolumePixelType>(0) );
+          aucVolumeIter.Set(static_cast<OutputVolumePixelType>(0) );
           }
         }
       else
         {
-        ktransVolumeIter.Set(static_cast<OutputVolumePixelType>(0) );
-        veVolumeIter.Set(static_cast<OutputVolumePixelType>(0) );
-        maxSlopeVolumeIter.Set(static_cast<OutputVolumePixelType>(0) );
-        aucVolumeIter.Set(static_cast<OutputVolumePixelType>(0) );
+          ktransVolumeIter.Set(static_cast<OutputVolumePixelType>(tempKtrans) );
+          veVolumeIter.Set(static_cast<OutputVolumePixelType>(tempVe) );
+          maxSlopeVolumeIter.Set(static_cast<OutputVolumePixelType>(tempMaxSlope) );
+          aucVolumeIter.Set(static_cast<OutputVolumePixelType>(tempAUC) );
+          if(m_ModelType == itk::LMCostFunction::TOFTS_3_PARAMETER)
+            {
+            fpvVolumeIter.Set(static_cast<OutputVolumePixelType>(tempFpv));
+            }
         }
-      }
-    else
-      {
-        ktransVolumeIter.Set(static_cast<OutputVolumePixelType>(tempKtrans) );
-        veVolumeIter.Set(static_cast<OutputVolumePixelType>(tempVe) );
-        maxSlopeVolumeIter.Set(static_cast<OutputVolumePixelType>(tempMaxSlope) );
-        aucVolumeIter.Set(static_cast<OutputVolumePixelType>(tempAUC) );
-        if(m_ModelType == itk::LMCostFunction::TOFTS_3_PARAMETER)
-          {
-          fpvVolumeIter.Set(static_cast<OutputVolumePixelType>(tempFpv));
-          }
-      }
-
-    // RSquared output volume is always written
-    rsqVolumeIter.Set(rSquared);
-
+     
+      // RSquared output volume is always written
+      rsqVolumeIter.Set(rSquared);
+    }
+     
     ++ktransVolumeIter;
     ++veVolumeIter;
     ++maxSlopeVolumeIter;
     ++aucVolumeIter;
     ++rsqVolumeIter;
     ++inputVectorVolumeIter;
+
+    if(this->GetROIMask())
+      {
+      ++roiMaskVolumeIter;
+      }
 
     if(m_ModelType == itk::LMCostFunction::TOFTS_3_PARAMETER)
       {
