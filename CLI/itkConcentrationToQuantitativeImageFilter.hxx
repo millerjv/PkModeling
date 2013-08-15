@@ -313,15 +313,14 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
   int shift;
   unsigned int shiftStart = 0, shiftEnd = 0;
   bool success = true;
-  while (!ktransVolumeIter.IsAtEnd() )
+  while (!ktransVolumeIter.IsAtEnd())
     {
     success = true;
     tempKtrans = tempVe = tempFpv = tempMaxSlope = tempAUC = 0.0;
     BATIndex = FirstPeakIndex = 0;
 
-    if(this->GetROIMask())
+    if(!this->GetROIMask() || (this->GetROIMask() && roiMaskVolumeIter.Get()))
     {
-      std::cout << "ConcentrationToQuant" << std::endl;
       vectorVoxel = inputVectorVolumeIter.Get();
 
       // dump a specific voxel

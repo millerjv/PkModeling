@@ -101,7 +101,6 @@ void SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputI
 
      if(T1Pre)
        {
-       std::cout << "SignalToConcentration" << std::endl;
        isConvert = convert_signal_to_concentration (inputVectorVolume->GetNumberOfComponentsPerPixel(),
                                                      vectorVoxel.GetDataPointer(),
                                                      T1Pre, m_TR, m_FA,
