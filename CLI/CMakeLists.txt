@@ -2,7 +2,7 @@
 #-----------------------------------------------------------------------------
 set(MODULE_NAME PkModeling)
 
-#----------------------------------------------------------------------------- 
+#-----------------------------------------------------------------------------
 set(MODULE_INCLUDE_DIRECTORIES
   ${${MODULE_NAME}_SOURCE_DIR}/PkSolver
   )
@@ -26,9 +26,9 @@ set(MODULE_TARGET_LIBRARIES
 #-----------------------------------------------------------------------------
 SEMMacroBuildCLI(
   NAME ${MODULE_NAME}
-  INCLUDE_DIRECTORIES ${MODULE_INCLUDE_DIRECTORIES}  
+  INCLUDE_DIRECTORIES ${MODULE_INCLUDE_DIRECTORIES}
   ADDITIONAL_SRCS ${MODULE_SRCS}
-  TARGET_LIBRARIES ${MODULE_TARGET_LIBRARIES}  
+  TARGET_LIBRARIES ${MODULE_TARGET_LIBRARIES}
   )
 
 #-----------------------------------------------------------------------------

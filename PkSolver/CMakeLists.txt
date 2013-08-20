@@ -6,6 +6,9 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 add_library(${LIBRARY_NAME} STATIC ${LIBRARY_NAME}.cxx ${LIBRARY_NAME}.h)
 target_link_libraries(${LIBRARY_NAME} ${ITK_LIBRARIES})
+if (CMAKE_SYSTEM MATCHES "Linux")
+  set_target_properties(${LIBRARY_NAME} PROPERTIES COMPILE_FLAGS "-fPIC")
+endif ()
 
 # No need to install the library as it is statically linked to other libraries and executables in this extension
 #install(TARGETS ${LIBRARY_NAME}
