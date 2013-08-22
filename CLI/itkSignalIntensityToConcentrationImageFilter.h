@@ -119,6 +119,18 @@ public:
     return dynamic_cast<const InputMaskType*>(this->ProcessObject::GetInput(1));
   }
 
+  // Set a mask image for specifying the location of voxels for model fit.
+  void SetROIMask(InputMaskType* roiMaskVolume)
+  {
+    this->SetNthInput(2, const_cast<InputMaskType*>(roiMaskVolume));
+  }
+
+  // Get the mask image specifying the location of voxels for model fit.
+  const InputMaskType* GetROIMask() const
+  {
+    return dynamic_cast<const InputMaskType*>(this->ProcessObject::GetInput(2));
+  }
+
 protected:
   SignalIntensityToConcentrationImageFilter();
   virtual ~SignalIntensityToConcentrationImageFilter()

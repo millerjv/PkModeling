@@ -284,14 +284,24 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
     
     }
 
-  //Read mask
-  typename MaskVolumeReaderType::Pointer maskVolumeReader = MaskVolumeReaderType::New();
-  typename MaskVolumeType::Pointer maskVolume = 0;
+  //Read AIF mask
+  typename MaskVolumeReaderType::Pointer aifMaskVolumeReader = MaskVolumeReaderType::New();
+  typename MaskVolumeType::Pointer aifMaskVolume = 0;
   if (AIFMaskFileName != "")
     {
-    maskVolumeReader->SetFileName(AIFMaskFileName.c_str() );
-    maskVolumeReader->Update();
-    maskVolume = maskVolumeReader->GetOutput();
+    aifMaskVolumeReader->SetFileName(AIFMaskFileName.c_str() );
+    aifMaskVolumeReader->Update();
+    aifMaskVolume = aifMaskVolumeReader->GetOutput();
+    }
+
+  //Read ROI mask
+  typename MaskVolumeReaderType::Pointer roiMaskVolumeReader = MaskVolumeReaderType::New();
+  typename MaskVolumeType::Pointer roiMaskVolume = 0;
+  if (ROIMaskFileName != "")
+    {
+    roiMaskVolumeReader->SetFileName(ROIMaskFileName.c_str() );
+    roiMaskVolumeReader->Update();
+    roiMaskVolume = roiMaskVolumeReader->GetOutput();
     }
 
   //Read prescribed aif
@@ -315,8 +325,14 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   converter->SetInput(inputVectorVolume);
   if (!usingPrescribedAIF)
     {
-    converter->SetAIFMask(maskVolume);
+    converter->SetAIFMask(aifMaskVolume);
     }
+
+  if(ROIMaskFileName != "")
+    {
+    converter->SetROIMask(roiMaskVolume);
+    }
+
   converter->SetT1PreBlood(T1PreBloodValue);
   converter->SetT1PreTissue(T1PreTissueValue);
   converter->SetTR(TRValue);
@@ -337,7 +353,7 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
     }
   else
     {
-    quantifier->SetAIFMask(maskVolume );
+    quantifier->SetAIFMask(aifMaskVolume );
     }
 
   quantifier->SetAUCTimeInterval(AUCTimeInterval);
@@ -348,6 +364,11 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   quantifier->Setepsilon(Epsilon);
   quantifier->SetmaxIter(MaxIter);
   quantifier->Sethematocrit(Hematocrit);
+  if(ROIMaskFileName != "")
+    {
+    quantifier->SetROIMask(roiMaskVolume);
+    }
+
   if(ComputeFpv)
     {
     quantifier->SetModelType(itk::LMCostFunction::TOFTS_3_PARAMETER);
