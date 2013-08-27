@@ -389,6 +389,7 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
     typename OutputVolumeWriterType::Pointer ktranswriter = OutputVolumeWriterType::New();
     ktranswriter->SetInput(quantifier->GetKTransOutput() );
     ktranswriter->SetFileName(OutputKtransFileName.c_str() );
+    ktranswriter->SetUseCompression(1);
     ktranswriter->Update();
     }
 
@@ -397,6 +398,7 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
     typename OutputVolumeWriterType::Pointer vewriter = OutputVolumeWriterType::New();
     vewriter->SetInput(quantifier->GetVEOutput() );
     vewriter->SetFileName(OutputVeFileName.c_str() );
+    vewriter->SetUseCompression(1);
     vewriter->Update();
     }
 
@@ -407,6 +409,7 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
       typename OutputVolumeWriterType::Pointer fpvwriter =OutputVolumeWriterType::New();
       fpvwriter->SetInput(quantifier->GetFPVOutput() );
       fpvwriter->SetFileName(OutputFpvFileName.c_str() );
+      fpvwriter->SetUseCompression(1);
       fpvwriter->Update();
       }
     }
@@ -416,6 +419,7 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
     typename OutputVolumeWriterType::Pointer maxSlopewriter = OutputVolumeWriterType::New();
     maxSlopewriter->SetInput(quantifier->GetMaxSlopeOutput() );
     maxSlopewriter->SetFileName(OutputMaxSlopeFileName.c_str() );
+    maxSlopewriter->SetUseCompression(1);
     maxSlopewriter->Update();
     }
 
@@ -424,6 +428,7 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
     typename OutputVolumeWriterType::Pointer aucwriter = OutputVolumeWriterType::New();
     aucwriter->SetInput(quantifier->GetAUCOutput() );
     aucwriter->SetFileName(OutputAUCFileName.c_str() );
+    aucwriter->SetUseCompression(1);
     aucwriter->Update();
     }
 
@@ -432,6 +437,7 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
     typename OutputVolumeWriterType::Pointer rsqwriter =OutputVolumeWriterType::New();
     rsqwriter->SetInput(quantifier->GetRSquaredOutput() );
     rsqwriter->SetFileName(OutputRSquaredFileName.c_str() );
+    rsqwriter->SetUseCompression(1);
     rsqwriter->Update();
     }
 
