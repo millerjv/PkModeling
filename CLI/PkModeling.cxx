@@ -18,6 +18,8 @@
 #include "itkImageFileWriter.h"
 #include "itkTimeProbesCollectorBase.h"
 #include "itkMultiThreader.h"
+#include "itkResampleImageFilter.h"
+#include "itkNearestNeighborInterpolateImageFunction.h"
 
 #include "itkPluginUtilities.h"
 
@@ -207,6 +209,9 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
 
   typedef itk::Image<float,VectorVolumeDimension> OutputVolumeType;
   typedef itk::ImageFileWriter< OutputVolumeType> OutputVolumeWriterType;
+
+  typedef itk::ResampleImageFilter<MaskVolumeType,MaskVolumeType> ResamplerType;
+  typedef itk::NearestNeighborInterpolateImageFunction<MaskVolumeType> InterpolatorType;
   
   //Read VectorVolume
   typename VectorVolumeReaderType::Pointer multiVolumeReader 
@@ -302,6 +307,20 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
     roiMaskVolumeReader->SetFileName(ROIMaskFileName.c_str() );
     roiMaskVolumeReader->Update();
     roiMaskVolume = roiMaskVolumeReader->GetOutput();
+
+    typename ResamplerType::Pointer resampler = ResamplerType::New();
+    typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
+
+    resampler->SetOutputDirection(inputVectorVolume->GetDirection());
+    resampler->SetOutputSpacing(inputVectorVolume->GetSpacing());
+    resampler->SetOutputStartIndex(inputVectorVolume->GetBufferedRegion().GetIndex());
+    resampler->SetSize(inputVectorVolume->GetBufferedRegion().GetSize());
+    resampler->SetOutputOrigin(inputVectorVolume->GetOrigin());
+    resampler->SetInput(roiMaskVolume);
+    resampler->SetInterpolator(interpolator);
+    resampler->Update();
+
+    roiMaskVolume = resampler->GetOutput();
     }
 
   //Read prescribed aif
