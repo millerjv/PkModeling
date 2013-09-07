@@ -241,7 +241,6 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
 
   // Compute the area under the curve for the AIF
   m_aifAUC = area_under_curve(timeSize, &m_Timing[0], &m_AIF[0], m_AIFBATIndex, m_AUCTimeInterval);
-
 }
 
 template <class TInputImage, class TMaskImage, class TOutputImage>
@@ -268,7 +267,8 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
   VectorVolumeConstIterType inputVectorVolumeIter(inputVectorVolume, outputRegionForThread);
   OutputVolumeIterType ktransVolumeIter(this->GetKTransOutput(), outputRegionForThread);
   OutputVolumeIterType veVolumeIter(this->GetVEOutput(), outputRegionForThread);
-  VectorVolumeIterType fittedVolumeIter(this->GetFittedDataOutput(), outputRegionForThread);
+  typename VectorVolumeType::Pointer fitted = this->GetFittedDataOutput();
+  VectorVolumeIterType fittedVolumeIter(fitted, outputRegionForThread);
 
   MaskVolumeConstIterType roiMaskVolumeIter;
   if(this->GetROIMask())

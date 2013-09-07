@@ -364,6 +364,8 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
 
   if(OutputConcentrationsImageFileName != "")
     {
+    // TODO: need to initialize the attributes, otherwise Slicer treats 
+    //  this as a Vector volume, not MultiVolume
     typename VectorVolumeWriterType::Pointer multiVolumeWriter
       = VectorVolumeWriterType::New();
     multiVolumeWriter->SetFileName(OutputConcentrationsImageFileName.c_str());
