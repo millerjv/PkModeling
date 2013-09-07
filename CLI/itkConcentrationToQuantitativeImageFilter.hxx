@@ -39,6 +39,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>::Con
   this->Superclass::SetNthOutput(3, static_cast<TOutputImage*>(this->MakeOutput(0).GetPointer()));
   this->Superclass::SetNthOutput(4, static_cast<TOutputImage*>(this->MakeOutput(0).GetPointer()));
   this->Superclass::SetNthOutput(5, static_cast<TOutputImage*>(this->MakeOutput(0).GetPointer()));
+  this->Superclass::SetNthOutput(6, static_cast<VectorVolumeType*>(this->MakeOutput(0).GetPointer()));
 }
 
 // Set a prescribed AIF.  This is not currrently in the input vector,
@@ -143,6 +144,13 @@ ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
   return dynamic_cast< TOutputImage * >( this->ProcessObject::GetOutput(5) );
 }
 
+template< class TInputImage, class TMaskImage, class TOutputImage >
+TInputImage*
+ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
+::GetFittedDataOutput()
+{
+  return dynamic_cast< TInputImage * >( this->ProcessObject::GetOutput(6) );
+}
 
 template <class TInputImage, class TMaskImage, class TOutputImage>
 void
@@ -245,7 +253,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
 ::ThreadedGenerateData( const OutputVolumeRegionType& outputRegionForThread, ThreadIdType threadId )
 #endif
 {
-  VectorVoxelType vectorVoxel;
+  VectorVoxelType vectorVoxel, fittedVectorVoxel;
 
   float tempFpv = 0.0f;
   float tempKtrans = 0.0f;
@@ -260,6 +268,8 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
   VectorVolumeConstIterType inputVectorVolumeIter(inputVectorVolume, outputRegionForThread);
   OutputVolumeIterType ktransVolumeIter(this->GetKTransOutput(), outputRegionForThread);
   OutputVolumeIterType veVolumeIter(this->GetVEOutput(), outputRegionForThread);
+  VectorVolumeIterType fittedVolumeIter(this->GetFittedDataOutput(), outputRegionForThread);
+
   MaskVolumeConstIterType roiMaskVolumeIter;
   if(this->GetROIMask())
     {
@@ -322,6 +332,12 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
     if(!this->GetROIMask() || (this->GetROIMask() && roiMaskVolumeIter.Get()))
     {
       vectorVoxel = inputVectorVolumeIter.Get();
+      fittedVectorVoxel = inputVectorVolumeIter.Get();
+      for(int i=0;i<fittedVectorVoxel.GetSize();i++)
+      {
+        fittedVectorVoxel[i] += i;
+      }
+      fittedVolumeIter.Set(fittedVectorVoxel);
 
       // dump a specific voxel
       // std::cout << "VectorVoxel = " << vectorVoxel;
@@ -477,6 +493,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
     ++aucVolumeIter;
     ++rsqVolumeIter;
     ++inputVectorVolumeIter;
+    ++fittedVolumeIter;
 
     if(this->GetROIMask())
       {

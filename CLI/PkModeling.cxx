@@ -199,6 +199,7 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   typedef itk::VectorImage<float, VectorVolumeDimension>     FloatVectorVolumeType;
   typedef typename VectorVolumeType::RegionType              VectorVolumeRegionType;
   typedef itk::ImageFileReader<VectorVolumeType>             VectorVolumeReaderType;
+  typedef itk::ImageFileWriter<FloatVectorVolumeType>        VectorVolumeWriterType;
 
   const   unsigned int MaskVolumeDimension = 3;
   typedef T2                                                   MaskVolumePixelType;
@@ -341,6 +342,15 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   converter->SetS0GradThresh(S0GradValue);
   itk::PluginFilterWatcher watchConverter(converter, "Concentrations",  CLPProcessInformation,  1.0 / 20.0, 0.0);
   converter->Update();
+
+  if(OutputConcentrationsImageFileName != "")
+    {
+    typename VectorVolumeWriterType::Pointer multiVolumeWriter
+      = VectorVolumeWriterType::New();
+    multiVolumeWriter->SetFileName(OutputConcentrationsImageFileName.c_str());
+    multiVolumeWriter->SetInput(converter->GetOutput());
+    multiVolumeWriter->Update();
+    }
 
   //Calculate parameters
   typedef itk::ConcentrationToQuantitativeImageFilter<FloatVectorVolumeType, MaskVolumeType, OutputVolumeType> QuantifierType;

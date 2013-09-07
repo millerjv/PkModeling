@@ -51,6 +51,7 @@ public:
   typedef typename VectorVolumeType::RegionType   VectorVolumeRegionType;
   typedef typename VectorVolumeType::SizeType     VectorVolumeSizeType;
   typedef itk::ImageRegionConstIterator<VectorVolumeType> VectorVolumeConstIterType;
+  typedef itk::ImageRegionIterator<VectorVolumeType> VectorVolumeIterType;
 
   typedef TMaskImage                            MaskVolumeType;
   typedef typename MaskVolumeType::Pointer      MaskVolumePointerType;
@@ -172,6 +173,8 @@ public:
   TOutputImage* GetMaxSlopeOutput();
   TOutputImage* GetAUCOutput();
   TOutputImage* GetRSquaredOutput();
+
+  VectorVolumeType* GetFittedDataOutput();
 
 protected:
   ConcentrationToQuantitativeImageFilter();
