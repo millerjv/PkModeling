@@ -43,6 +43,8 @@ template <class TInputImage, class TMaskImage, class TOutputImage>
 class ITK_EXPORT ConcentrationToQuantitativeImageFilter : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
+  typedef ConcentrationToQuantitativeImageFilter Self;
+
   /** Convenient typedefs for simplifying declarations. */
   typedef TInputImage                             VectorVolumeType;
   typedef typename VectorVolumeType::Pointer      VectorVolumePointerType;
@@ -70,12 +72,21 @@ public:
   typedef itk::ImageRegionIterator<OutputVolumeType>      OutputVolumeIterType;
   typedef itk::ImageRegionConstIterator<OutputVolumeType> OutputVolumeConstIterType;
 
+  /** Methods to implement smart pointers and work with the itk object factory
+   **/
+  typedef ProcessObject              ProcessObjectSuperclass;
+  typedef SmartPointer< Self >       Pointer;
+  //typedef SmartPointer< const Self > ConstPointer;
+  typedef itk::DataObject::Pointer   DataObjectPointer;
+
+  typedef ProcessObject::DataObjectPointerArraySizeType DataObjectPointerArraySizeType;
+  using ProcessObjectSuperclass::MakeOutput;
+  virtual DataObjectPointer MakeOutput(DataObjectPointerArraySizeType idx);
+
   typedef itk::VariableLengthVector<float>          VectorVoxelType;
 
   /** Standard class typedefs. */
-  typedef ConcentrationToQuantitativeImageFilter   Self;
   typedef ImageToImageFilter<VectorVolumeType,OutputVolumeType> Superclass;
-  typedef SmartPointer<Self>                        Pointer;
   typedef SmartPointer<const Self>                  ConstPointer;
 
   /** Method for creation through the object factory. */
@@ -194,7 +205,6 @@ protected:
 #endif
 
   std::vector<float> CalculateAverageAIF(const VectorVolumeType* inputVectorVolume, const MaskVolumeType* maskVolume);
-
 
 private:
   ConcentrationToQuantitativeImageFilter(const Self &); // purposely not implemented

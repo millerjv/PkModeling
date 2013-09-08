@@ -112,7 +112,32 @@ public:
             
     return measure; 
   }
-        
+  
+  MeasureType GetFittedFunction( const ParametersType & parameters) const
+  {
+    std::cout << "Range dim: " << RangeDimension << std::endl;
+    MeasureType measure(RangeDimension);
+
+    ValueType Ktrans = parameters[0];
+    ValueType Ve = parameters[1];
+            
+    ArrayType VeTerm;
+    VeTerm = -Ktrans/Ve*Time;
+    ValueType deltaT = Time(1) - Time(0);
+    
+    if( m_ModelType == TOFTS_3_PARAMETER)
+      {
+      ValueType f_pv = parameters[2];
+      measure = 1/(1.0-m_Hematocrit)*(Ktrans*deltaT*Convolution(Cb,Exponential(VeTerm)) + f_pv*Cb);
+      }
+    else if(m_ModelType == TOFTS_2_PARAMETER)
+      {
+      measure = 1/(1.0-m_Hematocrit)*(Ktrans*deltaT*Convolution(Cb,Exponential(VeTerm)));
+      }
+            
+    return measure; 
+  }
+    
   //Not going to be used
   void GetDerivative( const ParametersType & /* parameters*/,
                       DerivativeType  & /*derivative*/ ) const

@@ -466,6 +466,17 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
     rsqwriter->Update();
     }
 
+  if (!OutputFittedDataImageFileName.empty())
+    {
+    // TODO: need to initialize the attributes, otherwise Slicer treats 
+    //  this as a Vector volume, not MultiVolume
+    typename VectorVolumeWriterType::Pointer multiVolumeWriter
+      = VectorVolumeWriterType::New();
+    multiVolumeWriter->SetFileName(OutputFittedDataImageFileName.c_str());
+    multiVolumeWriter->SetInput(quantifier->GetFittedDataOutput());
+    multiVolumeWriter->Update();
+    }
+
   return EXIT_SUCCESS;
 }  
 
