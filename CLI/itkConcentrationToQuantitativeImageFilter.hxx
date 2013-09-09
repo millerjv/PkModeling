@@ -34,11 +34,28 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>::Con
   m_MaskByRSquared = true;
   m_ModelType = itk::LMCostFunction::TOFTS_2_PARAMETER;
   this->Superclass::SetNumberOfRequiredInputs(1);
-  this->Superclass::SetNthOutput(1, static_cast<TOutputImage*>(this->MakeOutput(0).GetPointer()));
-  this->Superclass::SetNthOutput(2, static_cast<TOutputImage*>(this->MakeOutput(0).GetPointer()));
-  this->Superclass::SetNthOutput(3, static_cast<TOutputImage*>(this->MakeOutput(0).GetPointer()));
-  this->Superclass::SetNthOutput(4, static_cast<TOutputImage*>(this->MakeOutput(0).GetPointer()));
-  this->Superclass::SetNthOutput(5, static_cast<TOutputImage*>(this->MakeOutput(0).GetPointer()));
+  this->Superclass::SetNthOutput(1, static_cast<TOutputImage*>(this->MakeOutput(1).GetPointer()));
+  this->Superclass::SetNthOutput(2, static_cast<TOutputImage*>(this->MakeOutput(2).GetPointer()));
+  this->Superclass::SetNthOutput(3, static_cast<TOutputImage*>(this->MakeOutput(3).GetPointer()));
+  this->Superclass::SetNthOutput(4, static_cast<TOutputImage*>(this->MakeOutput(4).GetPointer()));
+  this->Superclass::SetNthOutput(5, static_cast<TOutputImage*>(this->MakeOutput(5).GetPointer()));
+  this->Superclass::SetNthOutput(6, static_cast<VectorVolumeType*>(this->MakeOutput(6).GetPointer()));
+}
+
+template< class TInputImage, class TMaskImage, class TOutputImage >
+typename ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>::DataObjectPointer
+ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
+::MakeOutput(DataObjectPointerArraySizeType idx)
+{
+  if(idx<6)
+  {
+    return TOutputImage::New().GetPointer();
+  }
+  else if (idx==6)
+  {
+    return VectorVolumeType::New().GetPointer();
+  }
+  return 0;
 }
 
 // Set a prescribed AIF.  This is not currrently in the input vector,
@@ -143,6 +160,13 @@ ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
   return dynamic_cast< TOutputImage * >( this->ProcessObject::GetOutput(5) );
 }
 
+template< class TInputImage, class TMaskImage, class TOutputImage >
+TInputImage*
+ConcentrationToQuantitativeImageFilter< TInputImage,TMaskImage, TOutputImage >
+::GetFittedDataOutput()
+{
+  return dynamic_cast< TInputImage * >( this->ProcessObject::GetOutput(6) );
+}
 
 template <class TInputImage, class TMaskImage, class TOutputImage>
 void
@@ -233,7 +257,6 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
 
   // Compute the area under the curve for the AIF
   m_aifAUC = area_under_curve(timeSize, &m_Timing[0], &m_AIF[0], m_AIFBATIndex, m_AUCTimeInterval);
-
 }
 
 template <class TInputImage, class TMaskImage, class TOutputImage>
@@ -245,7 +268,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
 ::ThreadedGenerateData( const OutputVolumeRegionType& outputRegionForThread, ThreadIdType threadId )
 #endif
 {
-  VectorVoxelType vectorVoxel;
+  VectorVoxelType vectorVoxel, fittedVectorVoxel;
 
   float tempFpv = 0.0f;
   float tempKtrans = 0.0f;
@@ -260,6 +283,9 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
   VectorVolumeConstIterType inputVectorVolumeIter(inputVectorVolume, outputRegionForThread);
   OutputVolumeIterType ktransVolumeIter(this->GetKTransOutput(), outputRegionForThread);
   OutputVolumeIterType veVolumeIter(this->GetVEOutput(), outputRegionForThread);
+  typename VectorVolumeType::Pointer fitted = this->GetFittedDataOutput();
+  VectorVolumeIterType fittedVolumeIter(fitted, outputRegionForThread);
+
   MaskVolumeConstIterType roiMaskVolumeIter;
   if(this->GetROIMask())
     {
@@ -322,7 +348,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
     if(!this->GetROIMask() || (this->GetROIMask() && roiMaskVolumeIter.Get()))
     {
       vectorVoxel = inputVectorVolumeIter.Get();
-
+      fittedVectorVoxel = inputVectorVolumeIter.Get();
       // dump a specific voxel
       // std::cout << "VectorVoxel = " << vectorVoxel;
       // if (ktransVolumeIter.GetIndex()[0] == 122
@@ -381,7 +407,36 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
           	m_fTol,m_gTol,m_xTol,
           	m_epsilon,m_maxIter, m_hematocrit,
           	optimizer,costFunction,m_ModelType);
-     
+        
+        itk::LMCostFunction::ParametersType param(3);
+        param[0] = tempKtrans; param[1] = tempVe;
+        if(m_ModelType == itk::LMCostFunction::TOFTS_3_PARAMETER)
+          {
+            param[2] = tempFpv;
+          }
+        itk::LMCostFunction::MeasureType measure =
+          costFunction->GetFittedFunction(param);
+        for(int i=0;i<fittedVectorVoxel.GetSize();i++)
+        {
+          fittedVectorVoxel[i] = measure[i];
+        }
+        
+        // Shift the current time course to align with the BAT of the AIF
+        // (note the sense of the shift)
+        shiftedVectorVoxel.Fill(0.0);
+        if (shift <= 0)
+          {
+          // AIF BAT before current BAT, should always be the case
+          shiftStart = shift*-1.;
+          shiftEnd = vectorVoxel.Size();
+          for (unsigned int i = shiftStart; i < shiftEnd; ++i)
+            {
+            shiftedVectorVoxel[i] = fittedVectorVoxel[i + shift];
+            }
+          }
+  
+        fittedVolumeIter.Set(shiftedVectorVoxel);
+
         // Only keep the estimated values if the optimization produced a good answer
         // Check R-squared:
         //   R2 = 1 - SSerr / SStot
@@ -477,6 +532,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
     ++aucVolumeIter;
     ++rsqVolumeIter;
     ++inputVectorVolumeIter;
+    ++fittedVolumeIter;
 
     if(this->GetROIMask())
       {

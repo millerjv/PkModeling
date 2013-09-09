@@ -201,6 +201,7 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   typedef itk::VectorImage<float, VectorVolumeDimension>     FloatVectorVolumeType;
   typedef typename VectorVolumeType::RegionType              VectorVolumeRegionType;
   typedef itk::ImageFileReader<VectorVolumeType>             VectorVolumeReaderType;
+  typedef itk::ImageFileWriter<FloatVectorVolumeType>        VectorVolumeWriterType;
 
   const   unsigned int MaskVolumeDimension = 3;
   typedef T2                                                   MaskVolumePixelType;
@@ -361,6 +362,21 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   itk::PluginFilterWatcher watchConverter(converter, "Concentrations",  CLPProcessInformation,  1.0 / 20.0, 0.0);
   converter->Update();
 
+  if(OutputConcentrationsImageFileName != "")
+    {
+    // need to initialize the attributes, otherwise Slicer treats 
+    //  this as a Vector volume, not MultiVolume
+    FloatVectorVolumeType::Pointer concentrationsVolume = converter->GetOutput();
+    concentrationsVolume->SetMetaDataDictionary(inputVectorVolume->GetMetaDataDictionary());
+
+    typename VectorVolumeWriterType::Pointer multiVolumeWriter
+      = VectorVolumeWriterType::New();
+    multiVolumeWriter->SetFileName(OutputConcentrationsImageFileName.c_str());
+    multiVolumeWriter->SetInput(concentrationsVolume);
+    multiVolumeWriter->SetUseCompression(1);
+    multiVolumeWriter->Update();
+    }
+
   //Calculate parameters
   typedef itk::ConcentrationToQuantitativeImageFilter<FloatVectorVolumeType, MaskVolumeType, OutputVolumeType> QuantifierType;
   typename QuantifierType::Pointer quantifier = QuantifierType::New();
@@ -458,6 +474,21 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
     rsqwriter->SetFileName(OutputRSquaredFileName.c_str() );
     rsqwriter->SetUseCompression(1);
     rsqwriter->Update();
+    }
+
+  if (!OutputFittedDataImageFileName.empty())
+    {
+    // need to initialize the attributes, otherwise Slicer treats 
+    //  this as a Vector volume, not MultiVolume
+    FloatVectorVolumeType::Pointer fittedVolume = quantifier->GetFittedDataOutput();
+    fittedVolume->SetMetaDataDictionary(inputVectorVolume->GetMetaDataDictionary());
+
+    typename VectorVolumeWriterType::Pointer multiVolumeWriter
+      = VectorVolumeWriterType::New();
+    multiVolumeWriter->SetFileName(OutputFittedDataImageFileName.c_str());
+    multiVolumeWriter->SetInput(fittedVolume);
+    multiVolumeWriter->SetUseCompression(1);
+    multiVolumeWriter->Update();
     }
 
   return EXIT_SUCCESS;
