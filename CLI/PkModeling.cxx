@@ -364,12 +364,15 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
 
   if(OutputConcentrationsImageFileName != "")
     {
-    // TODO: need to initialize the attributes, otherwise Slicer treats 
+    // need to initialize the attributes, otherwise Slicer treats 
     //  this as a Vector volume, not MultiVolume
+    FloatVectorVolumeType::Pointer concentrationsVolume = converter->GetOutput();
+    concentrationsVolume->SetMetaDataDictionary(inputVectorVolume->GetMetaDataDictionary());
+
     typename VectorVolumeWriterType::Pointer multiVolumeWriter
       = VectorVolumeWriterType::New();
     multiVolumeWriter->SetFileName(OutputConcentrationsImageFileName.c_str());
-    multiVolumeWriter->SetInput(converter->GetOutput());
+    multiVolumeWriter->SetInput(concentrationsVolume);
     multiVolumeWriter->Update();
     }
 
@@ -468,12 +471,15 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
 
   if (!OutputFittedDataImageFileName.empty())
     {
-    // TODO: need to initialize the attributes, otherwise Slicer treats 
+    // need to initialize the attributes, otherwise Slicer treats 
     //  this as a Vector volume, not MultiVolume
+    FloatVectorVolumeType::Pointer fittedVolume = quantifier->GetFittedDataOutput();
+    fittedVolume->SetMetaDataDictionary(inputVectorVolume->GetMetaDataDictionary());
+
     typename VectorVolumeWriterType::Pointer multiVolumeWriter
       = VectorVolumeWriterType::New();
     multiVolumeWriter->SetFileName(OutputFittedDataImageFileName.c_str());
-    multiVolumeWriter->SetInput(quantifier->GetFittedDataOutput());
+    multiVolumeWriter->SetInput(fittedVolume);
     multiVolumeWriter->Update();
     }
 
