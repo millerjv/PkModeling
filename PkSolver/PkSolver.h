@@ -115,7 +115,6 @@ public:
   
   MeasureType GetFittedFunction( const ParametersType & parameters) const
   {
-    std::cout << "Range dim: " << RangeDimension << std::endl;
     MeasureType measure(RangeDimension);
 
     ValueType Ktrans = parameters[0];

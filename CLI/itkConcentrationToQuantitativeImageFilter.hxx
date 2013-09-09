@@ -420,7 +420,22 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
         {
           fittedVectorVoxel[i] = measure[i];
         }
-        fittedVolumeIter.Set(fittedVectorVoxel);
+        
+        // Shift the current time course to align with the BAT of the AIF
+        // (note the sense of the shift)
+        shiftedVectorVoxel.Fill(0.0);
+        if (shift <= 0)
+          {
+          // AIF BAT before current BAT, should always be the case
+          shiftStart = shift*-1.;
+          shiftEnd = vectorVoxel.Size();
+          for (unsigned int i = shiftStart; i < shiftEnd; ++i)
+            {
+            shiftedVectorVoxel[i] = fittedVectorVoxel[i + shift];
+            }
+          }
+  
+        fittedVolumeIter.Set(shiftedVectorVoxel);
 
         // Only keep the estimated values if the optimization produced a good answer
         // Check R-squared:
