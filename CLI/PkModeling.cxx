@@ -373,6 +373,7 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
       = VectorVolumeWriterType::New();
     multiVolumeWriter->SetFileName(OutputConcentrationsImageFileName.c_str());
     multiVolumeWriter->SetInput(concentrationsVolume);
+    multiVolumeWriter->SetUseCompression(1);
     multiVolumeWriter->Update();
     }
 
@@ -480,6 +481,7 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
       = VectorVolumeWriterType::New();
     multiVolumeWriter->SetFileName(OutputFittedDataImageFileName.c_str());
     multiVolumeWriter->SetInput(fittedVolume);
+    multiVolumeWriter->SetUseCompression(1);
     multiVolumeWriter->Update();
     }
 
