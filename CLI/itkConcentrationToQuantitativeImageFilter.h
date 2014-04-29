@@ -143,6 +143,11 @@ public:
   itkGetMacro( UsePrescribedAIF, bool );
   itkBooleanMacro( UsePrescribedAIF );
 
+  /// Control whether a population AIF vector is used.
+  itkSetMacro( UsePopulationAIF, bool );
+  itkGetMacro( UsePopulationAIF, bool );
+  itkBooleanMacro( UsePopulationAIF );
+
   /// Set a mask to specify where the AIF is be calculated from the
   /// input concentration image.
   void SetAIFMask(const MaskVolumeType* volume);
@@ -162,6 +167,10 @@ public:
   /// values. Timing specified in seconds.
   void SetPrescribedAIF(const std::vector<float>& timing,
                         const std::vector<float>& aif);
+
+  /// Set the AIF as a vector of timing and concentration
+  /// values. Timing specified in seconds.
+  void SetPopulationAIF();
 
   /// Get the prescribed AIF
   const std::vector<float>& GetPrescribedAIF()
@@ -204,7 +213,10 @@ protected:
 
 #endif
 
+  //std::vector<float> CalculatePopulationAIF( const size_t time_of_bolus, std::vector<float> timing );
+  std::vector<float> CalculatePopulationAIF( std::vector<float> timing, float bolus_arrival_fraction );
   std::vector<float> CalculateAverageAIF(const VectorVolumeType* inputVectorVolume, const MaskVolumeType* maskVolume);
+  std::vector<float> ResampleAIF(std::vector<float> t1, std::vector<float> y1, std::vector<float> t2);
 
 private:
   ConcentrationToQuantitativeImageFilter(const Self &); // purposely not implemented
@@ -228,6 +240,7 @@ private:
 
   std::vector<float> m_Timing;
 
+  bool m_UsePopulationAIF;
   bool m_UsePrescribedAIF;
   std::vector<float> m_PrescribedAIF;
   std::vector<float> m_PrescribedAIFTiming;

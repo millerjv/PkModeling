@@ -272,7 +272,6 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
             << " Image " << InputFourDImageFileName.c_str() 
             << " does not contain sufficient attributes to support algorithms.");
     return EXIT_FAILURE;
-    
     }
 
   // RepetitionTime
@@ -287,7 +286,6 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
             << " Image " << InputFourDImageFileName.c_str() 
             << " does not contain sufficient attributes to support algorithms.");
     return EXIT_FAILURE;
-    
     }
 
   //Read AIF mask
@@ -326,16 +324,18 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
 
   //Read prescribed aif
   bool usingPrescribedAIF = false;
-  std::vector<float> prescribedAIFTiming;
-  std::vector<float> prescribedAIF;
+  std::vector<float> AIFTiming;
+  std::vector<float> AIF;
   if (PrescribedAIFFileName != "")
     {
-    usingPrescribedAIF = GetPrescribedAIF(PrescribedAIFFileName, prescribedAIFTiming, prescribedAIF);
+    usingPrescribedAIF = GetPrescribedAIF(PrescribedAIFFileName, AIFTiming, AIF);
     }
  
-  if (AIFMaskFileName == "" && !usingPrescribedAIF)
+  if (AIFMaskFileName == "" && !usingPrescribedAIF && !UsePopulationAIF)
     {
-    std::cerr << "Either a mask localizing the region over which to calculate the arterial input function or a prescribed arterial input function must be specified." << std::endl;
+    std::cerr << "Either a mask localizing the region over which to ";
+    std::cerr << "calculate the arterial input function or a prescribed ";
+    std::cerr << "arterial input function must be specified." << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -343,6 +343,7 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   typedef itk::SignalIntensityToConcentrationImageFilter<VectorVolumeType,MaskVolumeType,FloatVectorVolumeType> ConvertFilterType;
   typename ConvertFilterType::Pointer converter = ConvertFilterType::New();
   converter->SetInput(inputVectorVolume);
+
   if (!usingPrescribedAIF)
     {
     converter->SetAIFMask(aifMaskVolume);
@@ -383,10 +384,15 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   quantifier->SetInput(converter->GetOutput());
   if (usingPrescribedAIF)
     {
-    quantifier->SetPrescribedAIF(prescribedAIFTiming, prescribedAIF);
+    quantifier->SetPrescribedAIF(AIFTiming, AIF);
     quantifier->UsePrescribedAIFOn();
     }
-  else
+  else if (UsePopulationAIF)
+    {
+    quantifier->UsePopulationAIFOn();
+    quantifier->SetAIFMask(aifMaskVolume );
+    }
+  else 
     {
     quantifier->SetAIFMask(aifMaskVolume );
     }
