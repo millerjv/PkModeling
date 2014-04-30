@@ -109,7 +109,7 @@
     </boolean>
     <boolean>
       <name>UsePopulationAIF</name>
-      <flag>q</flag>
+      <longflag>usePopAif</longflag>
       <label>Use Population AIF </label>
       <description><![CDATA[Use generic population AIF.]]></description>
       <default>False</default>
