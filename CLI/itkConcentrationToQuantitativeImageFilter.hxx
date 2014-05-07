@@ -59,15 +59,6 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
   return 0;
 }
 
-// Set a population AIF.
-template< class TInputImage, class TMaskImage, class TOutputImage >
-void
-ConcentrationToQuantitativeImageFilter< TInputImage, TMaskImage, TOutputImage >
-::SetPopulationAIF()
-{
-    m_UsePopulationAIF = true;
-}
-
 // Set a prescribed AIF.  This is not currrently in the input vector,
 // though it could be if we used a Decorator.
 template< class TInputImage, class TMaskImage, class TOutputImage >
@@ -261,7 +252,6 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
   else if (m_UsePopulationAIF)
     {
     m_AIF = this->CalculatePopulationAIF(m_Timing, 0.1);
-    compute_bolus_arrival_time (m_AIF.size(), &m_AIF[0], m_AIFBATIndex, aif_FirstPeakIndex, aif_MaxSlope);
     }
   else
     {
@@ -565,13 +555,13 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
 template <class TInputImage, class TMaskImage, class TOutputImage>
 std::vector<float>
 ConcentrationToQuantitativeImageFilter<TInputImage, TMaskImage, TOutputImage>
-::CalculatePopulationAIF(std::vector<float> signalTime, const float bolusArrivalTime)
+::CalculatePopulationAIF(std::vector<float> signalTime, const float bolusArrivalTimeFraction)
 {
 
     // Inputs
     // ------
     // signalTime : sequence time, presumed in units of seconds.
-    // bolusArrivalTime : fractional point between 0 and 1 when the bolus is
+    // bolusArrivalTimeFraction : fractional point between 0 and 1 when the bolus is
     //     desired to arrive.  Choose 0.0 to have it at the very beginning,
     //     1.0 to have it at the end.
     //
@@ -588,7 +578,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage, TMaskImage, TOutputImage>
 	    aif_time[j] = resolution * j; 
     }
 
-    size_t bolus_arrival_time_idx = (float)aif_time.size() * bolusArrivalTime;
+    size_t bolus_arrival_time_idx = (float)aif_time.size() * bolusArrivalTimeFraction;
 
     size_t n = aif_time.size();
     AIF.resize(n);

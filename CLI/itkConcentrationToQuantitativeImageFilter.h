@@ -168,10 +168,6 @@ public:
   void SetPrescribedAIF(const std::vector<float>& timing,
                         const std::vector<float>& aif);
 
-  /// Set the AIF as a vector of timing and concentration
-  /// values. Timing specified in seconds.
-  void SetPopulationAIF();
-
   /// Get the prescribed AIF
   const std::vector<float>& GetPrescribedAIF()
   { return m_PrescribedAIF; }
