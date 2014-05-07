@@ -324,11 +324,11 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
 
   //Read prescribed aif
   bool usingPrescribedAIF = false;
-  std::vector<float> AIFTiming;
-  std::vector<float> AIF;
+  std::vector<float> prescribedAIFTiming;
+  std::vector<float> prescribedAIF;
   if (PrescribedAIFFileName != "")
     {
-    usingPrescribedAIF = GetPrescribedAIF(PrescribedAIFFileName, AIFTiming, AIF);
+    usingPrescribedAIF = GetPrescribedAIF(PrescribedAIFFileName, prescribedAIFTiming, prescribedAIF);
     }
  
   if (AIFMaskFileName == "" && !usingPrescribedAIF && !UsePopulationAIF)
@@ -344,7 +344,7 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   typename ConvertFilterType::Pointer converter = ConvertFilterType::New();
   converter->SetInput(inputVectorVolume);
 
-  if (!usingPrescribedAIF)
+  if (!usingPrescribedAIF && !UsePopulationAIF)
     {
     converter->SetAIFMask(aifMaskVolume);
     }
@@ -384,7 +384,7 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   quantifier->SetInput(converter->GetOutput());
   if (usingPrescribedAIF)
     {
-    quantifier->SetPrescribedAIF(AIFTiming, AIF);
+    quantifier->SetPrescribedAIF(prescribedAIFTiming, prescribedAIF);
     quantifier->UsePrescribedAIFOn();
     }
   else if (UsePopulationAIF)
