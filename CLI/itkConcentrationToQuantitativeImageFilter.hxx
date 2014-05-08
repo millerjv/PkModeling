@@ -247,7 +247,6 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
     // calculate the AIF from the image using the data under the
     // specified mask
     m_AIF = this->CalculateAverageAIF(inputVectorVolume, maskVolume);
-    compute_bolus_arrival_time (timeSize, &m_AIF[0], m_AIFBATIndex, aif_FirstPeakIndex, aif_MaxSlope);
     }
   else if (m_UsePopulationAIF)
     {
