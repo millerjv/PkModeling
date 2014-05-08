@@ -107,6 +107,13 @@
       <description><![CDATA[Enable estimation of fractional plasma volume at each voxel.]]></description>
       <default>False</default>
     </boolean>
+    <boolean>
+      <name>UsePopulationAIF</name>
+      <longflag>usePopAif</longflag>
+      <label>Use Population AIF </label>
+      <description><![CDATA[Use generic population AIF.]]></description>
+      <default>False</default>
+    </boolean>
   </parameters>
   <parameters>
     <label>IO</label>
@@ -132,7 +139,7 @@
       <longflag>aifMask</longflag>
       <label>AIF Mask Image</label>
       <channel>input</channel>
-      <description><![CDATA[Mask designating the location of the arterial input function (AIF). AIF can either be calculated from the input using the aifMask or can be prescribed directly in concentration units using the prescribedAIF option.]]></description>
+      <description><![CDATA[Mask designating the location of the arterial input function (AIF). AIF can be calculated from a generic population AIF, the input using the aifMask or can be prescribed directly in concentration units using the prescribedAIF option.]]></description>
     </image>
     <measurement fileExtensions=".mcsv">
       <name>PrescribedAIFFileName</name>
