@@ -194,7 +194,7 @@
       <channel>output</channel>      
       <description><![CDATA[R-squared goodness of fit of the model to each voxel. Setting this output changes the returned images.  When this output is not used, the output parameter volumes only contain the voxels where good fits were obtained.  When this output is set, the parameter volumes for every voxel is output and may be masked by the R-squared volume in a separate module.]]></description>
     </image>
-    <image type="dynamic-contrast-enhanced">
+    <image>
       <name>OutputBolusArrivalTimeImageFileName</name>
       <label>Output Bolus Arrival Time Image</label>
       <channel>output</channel>
