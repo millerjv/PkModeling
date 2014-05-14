@@ -497,6 +497,16 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
     multiVolumeWriter->Update();
     }
 
+  if (!OutputBolusArrivalTimeImageFileName.empty())
+    {
+    typename OutputVolumeWriterType::Pointer batwriter
+      = OutputVolumeWriterType::New();
+    batwriter->SetInput(quantifier->GetBATOutput() );
+    batwriter->SetFileName(OutputBolusArrivalTimeImageFileName.c_str());
+    batwriter->SetUseCompression(1);
+    batwriter->Update();
+    }
+
   return EXIT_SUCCESS;
 }  
 

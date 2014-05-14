@@ -189,6 +189,7 @@ public:
   TOutputImage* GetMaxSlopeOutput();
   TOutputImage* GetAUCOutput();
   TOutputImage* GetRSquaredOutput();
+  TOutputImage* GetBATOutput();
 
   VectorVolumeType* GetFittedDataOutput();
 
