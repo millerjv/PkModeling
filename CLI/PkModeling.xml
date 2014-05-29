@@ -5,10 +5,10 @@
   <index>2</index>
   <description><![CDATA[Calculates quantitative imaging parameters from dynamic contrast enhanced MRI (DCE MRI) using a pharmacokinetic model. Inputs are a multivolume (vector image) where each voxel contains a time series and a label map (binary image) indicating where to define the arterial input function.\n\n]]></description>
   <version>0.1.0.$Revision: 19276 $(alpha)</version>
-  <documentation-url>http://wiki.slicer.org/slicerWiki/index.php/Documentation/4.1/Extensions/PkModeling</documentation-url>
+  <documentation-url>http://wiki.slicer.org/slicerWiki/index.php/Documentation/Nightly/Modules/PkModeling</documentation-url>
   <license/>
-  <contributor>Yingxuan Zhu</contributor>
-  <acknowledgements><![CDATA[This module was developed by Yingxuan Zhu at GE Research with contributions from Jim Miller.\n\nThis work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.]]></acknowledgements>
+  <contributor>Yingxuan Zhu (while at GE), Andrey Fedorov (SPL), John Evans (MGH), Jim Miller (GE)</contributor>
+  <acknowledgements><![CDATA[This work is part of the National Alliance for Medical Image Computing (NA-MIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, and by National Cancer Institute as part of the Quantitative Imaging Network initiative (U01CA151261) and QIICR (U24CA180918).]]></acknowledgements>
   <parameters>
     <label>PkModeling Parameters</label>
     <description><![CDATA[Parameters used for PkModeling]]></description>
