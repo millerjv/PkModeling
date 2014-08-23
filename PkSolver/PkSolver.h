@@ -20,6 +20,9 @@
 #include <vnl/algo/vnl_convolve.h>
 #include "itkArray.h"
 
+// work around compile error on Win
+#define M_PI 3.1415926535897932384626433832795
+
 namespace itk
 {
 
