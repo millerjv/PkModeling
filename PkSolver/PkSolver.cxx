@@ -17,8 +17,8 @@
 #include <itkImageRegionIterator.h>
 #include <itkLevenbergMarquardtOptimizer.h>
 #include "PkSolver.h"
-#include <math.h>
 #include "itkTimeProbesCollectorBase.h"
+
 
 namespace itk
 {	
