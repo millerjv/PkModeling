@@ -1,0 +1,3 @@
+This directory contains phantoms generated from real data using Util/makePhantom.py script.
+These "phantoms" are curves sampled from real data, as should be described in the corresponding
+READMEs in each directory.
