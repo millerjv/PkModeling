@@ -37,6 +37,8 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>::Con
   m_UsePrescribedAIF = false;
   m_MaskByRSquared = true;
   m_ModelType = itk::LMCostFunction::TOFTS_2_PARAMETER;
+  m_constantBAT = 0;
+  m_BATCalculationMode = "PeakGradient";
   this->Superclass::SetNumberOfRequiredInputs(1);
   this->Superclass::SetNthOutput(1, static_cast<TOutputImage*>(this->MakeOutput(1).GetPointer()));  // Ktrans
   this->Superclass::SetNthOutput(2, static_cast<TOutputImage*>(this->MakeOutput(2).GetPointer()));  // Ve
@@ -268,9 +270,15 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
     {
     itkExceptionMacro("A mask image over which to establish the AIF or a prescribed AIF must be assigned. If prescribing an AIF, then UsePrescribedAIF must be set to true.");
     }
-
   // Compute the bolus arrival time
-  compute_bolus_arrival_time (m_AIF.size(), &m_AIF[0], m_AIFBATIndex, aif_FirstPeakIndex, aif_MaxSlope);
+  if (m_BATCalculationMode == "UseConstantBAT")
+  {
+    m_AIFBATIndex = m_constantBAT;
+  }
+  else if (m_BATCalculationMode == "PeakGradient")
+  {
+    compute_bolus_arrival_time (m_AIF.size(), &m_AIF[0], m_AIFBATIndex, aif_FirstPeakIndex, aif_MaxSlope);
+  }
 
   // Compute the area under the curve for the AIF
   m_aifAUC = area_under_curve(timeSize, &m_Timing[0], &m_AIF[0], m_AIFBATIndex, m_AUCTimeInterval);
@@ -366,7 +374,18 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
       // Compute the bolus arrival time and the max slope parameter
       if (success)
         {
-        int status = compute_bolus_arrival_time(timeSize, &vectorVoxel[0], BATIndex, FirstPeakIndex, tempMaxSlope);
+          int status;
+          // Compute the bolus arrival time
+          if (m_BATCalculationMode == "UseConstantBAT")
+          {
+            BATIndex = m_constantBAT;
+             status = 1;
+          }
+          else if (m_BATCalculationMode == "PeakGradient")
+          {
+             status = compute_bolus_arrival_time(timeSize, &vectorVoxel[0], BATIndex, FirstPeakIndex, tempMaxSlope);
+          }
+
         if (!status)
           {
           success = false;
@@ -399,7 +418,7 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
           shiftedVectorVoxel[i] = vectorVoxel[i - shift];
           }
         }
-     
+
       // Calculate parameter ktrans, ve, and fpv
       double rSquared = 0.0;
       if (success)
@@ -410,8 +429,8 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
           	tempKtrans, tempVe, tempFpv,
           	m_fTol,m_gTol,m_xTol,
           	m_epsilon,m_maxIter, m_hematocrit,
-          	optimizer,costFunction,m_ModelType);
-        
+            optimizer,costFunction,m_ModelType,m_constantBAT,m_BATCalculationMode);
+
         itk::LMCostFunction::ParametersType param(3);
         param[0] = tempKtrans; param[1] = tempVe;
         if(m_ModelType == itk::LMCostFunction::TOFTS_3_PARAMETER)
@@ -482,7 +501,6 @@ ConcentrationToQuantitativeImageFilter<TInputImage,TMaskImage,TOutputImage>
           success = false;
           }
         }
-     
       // Calculate parameter AUC, normalized by AIF AUC
       if (success)
         {

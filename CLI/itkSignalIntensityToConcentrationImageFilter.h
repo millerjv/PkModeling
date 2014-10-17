@@ -93,7 +93,7 @@ public:
 
   /** Set and get the number of DWI channels. */
   itkGetMacro( T1PreBlood, float);
- itkSetMacro( T1PreBlood, float);
+  itkSetMacro( T1PreBlood, float);
   itkGetMacro( T1PreTissue, float);
   itkSetMacro( T1PreTissue, float);
   itkGetMacro( TR, float);
@@ -104,6 +104,10 @@ public:
   itkSetMacro( RGD_relaxivity, float);
   itkGetMacro( S0GradThresh, float);
   itkSetMacro( S0GradThresh, float);
+  itkGetMacro( BATCalculationMode, std::string);
+  itkSetMacro( BATCalculationMode, std::string);
+  itkGetMacro( constantBAT, int);
+  itkSetMacro( constantBAT, int);
 
   // Set a mask image for specifying the location of the arterial
   // input function. This is interpretted as a binary image with
@@ -157,6 +161,8 @@ private:
   float m_FA;
   float m_RGD_relaxivity;
   float m_S0GradThresh;
+  std::string m_BATCalculationMode;
+  int m_constantBAT;
 };
 
 }; // end namespace itk
