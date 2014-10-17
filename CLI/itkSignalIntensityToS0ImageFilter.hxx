@@ -19,6 +19,7 @@ template <class TInputImage, class TOutputImage>
 SignalIntensityToS0ImageFilter<TInputImage, TOutputImage>::SignalIntensityToS0ImageFilter()
 {
   m_S0GradThresh = 15.0f;
+
 }
 
 template <class TInputImage, class TOutputImage>
@@ -51,10 +52,9 @@ void SignalIntensityToS0ImageFilter<TInputImage, TOutputImage>
     vectorVoxel.SetSize(inputVectorVoxel.GetSize());
     vectorVoxel.Fill(0.0);
     vectorVoxel += inputVectorVoxel; // shorthand for a copy/cast
-
     S0Temp =
       compute_s0_individual_curve ( (int)inputVectorVolume->GetNumberOfComponentsPerPixel(),
-                                    const_cast<float*>( vectorVoxel.GetDataPointer() ), m_S0GradThresh);
+                                    const_cast<float*>( vectorVoxel.GetDataPointer() ), m_S0GradThresh, m_BATCalculationMode,m_constantBAT);
     S0VolumeIter.Set(static_cast<OutputPixelType>(S0Temp) );
     ++S0VolumeIter;
     ++inputVectorVolumeIter;

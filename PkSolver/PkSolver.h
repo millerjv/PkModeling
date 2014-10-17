@@ -19,6 +19,7 @@
 #include <math.h>
 #include <vnl/algo/vnl_convolve.h>
 #include "itkArray.h"
+#include <string>
 
 // work around compile error on Win
 #define M_PI 3.1415926535897932384626433832795
@@ -49,7 +50,7 @@ public:
   float m_Hematocrit;
 
   int m_ModelType;
-        
+
   LMCostFunction()
   {
   }
@@ -215,7 +216,7 @@ protected:
 public:
   typedef itk::LevenbergMarquardtOptimizer   OptimizerType;
   typedef   const OptimizerType   *          OptimizerPointer;
-        
+
   void Execute(itk::Object *caller, const itk::EventObject & event)
   {
     Execute( (const itk::Object *)caller, event);
@@ -244,7 +245,6 @@ private:
   itk::FunctionEvaluationIterationEvent m_FunctionEvent;
   itk::GradientEvaluationIterationEvent m_GradientEvent;
 };
-  
 bool pk_solver(int signalSize, const float* timeAxis, 
                const float* PixelConcentrationCurve, 
                const float* BloodConcentrationCurve, 
@@ -255,7 +255,9 @@ bool pk_solver(int signalSize, const float* timeAxis,
                float epsilon = 1e-9f, 
                int maxIter = 200,
                float hematocrit = 0.4f,
-               int modelType = itk::LMCostFunction::TOFTS_2_PARAMETER);
+               int modelType = itk::LMCostFunction::TOFTS_2_PARAMETER,
+               int constantBAT = 0,
+               const std::string BATCalculationMode = "PeakGradient");
 
 bool pk_solver(int signalSize, const float* timeAxis, 
                const float* PixelConcentrationCurve, const float* BloodConcentrationCurve, 
@@ -264,7 +266,9 @@ bool pk_solver(int signalSize, const float* timeAxis,
                float epsilon, int maxIter, float hematocrit,
                itk::LevenbergMarquardtOptimizer* optimizer,
                LMCostFunction* costFunction,
-               int modelType = itk::LMCostFunction::TOFTS_2_PARAMETER);
+               int modelType = itk::LMCostFunction::TOFTS_2_PARAMETER,
+               int constantBAT = 0,
+               const std::string BATCalculationMode = "PeakGradient");
 
 void pk_report();
 void pk_clear();
@@ -301,7 +305,7 @@ void compute_gradient_backward (int signalSize, const float* SignalY, float* Sig
 float compute_s0_using_sumsignal_properties (int signalSize, const float* SignalY, 
                                              const short* lowGradIndex, int FirstPeak);
 
-float compute_s0_individual_curve (int signalSize, const float* SignalY, float S0GradThresh);
+float compute_s0_individual_curve (int signalSize, const float* SignalY, float S0GradThresh, std::string BATCalculationMode, int constantBAT);
 
 };
 

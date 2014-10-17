@@ -17,6 +17,7 @@
 #include "itkImageRegionIterator.h"
 #include "itkCastImageFilter.h"
 #include "PkSolver.h"
+#include <string>
 
 namespace itk
 {
@@ -131,6 +132,11 @@ public:
   itkSetMacro( AUCTimeInterval, float);
   itkGetMacro( ModelType, int);
   itkSetMacro( ModelType, int);
+  itkGetMacro( constantBAT, int);
+  itkSetMacro( constantBAT, int);
+  itkGetMacro( BATCalculationMode, std::string);
+  itkSetMacro( BATCalculationMode, std::string);
+
   void SetTiming(const std::vector<float>& inputTiming);
   const std::vector<float>& GetTiming();
 
@@ -234,6 +240,8 @@ private:
   int    m_AIFBATIndex;
   int    m_ModelType;
   bool   m_MaskByRSquared;
+  int m_constantBAT;
+  std::string m_BATCalculationMode;
 
   std::vector<float> m_Timing;
 

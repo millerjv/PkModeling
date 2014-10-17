@@ -15,6 +15,8 @@
 #include "itkImageRegionIterator.h"
 #include "PkSolver.h"
 
+#include <string>
+
 namespace itk
 {
 /** \class SignalIntensityToS0ImageFilter */
@@ -56,6 +58,10 @@ public:
   /** Set and get the number of DWI channels. */
   itkGetMacro( S0GradThresh, float);
   itkSetMacro( S0GradThresh, float);
+  itkGetMacro( BATCalculationMode, std::string);
+  itkSetMacro( BATCalculationMode, std::string);
+  itkGetMacro( constantBAT, int);
+  itkSetMacro( constantBAT, int);
 
 protected:
   SignalIntensityToS0ImageFilter();
@@ -77,6 +83,8 @@ private:
   void operator=(const Self &);      // purposely not implemented
 
   float                  m_S0GradThresh;
+  std::string      m_BATCalculationMode;
+  int m_constantBAT;
 };
 
 }; // end namespace itk

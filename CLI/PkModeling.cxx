@@ -358,6 +358,8 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   converter->SetT1PreTissue(T1PreTissueValue);
   converter->SetTR(TRValue);
   converter->SetFA(FAValue);
+  converter->SetBATCalculationMode(BATCalculationMode);
+  converter->SetconstantBAT(ConstantBAT);
   converter->SetRGD_relaxivity(RelaxivityValue);
   converter->SetS0GradThresh(S0GradValue);
   itk::PluginFilterWatcher watchConverter(converter, "Concentrations",  CLPProcessInformation,  1.0 / 20.0, 0.0);
@@ -405,6 +407,8 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   quantifier->Setepsilon(Epsilon);
   quantifier->SetmaxIter(MaxIter);
   quantifier->Sethematocrit(Hematocrit);
+  quantifier->SetconstantBAT(ConstantBAT);
+  quantifier->SetBATCalculationMode(BATCalculationMode);
   if(ROIMaskFileName != "")
     {
     quantifier->SetROIMask(roiMaskVolume);
@@ -422,7 +426,6 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
 
   itk::PluginFilterWatcher watchQuantifier(quantifier, "Quantifying",  CLPProcessInformation,  19.0 / 20.0, 1.0 / 20.0);
   quantifier->Update();
-
 
   //set output
   if (!OutputKtransFileName.empty())

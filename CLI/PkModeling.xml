@@ -18,7 +18,7 @@
       <longflag>T1Blood</longflag>      
       <label>T1 Blood Value</label>
       <channel>input</channel>
-      <default>1600</default>      
+      <default>1600</default>
     </float>    
     <float>
       <name>T1PreTissueValue</name>   
@@ -26,7 +26,7 @@
       <longflag>T1Tissue</longflag>      
       <label>T1 Tissue Value</label>
       <channel>input</channel>
-      <default>1597</default>      
+      <default>1597</default>
     </float>    
     <float>
       <name>RelaxivityValue</name>   
@@ -34,7 +34,7 @@
       <longflag>relaxivity</longflag>      
       <label>Relaxivity Value</label>
       <channel>input</channel>
-      <default>0.0039</default>      
+      <default>0.0039</default>
     </float>
     <float hidden="true">
       <name>S0GradValue</name>   
@@ -90,7 +90,7 @@
       <longflag>hematocrit</longflag>      
       <label>Hematocrit Value</label>
       <channel>input</channel>
-      <default>0.4</default>      
+      <default>0.4</default>
     </float>
     <float>
       <name>AUCTimeInterval</name>   
@@ -187,6 +187,23 @@
   <parameters advanced="true">
     <label>Advanced options</label>
     <description><![CDATA[Debugging and advanced research options.]]></description> 
+    <string-enumeration>
+      <name>BATCalculationMode</name>
+      <longflag>BATCalculationMode</longflag>
+      <label>BAT Calculation Mode</label>
+      <description>Determine how to calculate bolus arrival time.</description>
+      <default>PeakGradient</default>
+      <element>PeakGradient</element>
+      <element>UseConstantBAT</element>
+    </string-enumeration>
+    <integer>
+      <name>ConstantBAT</name>
+      <description><![CDATA[Constant Bolus Arrival Time index(frame number).]]></description>
+      <longflag>constantBAT</longflag>
+      <label>Constant BAT</label>
+      <channel>input</channel>
+      <default>1</default>
+    </integer>
     <image>
       <name>OutputRSquaredFileName</name>
       <longflag>outputRSquared</longflag>

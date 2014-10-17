@@ -18,7 +18,7 @@
 #include <itkLevenbergMarquardtOptimizer.h>
 #include "PkSolver.h"
 #include "itkTimeProbesCollectorBase.h"
-
+#include <string>
 
 namespace itk
 {	
@@ -26,6 +26,9 @@ namespace itk
 // Support routines/classes used internally in the PkSolver
 // 
 static itk::TimeProbesCollectorBase probe;
+
+int m_ConstantBAT;
+std::string m_BATCalculationMode;
 
 //
 // Implementation of the PkSolver API
@@ -39,7 +42,9 @@ bool pk_solver (int signalSize, const float* timeAxis,
                 float fTol, float gTol, float xTol,
                 float epsilon, int maxIter,
                 float hematocrit,
-                int modelType)
+                int modelType,
+                int constantBAT,
+                const std::string BATCalculationMode)
 {
   // Note the unit: timeAxis should be in minutes!! This could be related to the following parameters!!
   // fTol      =  1e-4;  // Function value tolerance
@@ -48,6 +53,9 @@ bool pk_solver (int signalSize, const float* timeAxis,
   // epsilon   =  1e-9;    // Step
   // maxIter   =   200;  // Maximum number of iterations
 
+  m_BATCalculationMode = BATCalculationMode;
+  m_ConstantBAT = constantBAT;
+  
   // Levenberg Marquardt optimizer  
   itk::LevenbergMarquardtOptimizer::Pointer  optimizer = itk::LevenbergMarquardtOptimizer::New();
   LMCostFunction::Pointer costFunction = LMCostFunction::New();
@@ -139,7 +147,10 @@ bool pk_solver(int signalSize, const float* timeAxis,
                float hematocrit,
                itk::LevenbergMarquardtOptimizer* optimizer,
                LMCostFunction* costFunction,
-               int modelType)
+               int modelType,
+               int constantBAT,
+               const std::string BATCalculationMode
+               )
 {
   //std::cout << "in pk solver" << std::endl;
   // probe.Start("pk_solver");
@@ -150,6 +161,10 @@ bool pk_solver(int signalSize, const float* timeAxis,
   // epsilon   =  1e-9;    // Step
   // maxIter   =   200;  // Maximum number of iterations
   //std::cerr << "In pkSolver!" << std::endl;
+
+  m_BATCalculationMode = BATCalculationMode;
+  m_ConstantBAT = constantBAT;
+
   // Levenberg Marquardt optimizer  
         
   //////////////
@@ -266,7 +281,7 @@ bool convert_signal_to_concentration (unsigned int signalSize,
   const double constB = (1-exp_TR_BloodT1) / (1-cos_alpha*exp_TR_BloodT1);
   
   if (s0 == -1.0f)
-    s0 = compute_s0_individual_curve (signalSize, SignalIntensityCurve, S0GradThresh);
+    s0 = compute_s0_individual_curve (signalSize, SignalIntensityCurve, S0GradThresh, m_BATCalculationMode, m_ConstantBAT);
             
   for (unsigned int t=0; t<signalSize; ++t) {
     const float tSignal = SignalIntensityCurve[t];
@@ -475,7 +490,7 @@ bool compute_bolus_arrival_time (int signalSize, const float* SignalY,
       break;
   }
 
-  ArrivalTime = i+1;   
+  ArrivalTime = i+1;
 
   // Step 5: Peak Time detection
   //for( i=min_index; i<signalSize-1-skip2; i++) {
@@ -579,12 +594,26 @@ float compute_s0_using_sumsignal_properties (int signalSize, const float* Signal
   return float (S0);
 }
 
-float compute_s0_individual_curve (int signalSize, const float* SignalY, float S0GradThresh)
+float compute_s0_individual_curve (int signalSize, const float* SignalY, float S0GradThresh,
+                                   std::string BATCalculationMode, int constantBAT)
 {  
   double S0 = 0;
   int ArrivalTime, FirstPeak;
   float MaxSlope;
-  bool result = compute_bolus_arrival_time (signalSize, SignalY, ArrivalTime, FirstPeak, MaxSlope);//same
+  bool result;
+
+  if (BATCalculationMode == "ConstantBATMethod")
+  {
+  // Use constant BAT
+    
+  ArrivalTime = constantBAT;
+  result = true;
+  }
+  else if (BATCalculationMode == "Original")
+  {
+    result = compute_bolus_arrival_time (signalSize, SignalY, ArrivalTime, FirstPeak, MaxSlope);//same
+  }
+
   if (result == false) {
     ///printf ("  Compute compute_s0_individual_curve fails! S0 = 0.\n");
     return 0;
