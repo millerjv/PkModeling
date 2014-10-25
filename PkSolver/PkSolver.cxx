@@ -602,14 +602,14 @@ float compute_s0_individual_curve (int signalSize, const float* SignalY, float S
   float MaxSlope;
   bool result;
 
-  if (BATCalculationMode == "ConstantBATMethod")
+  if (BATCalculationMode == "UseConstantBAT")
   {
   // Use constant BAT
     
   ArrivalTime = constantBAT;
   result = true;
   }
-  else if (BATCalculationMode == "Original")
+  else if (BATCalculationMode == "PeakGradient")
   {
     result = compute_bolus_arrival_time (signalSize, SignalY, ArrivalTime, FirstPeak, MaxSlope);//same
   }
