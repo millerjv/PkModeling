@@ -13,7 +13,6 @@
 #include "itkImageToImageFilter.h"
 #include "itkImage.h"
 #include "itkVectorImage.h"
-#include "itkImageToVectorImageFilter.h"
 #include "itkExtractImageFilter.h"
 #include "itkImageRegionIterator.h"
 #include "itkSignalIntensityToS0ImageFilter.h"

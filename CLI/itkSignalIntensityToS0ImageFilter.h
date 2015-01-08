@@ -11,7 +11,6 @@
 #include "itkImageToImageFilter.h"
 #include "itkImage.h"
 #include "itkVectorImage.h"
-#include "itkImageToVectorImageFilter.h"
 #include "itkImageRegionIterator.h"
 #include "PkSolver.h"
 

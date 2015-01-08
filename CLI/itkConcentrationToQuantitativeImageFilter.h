@@ -13,7 +13,6 @@
 #include "itkArray.h"
 #include "itkArray2D.h"
 #include "itkVectorImage.h"
-#include "itkImageToVectorImageFilter.h"
 #include "itkImageRegionIterator.h"
 #include "itkCastImageFilter.h"
 #include "PkSolver.h"
