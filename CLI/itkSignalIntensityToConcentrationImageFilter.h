@@ -134,6 +134,18 @@ public:
     return dynamic_cast<const InputMaskType*>(this->ProcessObject::GetInput(2));
   }
 
+  // Set a T1 Map image for T1
+  void SetT1Map(InputMaskType* T1MapVolume)
+  {
+    this->SetNthInput(3, const_cast<InputMaskType*>(T1MapVolume));
+  }
+
+  // Get the mask image specifying the location of voxels for model fit.
+  const InputMaskType* GetT1Map() const
+  {
+    return dynamic_cast<const InputMaskType*>(this->ProcessObject::GetInput(3));
+  }
+
 protected:
   SignalIntensityToConcentrationImageFilter();
   virtual ~SignalIntensityToConcentrationImageFilter()
