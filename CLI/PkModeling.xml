@@ -134,6 +134,14 @@
       <description><![CDATA[(Optional) Mask designating the voxels (non-zero) where the model should be fit. If not specified, the model will be fit to all voxels in the image.]]></description>
     </image>
 
+    <image>
+      <name>T1MapFileName</name>
+      <longflag>T1Map</longflag>
+      <label>T1 Map Image</label>
+      <channel>input</channel>
+      <description><![CDATA[(Optional) Volume defining T1 value for each voxel.]]></description>
+    </image>
+
     <image type="label">
       <name>AIFMaskFileName</name>
       <longflag>aifMask</longflag>

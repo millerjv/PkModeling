@@ -298,6 +298,16 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
     aifMaskVolume = aifMaskVolumeReader->GetOutput();
     }
 
+  //Read T1 Map
+  typename MaskVolumeReaderType::Pointer T1MapVolumeReader = MaskVolumeReaderType::New();
+  typename MaskVolumeType::Pointer T1MapVolume = 0;
+  if (T1MapFileName != "")
+    {
+    T1MapVolumeReader->SetFileName(T1MapFileName.c_str() );
+    T1MapVolumeReader->Update();
+    T1MapVolume = T1MapVolumeReader->GetOutput();
+    }
+
   //Read ROI mask
   typename MaskVolumeReaderType::Pointer roiMaskVolumeReader = MaskVolumeReaderType::New();
   typename MaskVolumeType::Pointer roiMaskVolume = 0;
@@ -362,6 +372,12 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
   converter->SetconstantBAT(ConstantBAT);
   converter->SetRGD_relaxivity(RelaxivityValue);
   converter->SetS0GradThresh(S0GradValue);
+
+  if(T1MapFileName != "")
+    {
+    converter->SetT1Map(T1MapVolume);
+    }
+
   itk::PluginFilterWatcher watchConverter(converter, "Concentrations",  CLPProcessInformation,  1.0 / 20.0, 0.0);
   converter->Update();
 
