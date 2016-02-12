@@ -24,6 +24,43 @@
 // work around compile error on Win
 #define M_PI 3.1415926535897932384626433832795
 
+// codes defined in ITKv4 vnl_levenberg_marquardt.cxx:386
+enum OptimizerDiagnosticCodes {
+  ERROR_FAILURE = 0,
+  ERROR_DODGY_INPUT,
+  CONVERGED_FTOL,
+  CONVERGED_XTOL,
+  CONVERGED_XFTOL,
+  CONVERGED_GTOL,
+  TOO_MANY_ITERATIONS,
+  FAILED_FTOL_TOO_SMALL,
+  FAILED_XTOL_TOO_SMALL,
+  FAILED_GTOL_TOO_SMALL,
+  FAILED_UNKNOWN = 0x0B, // = 11
+  // next are the masks that are specific to the PK modeling process
+  FAILED_NOMATCH = 0x0C, // = 12 optimizer failed, but diagnostics string was not recognized
+  KTRANS_CLAMPED = 0x10, // = 16 Ktrans was clamped to [0..5]
+  VE_CLAMPED = 0x20, // = 32 Ve was clamped to [0..1]
+  BAT_DETECTION_FAILED = 0x30, // = 48 BAT detection procedure failed
+  BAT_BEFORE_AIF_BAT = 0x40 // = 64 BAT at the voxel was before AIF BAT
+};
+
+const std::string OptimizerDiagnosticStrings[] =
+  {"failure in leastsquares function",
+  "lmdif dodgy input",
+  "converged to ftol",
+  "converged to xtol",
+  "converged nicely",
+  "converged via gtol",
+  "too many iterations",
+  "ftol is too small",
+  "xtol is too small",
+  "gtol is too small",
+  "unkown info code"
+};
+
+const unsigned NumOptimizerDiagnosticCodes = 11;
+
 namespace itk
 {
 
@@ -35,18 +72,18 @@ public:
   typedef itk::SmartPointer<Self>           Pointer;
   typedef itk::SmartPointer<const Self>     ConstPointer;
   itkNewMacro( Self );
-        
+
   enum { SpaceDimension =  2 };
-  unsigned int RangeDimension; 
+  unsigned int RangeDimension;
 
   enum ModelType { TOFTS_2_PARAMETER = 1, TOFTS_3_PARAMETER};
-        
+
   typedef Superclass::ParametersType              ParametersType;
   typedef Superclass::DerivativeType              DerivativeType;
   typedef Superclass::MeasureType                 MeasureType, ArrayType;
   typedef Superclass::ParametersValueType         ValueType;
-		      
-        
+
+
   float m_Hematocrit;
 
   int m_ModelType;
@@ -54,7 +91,7 @@ public:
   LMCostFunction()
   {
   }
-        
+
   void SetHematocrit (float hematocrit) {
     m_Hematocrit = hematocrit;
   }
@@ -62,12 +99,12 @@ public:
   void SetModelType (int model) {
     m_ModelType = model;
   }
-        
+
   void SetNumberOfValues(unsigned int NumberOfValues)
   {
     RangeDimension = NumberOfValues;
   }
-        
+
   void SetCb (const float* cb, int sz) //BloodConcentrationCurve.
   {
     Cb.set_size(sz);
@@ -75,16 +112,16 @@ public:
       Cb[i] = cb[i];
     //std::cout << "Cb: " << Cb << std::endl;
   }
-        
-        
+
+
   void SetCv (const float* cv, int sz) //Self signal Y
-  {    
+  {
     Cv.set_size (sz);
     for (int i = 0; i < sz; ++i)
       Cv[i] = cv[i];
     //std::cout << "Cv: " << Cv << std::endl;
   }
-        
+
   void SetTime (const float* cx, int sz) //Self signal X
   {
     Time.set_size (sz);
@@ -92,18 +129,18 @@ public:
       Time[i] = cx[i];
     //std::cout << "Time: " << Time << std::endl;
   }
-        
+
   MeasureType GetValue( const ParametersType & parameters) const
   {
     MeasureType measure(RangeDimension);
 
     ValueType Ktrans = parameters[0];
     ValueType Ve = parameters[1];
-            
+
     ArrayType VeTerm;
     VeTerm = -Ktrans/Ve*Time;
     ValueType deltaT = Time(1) - Time(0);
-    
+
     if( m_ModelType == TOFTS_3_PARAMETER)
       {
       ValueType f_pv = parameters[2];
@@ -113,21 +150,21 @@ public:
       {
       measure = Cv - (1/(1.0-m_Hematocrit)*(Ktrans*deltaT*Convolution(Cb,Exponential(VeTerm))));
       }
-            
-    return measure; 
+
+    return measure;
   }
-  
+
   MeasureType GetFittedFunction( const ParametersType & parameters) const
   {
     MeasureType measure(RangeDimension);
 
     ValueType Ktrans = parameters[0];
     ValueType Ve = parameters[1];
-            
+
     ArrayType VeTerm;
     VeTerm = -Ktrans/Ve*Time;
     ValueType deltaT = Time(1) - Time(0);
-    
+
     if( m_ModelType == TOFTS_3_PARAMETER)
       {
       ValueType f_pv = parameters[2];
@@ -137,16 +174,16 @@ public:
       {
       measure = 1/(1.0-m_Hematocrit)*(Ktrans*deltaT*Convolution(Cb,Exponential(VeTerm)));
       }
-            
-    return measure; 
+
+    return measure;
   }
-    
+
   //Not going to be used
   void GetDerivative( const ParametersType & /* parameters*/,
                       DerivativeType  & /*derivative*/ ) const
-  {   
+  {
   }
-        
+
   unsigned int GetNumberOfParameters(void) const
   {
     if(m_ModelType == TOFTS_2_PARAMETER)
@@ -158,25 +195,25 @@ public:
       return 3;
       }
   }
-        
+
   unsigned int GetNumberOfValues(void) const
   {
     return RangeDimension;
   }
-        
+
 protected:
   virtual ~LMCostFunction(){}
 private:
-        
+
   ArrayType Cv, Cb, Time;
-        
+
   ArrayType Convolution(ArrayType X, ArrayType Y) const
   {
     ArrayType Z;
     Z = vnl_convolve(X,Y).extract(X.size(),0);
     return Z;
   };
-        
+
   ArrayType Exponential(ArrayType X) const
   {
     ArrayType Z;
@@ -187,20 +224,20 @@ private:
       }
     return Z;
   };
-        
+
   int constraintFunc(ValueType x) const
   {
     if (x<0||x>1)
       return 1;
     else
       return 0;
-            
+
   };
-        
-        
+
+
 };
-    
-class CommandIterationUpdateLevenbergMarquardt : public itk::Command 
+
+class CommandIterationUpdateLevenbergMarquardt : public itk::Command
 {
 public:
   typedef  CommandIterationUpdateLevenbergMarquardt   Self;
@@ -208,7 +245,7 @@ public:
   typedef itk::SmartPointer<Self>                     Pointer;
   itkNewMacro( Self );
 protected:
-  CommandIterationUpdateLevenbergMarquardt() 
+  CommandIterationUpdateLevenbergMarquardt()
   {
     m_IterationNumber=0;
   }
@@ -221,11 +258,11 @@ public:
   {
     Execute( (const itk::Object *)caller, event);
   }
-        
+
   void Execute(const itk::Object * object, const itk::EventObject & event)
   {
     //std::cout << "Observer::Execute() " << std::endl;
-    OptimizerPointer optimizer = 
+    OptimizerPointer optimizer =
       dynamic_cast< OptimizerPointer >( object );
     if( m_FunctionEvent.CheckEvent( &event ) )
       {
@@ -237,30 +274,33 @@ public:
       {
       std::cout << "Gradient " << optimizer->GetCachedDerivative() << "   ";
       }
-            
+
   }
 private:
   unsigned long m_IterationNumber;
-        
+
   itk::FunctionEvaluationIterationEvent m_FunctionEvent;
   itk::GradientEvaluationIterationEvent m_GradientEvent;
 };
-bool pk_solver(int signalSize, const float* timeAxis, 
-               const float* PixelConcentrationCurve, 
-               const float* BloodConcentrationCurve, 
+bool pk_solver(int signalSize, const float* timeAxis,
+               const float* PixelConcentrationCurve,
+               const float* BloodConcentrationCurve,
                float& Ktrans, float& Ve, float& Fpv,
-               float fTol = 1e-4f, 
-               float gTol = 1e-4f, 
+               float fTol = 1e-4f,
+               float gTol = 1e-4f,
                float xTol = 1e-5f,
-               float epsilon = 1e-9f, 
+               float epsilon = 1e-9f,
                int maxIter = 200,
                float hematocrit = 0.4f,
                int modelType = itk::LMCostFunction::TOFTS_2_PARAMETER,
                int constantBAT = 0,
                const std::string BATCalculationMode = "PeakGradient");
 
-bool pk_solver(int signalSize, const float* timeAxis, 
-               const float* PixelConcentrationCurve, const float* BloodConcentrationCurve, 
+// returns diagnostic error code from the VNL optimizer,
+//  as defined by OptimizerDiagnosticCodes, and masked to indicate
+//  wheather Ktrans or Ve were clamped.
+unsigned pk_solver(int signalSize, const float* timeAxis,
+               const float* PixelConcentrationCurve, const float* BloodConcentrationCurve,
                float& Ktrans, float& Ve, float& Fpv,
                float fTol, float gTol,float xTol,
                float epsilon, int maxIter, float hematocrit,
@@ -273,8 +313,8 @@ bool pk_solver(int signalSize, const float* timeAxis,
 void pk_report();
 void pk_clear();
 
-bool convert_signal_to_concentration (unsigned int signalSize, 
-                                      const float* SignalIntensityCurve, 
+bool convert_signal_to_concentration (unsigned int signalSize,
+                                      const float* SignalIntensityCurve,
                                       float T1, float TR, float FA,
                                       float* concentration,
                                       float relaxivity = 4.9E-3f,
@@ -302,7 +342,7 @@ void compute_gradient_forward (int signalSize, const float* SignalY, float* Sign
 
 void compute_gradient_backward (int signalSize, const float* SignalY, float* SignalGradient);
 
-float compute_s0_using_sumsignal_properties (int signalSize, const float* SignalY, 
+float compute_s0_using_sumsignal_properties (int signalSize, const float* SignalY,
                                              const short* lowGradIndex, int FirstPeak);
 
 float compute_s0_individual_curve (int signalSize, const float* SignalY, float S0GradThresh, std::string BATCalculationMode, int constantBAT);

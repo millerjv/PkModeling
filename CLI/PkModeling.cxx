@@ -4,7 +4,7 @@
   Module:    $HeadURL: http://svn.slicer.org/Slicer4/trunk/Modules/CLI/PkModeling/PkModeling.cxx $
   Language:  C++
   Date:      $Date: 2012-06-06 $
-  
+
   Copyright (c) Brigham and Women's Hospital (BWH) All Rights Reserved.
 
   See License.txt or http://www.slicer.org/copyright/copyright.txt for details.
@@ -105,7 +105,7 @@ std::vector<float> GetTiming(itk::MetaDataDictionary& dictionary)
     {
     itkGenericExceptionMacro("Missing attribute 'MultiVolume.FrameIdentifyingDICOMTagName'.");
     }
-  
+
   return triggerTimes;
 }
 
@@ -113,7 +113,7 @@ std::vector<float> GetTiming(itk::MetaDataDictionary& dictionary)
 // Read an AIF from a CSV style file.  Columns are timing and concentration.
 //
 //
-bool GetPrescribedAIF(const std::string& fileName, 
+bool GetPrescribedAIF(const std::string& fileName,
                       std::vector<float>& timing, std::vector<float>& aif)
 {
   timing.clear();
@@ -131,12 +131,12 @@ bool GetPrescribedAIF(const std::string& fileName,
   while (!csv.eof())
     {
     getline(csv, line);
-      
+
     if (line[0] == '#')
       {
       continue;
       }
-      
+
     std::vector<std::string> svalues;
     splitString(line, ",", svalues);  /// from PkModelingCLP.h
 
@@ -213,9 +213,9 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
 
   typedef itk::ResampleImageFilter<MaskVolumeType,MaskVolumeType> ResamplerType;
   typedef itk::NearestNeighborInterpolateImageFunction<MaskVolumeType> InterpolatorType;
-  
+
   //Read VectorVolume
-  typename VectorVolumeReaderType::Pointer multiVolumeReader 
+  typename VectorVolumeReaderType::Pointer multiVolumeReader
     = VectorVolumeReaderType::New();
   multiVolumeReader->SetFileName(InputFourDImageFileName.c_str() );
   multiVolumeReader->Update();
@@ -239,51 +239,51 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
     }
   catch (itk::ExceptionObject &exc)
     {
-    itkGenericExceptionMacro(<< exc.GetDescription() 
-            << " Image " << InputFourDImageFileName.c_str() 
+    itkGenericExceptionMacro(<< exc.GetDescription()
+            << " Image " << InputFourDImageFileName.c_str()
             << " does not contain sufficient attributes to support algorithms.");
     return EXIT_FAILURE;
     }
 
   // // EchoTime
   // float echoTime = 0.0;
-  // try 
+  // try
   //   {
   //   echoTime = GetEchoTime(inputVectorVolume->GetMetaDataDictionary());
   //   }
   // catch (itk::ExceptionObject &exc)
   //   {
-  //   itkGenericExceptionMacro(<< exc.GetDescription() 
-  //           << " Image " << InputFourDImageFileName.c_str() 
+  //   itkGenericExceptionMacro(<< exc.GetDescription()
+  //           << " Image " << InputFourDImageFileName.c_str()
   //           << " does not contain sufficient attributes to support algorithms.");
   //   return EXIT_FAILURE;
-    
+
   //   }
 
   // FlipAngle
   float FAValue = 0.0;
-  try 
+  try
     {
     FAValue = GetFlipAngle(inputVectorVolume->GetMetaDataDictionary());
     }
   catch (itk::ExceptionObject &exc)
     {
-    itkGenericExceptionMacro(<< exc.GetDescription() 
-            << " Image " << InputFourDImageFileName.c_str() 
+    itkGenericExceptionMacro(<< exc.GetDescription()
+            << " Image " << InputFourDImageFileName.c_str()
             << " does not contain sufficient attributes to support algorithms.");
     return EXIT_FAILURE;
     }
 
   // RepetitionTime
   float TRValue = 0.0;
-  try 
+  try
     {
     TRValue = GetRepetitionTime(inputVectorVolume->GetMetaDataDictionary());
     }
   catch (itk::ExceptionObject &exc)
     {
-    itkGenericExceptionMacro(<< exc.GetDescription() 
-            << " Image " << InputFourDImageFileName.c_str() 
+    itkGenericExceptionMacro(<< exc.GetDescription()
+            << " Image " << InputFourDImageFileName.c_str()
             << " does not contain sufficient attributes to support algorithms.");
     return EXIT_FAILURE;
     }
@@ -340,7 +340,7 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
     {
     usingPrescribedAIF = GetPrescribedAIF(PrescribedAIFFileName, prescribedAIFTiming, prescribedAIF);
     }
- 
+
   if (AIFMaskFileName == "" && !usingPrescribedAIF && !UsePopulationAIF)
     {
     std::cerr << "Either a mask localizing the region over which to ";
@@ -383,7 +383,7 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
 
   if(OutputConcentrationsImageFileName != "")
     {
-    // need to initialize the attributes, otherwise Slicer treats 
+    // need to initialize the attributes, otherwise Slicer treats
     //  this as a Vector volume, not MultiVolume
     FloatVectorVolumeType::Pointer concentrationsVolume = converter->GetOutput();
     concentrationsVolume->SetMetaDataDictionary(inputVectorVolume->GetMetaDataDictionary());
@@ -410,7 +410,7 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
     quantifier->UsePopulationAIFOn();
     quantifier->SetAIFMask(aifMaskVolume );
     }
-  else 
+  else
     {
     quantifier->SetAIFMask(aifMaskVolume );
     }
@@ -503,7 +503,7 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
 
   if (!OutputFittedDataImageFileName.empty())
     {
-    // need to initialize the attributes, otherwise Slicer treats 
+    // need to initialize the attributes, otherwise Slicer treats
     //  this as a Vector volume, not MultiVolume
     FloatVectorVolumeType::Pointer fittedVolume = quantifier->GetFittedDataOutput();
     fittedVolume->SetMetaDataDictionary(inputVectorVolume->GetMetaDataDictionary());
@@ -526,8 +526,18 @@ int DoIt( int argc, char * argv[], const T1 &, const T2 &)
     batwriter->Update();
     }
 
+  if (!OutputOptimizerDiagnosticsImageFileName.empty())
+    {
+    typename OutputVolumeWriterType::Pointer diagwriter
+      = OutputVolumeWriterType::New();
+    diagwriter->SetInput(quantifier->GetOptimizerDiagnosticsOutput() );
+    diagwriter->SetFileName(OutputOptimizerDiagnosticsImageFileName.c_str());
+    diagwriter->SetUseCompression(1);
+    diagwriter->Update();
+  }
+
   return EXIT_SUCCESS;
-}  
+}
 
 }
 
@@ -588,4 +598,3 @@ int main( int argc, char * argv[] )
     }
   return EXIT_SUCCESS;
 }
-

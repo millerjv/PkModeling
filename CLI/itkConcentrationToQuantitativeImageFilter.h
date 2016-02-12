@@ -198,6 +198,8 @@ public:
 
   VectorVolumeType* GetFittedDataOutput();
 
+  TOutputImage* GetOptimizerDiagnosticsOutput();
+
 protected:
   ConcentrationToQuantitativeImageFilter();
   ~ConcentrationToQuantitativeImageFilter(){
