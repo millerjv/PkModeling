@@ -27,18 +27,18 @@
 // codes defined in ITKv4 vnl_levenberg_marquardt.cxx:386
 enum OptimizerDiagnosticCodes {
   ERROR_FAILURE = 0,
-  ERROR_DODGY_INPUT,
-  CONVERGED_FTOL,
-  CONVERGED_XTOL,
-  CONVERGED_XFTOL,
-  CONVERGED_GTOL,
-  TOO_MANY_ITERATIONS,
-  FAILED_FTOL_TOO_SMALL,
-  FAILED_XTOL_TOO_SMALL,
-  FAILED_GTOL_TOO_SMALL,
-  FAILED_UNKNOWN = 0x0B, // = 11
+  ERROR_DODGY_INPUT = 1,
+  CONVERGED_FTOL = 2,
+  CONVERGED_XTOL = 3,
+  CONVERGED_XFTOL = 4,
+  CONVERGED_GTOL = 5,
+  TOO_MANY_ITERATIONS = 6,
+  FAILED_FTOL_TOO_SMALL = 7,
+  FAILED_XTOL_TOO_SMALL = 8,
+  FAILED_GTOL_TOO_SMALL = 9,
+  FAILED_UNKNOWN = 10,
   // next are the masks that are specific to the PK modeling process
-  FAILED_NOMATCH = 0x0C, // = 12 optimizer failed, but diagnostics string was not recognized
+  FAILED_NOMATCH = 11, // optimizer failed, but diagnostics string was not recognized
   KTRANS_CLAMPED = 0x10, // = 16 Ktrans was clamped to [0..5]
   VE_CLAMPED = 0x20, // = 32 Ve was clamped to [0..1]
   BAT_DETECTION_FAILED = 0x30, // = 48 BAT detection procedure failed
