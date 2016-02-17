@@ -13,92 +13,92 @@
     <label>PkModeling Parameters</label>
     <description><![CDATA[Parameters used for PkModeling]]></description>
     <float>
-      <name>T1PreBloodValue</name>   
+      <name>T1PreBloodValue</name>
       <description><![CDATA[T1 value for blood.]]></description>
-      <longflag>T1Blood</longflag>      
+      <longflag>T1Blood</longflag>
       <label>T1 Blood Value</label>
       <channel>input</channel>
       <default>1600</default>
-    </float>    
+    </float>
     <float>
-      <name>T1PreTissueValue</name>   
+      <name>T1PreTissueValue</name>
       <description><![CDATA[T1 value for tissue.]]></description>
-      <longflag>T1Tissue</longflag>      
+      <longflag>T1Tissue</longflag>
       <label>T1 Tissue Value</label>
       <channel>input</channel>
       <default>1597</default>
-    </float>    
+    </float>
     <float>
-      <name>RelaxivityValue</name>   
+      <name>RelaxivityValue</name>
       <description><![CDATA[Contrast agent relaxivity value. Default value corresponds to Gd-DPTA (Magnevist) at 3T.]]></description>
-      <longflag>relaxivity</longflag>      
+      <longflag>relaxivity</longflag>
       <label>Relaxivity Value</label>
       <channel>input</channel>
       <default>0.0039</default>
     </float>
     <float hidden="true">
-      <name>S0GradValue</name>   
+      <name>S0GradValue</name>
       <description><![CDATA[Signal Gradient Threshold value.]]></description>
-      <longflag>S0grad</longflag>      
+      <longflag>S0grad</longflag>
       <label>Signal Gradient Threshold Value</label>
       <channel>input</channel>
-      <default>15.0</default>      
-    </float>	
+      <default>15.0</default>
+    </float>
     <float hidden="true">
-      <name>FTolerance</name>   
+      <name>FTolerance</name>
       <description><![CDATA[Tolerance on function value for establishing convergence.]]></description>
-      <longflag>fTolerance</longflag>      
+      <longflag>fTolerance</longflag>
       <label>F Tolerance Value</label>
       <channel>input</channel>
-      <default>1e-4</default>      
+      <default>1e-4</default>
     </float>
     <float hidden="true">
-      <name>GTolerance</name>   
+      <name>GTolerance</name>
       <description><![CDATA[Tolerance on gradient value for establishing convergence.]]></description>
-      <longflag>gTolerance</longflag>      
+      <longflag>gTolerance</longflag>
       <label>G Tolerance Value</label>
       <channel>input</channel>
-      <default>1e-4</default>      
+      <default>1e-4</default>
     </float>
     <float hidden="true">
-      <name>XTolerance</name>   
+      <name>XTolerance</name>
       <description><![CDATA[Tolerance on parameter values for establishing convergence.]]></description>
-      <longflag>xTolerance</longflag>      
+      <longflag>xTolerance</longflag>
       <label>X Tolerance Value</label>
       <channel>input</channel>
       <default>1e-5</default>
     </float>
     <float hidden="true">
-      <name>Epsilon</name>   
+      <name>Epsilon</name>
       <description><![CDATA[Epsilon value.]]></description>
-      <longflag>epsilon</longflag>      
+      <longflag>epsilon</longflag>
       <label>Epsilon Value</label>
       <channel>input</channel>
-      <default>1e-9</default>      
+      <default>1e-9</default>
     </float>
     <float hidden="true">
-      <name>MaxIter</name>   
+      <name>MaxIter</name>
       <description><![CDATA[Maximum number of iterations in optimizing the parameter estimation at each voxel.]]></description>
-      <longflag>maxIter</longflag>      
+      <longflag>maxIter</longflag>
       <label>Maximum number of iterations</label>
       <channel>input</channel>
-      <default>200</default>      
+      <default>200</default>
     </float>
     <float>
-      <name>Hematocrit</name>   
+      <name>Hematocrit</name>
       <description><![CDATA[Hematocrit value, volume percentage of red blood cells in blood.]]></description>
-      <longflag>hematocrit</longflag>      
+      <longflag>hematocrit</longflag>
       <label>Hematocrit Value</label>
       <channel>input</channel>
       <default>0.4</default>
     </float>
     <float>
-      <name>AUCTimeInterval</name>   
+      <name>AUCTimeInterval</name>
       <description><![CDATA[AUC Time Interval value.]]></description>
-      <longflag>aucTimeInterval</longflag>      
+      <longflag>aucTimeInterval</longflag>
       <label>AUC Time Interval Value</label>
       <channel>input</channel>
-      <default>90</default>      
+      <default>90</default>
     </float>
     <boolean>
       <name>ComputeFpv</name>
@@ -117,14 +117,14 @@
   </parameters>
   <parameters>
     <label>IO</label>
-    <description><![CDATA[Input/output parameters]]></description>    
+    <description><![CDATA[Input/output parameters]]></description>
     <image type="dynamic-contrast-enhanced">
       <name>InputFourDImageFileName</name>
       <label>Input 4D Image</label>
       <channel>input</channel>
       <index>0</index>
       <description><![CDATA[Input 4D Image (txyz)]]></description>
-    </image>	 
+    </image>
 
     <image type="label">
       <name>ROIMaskFileName</name>
@@ -160,41 +160,41 @@
       <name>OutputKtransFileName</name>
       <longflag>outputKtrans</longflag>
       <label>Output Ktrans image</label>
-      <channel>output</channel>      
+      <channel>output</channel>
       <description><![CDATA[Output volume transfer constant between blood plasma and EES (extracellular-extravascular space) at each voxel.]]></description>
     </image>
     <image>
       <name>OutputVeFileName</name>
       <longflag>outputVe</longflag>
       <label>Output ve image</label>
-      <channel>output</channel>      
+      <channel>output</channel>
       <description><![CDATA[Output fractional volume for extracellular space at each voxel.]]></description>
     </image>
     <image>
       <name>OutputFpvFileName</name>
       <longflag>outputFpv</longflag>
       <label>Output fpv image</label>
-      <channel>output</channel>      
+      <channel>output</channel>
       <description><![CDATA[Output fractional plasma volume at each voxel.]]></description>
     </image>
     <image>
       <name>OutputMaxSlopeFileName</name>
       <longflag>outputMaxSlope</longflag>
       <label>Output maximum slope image</label>
-      <channel>output</channel>      
+      <channel>output</channel>
       <description><![CDATA[Output maximum slope in the time series curve of each voxel.]]></description>
     </image>
     <image>
       <name>OutputAUCFileName</name>
       <longflag>outputAUC</longflag>
       <label>Output AUC image</label>
-      <channel>output</channel>      
+      <channel>output</channel>
       <description><![CDATA[Output area under the curve (AUC) of each voxel, measured from bolus arrival time to the end time of interval, normalized by the AUC of the AIF.]]></description>
     </image>
   </parameters>
   <parameters advanced="true">
     <label>Advanced options</label>
-    <description><![CDATA[Debugging and advanced research options.]]></description> 
+    <description><![CDATA[Debugging and advanced research options.]]></description>
     <string-enumeration>
       <name>BATCalculationMode</name>
       <longflag>BATCalculationMode</longflag>
@@ -216,7 +216,7 @@
       <name>OutputRSquaredFileName</name>
       <longflag>outputRSquared</longflag>
       <label>Output R-squared goodness of fit image</label>
-      <channel>output</channel>      
+      <channel>output</channel>
       <description><![CDATA[R-squared goodness of fit of the model to each voxel. Setting this output changes the returned images.  When this output is not used, the output parameter volumes only contain the voxels where good fits were obtained.  When this output is set, the parameter volumes for every voxel is output and may be masked by the R-squared volume in a separate module.]]></description>
     </image>
     <image>
@@ -232,13 +232,20 @@
       <channel>output</channel>
       <longflag>concentrations</longflag>
       <description><![CDATA[Output Concentrations 4D Image (txyz)]]></description>
-    </image>	 
+    </image>
     <image type="dynamic-contrast-enhanced">
       <name>OutputFittedDataImageFileName</name>
       <label>Output Fitted Data 4D Image</label>
       <channel>output</channel>
       <longflag>fitted</longflag>
       <description><![CDATA[Output Fitted Data 4D Image (txyz)]]></description>
-    </image>	 
+    </image>
+    <image>
+      <name>OutputOptimizerDiagnosticsImageFileName</name>
+      <label>Output Diagnostics Image</label>
+      <channel>output</channel>
+      <longflag>outputDiagnostics</longflag>
+      <description><![CDATA[Output map with the optimizer diagnostics. Code meanings are as follows:\n0: OIOIOI -- failure in leastsquares function\n1: OIOIOI -- lmdif dodgy input\n2: converged to ftol\n3: converged to xtol\n4: converged nicely\n5: converged via gtol\n6: too many iterations\n7: ftol is too small. no further reduction in the sum of squares is possible.\n8: xtol is too small. no further improvement in the approximate solution x is possible.\n9: gtol is too small. Fx is orthogonal to the columns of the jacobian to machine precision.\n10: OIOIOI: unkown info code from lmder.\n]]></description>
+    </image>
   </parameters>
 </executable>
