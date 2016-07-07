@@ -245,7 +245,7 @@
       <label>Output Diagnostics Image</label>
       <channel>output</channel>
       <longflag>outputDiagnostics</longflag>
-      <description><![CDATA[Output map with the optimizer diagnostics. Code meanings are as follows:\n0: OIOIOI -- failure in leastsquares function\n1: OIOIOI -- lmdif dodgy input\n2: converged to ftol\n3: converged to xtol\n4: converged nicely\n5: converged via gtol\n6: too many iterations\n7: ftol is too small. no further reduction in the sum of squares is possible.\n8: xtol is too small. no further improvement in the approximate solution x is possible.\n9: gtol is too small. Fx is orthogonal to the columns of the jacobian to machine precision.\n10: OIOIOI: unkown info code from lmder.\n]]></description>
+      <description><![CDATA[Output map with the optimizer diagnostics. The code is encoded in 2 hex numbers. Lower 4 bits encode the optimizer errors are as follows:\n0: OIOIOI -- failure in leastsquares function\n1: OIOIOI -- lmdif dodgy input\n2: converged to ftol\n3: converged to xtol\n4: converged nicely\n5: converged via gtol\n6: too many iterations\n7: ftol is too small. no further reduction in the sum of squares is possible.\n8: xtol is too small. no further improvement in the approximate solution x is possible.\n9: gtol is too small. Fx is orthogonal to the columns of the jacobian to machine precision.\n10: OIOIOI: unknown info code from lmder.\n11: optimizer failed, but diagnostics string was not recognized.\nUpper 4 bits encode other non-optimizer errors or notifications:\n16 (0x10): Ktrans was clamped to [0..5].\n32 (0x20): Ve was clamped to [0..1].\n48 (0x30): BAT detection failed.\n64 (0x40): BAT at the voxel was less than AIF BAT.\n]]></description>
     </image>
   </parameters>
 </executable>
