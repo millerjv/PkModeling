@@ -23,6 +23,12 @@ set(MODULE_TARGET_LIBRARIES
   ${ITK_LIBRARIES} PkSolver
   )
 
+#
+# ITK
+#
+set(ITK_NO_IO_FACTORY_REGISTER_MANAGER 1) # See Libs/ITKFactoryRegistration/CMakeLists.txt
+include(${ITK_USE_FILE})
+
 #-----------------------------------------------------------------------------
 SEMMacroBuildCLI(
   NAME ${MODULE_NAME}
