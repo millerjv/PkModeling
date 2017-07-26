@@ -1,34 +1,53 @@
+def createMultivolume(ref, name):
+  mvNode = slicer.mrmlScene.CreateNodeByClass('vtkMRMLMultiVolumeNode')
+  mvNode.SetReferenceCount(mvNode.GetReferenceCount()-1)
+  mvNode.SetScene(slicer.mrmlScene)
+  mvNode.SetAttribute("MultiVolume.FrameLabels",ref.GetAttribute("MultiVolume.FrameLabels"))
+  mvNode.SetAttribute("MultiVolume.FrameIdentifyingDICOMTagName",ref.GetAttribute("MultiVolume.FrameIdentifyingDICOMTagName"))
+  mvNode.SetAttribute('MultiVolume.NumberOfFrames',ref.GetAttribute('MultiVolume.NumberOfFrames'))
+  mvNode.SetAttribute('MultiVolume.FrameIdentifyingDICOMTagUnits',ref.GetAttribute('MultiVolume.FrameIdentifyingDICOMTagUnits'))
+  # keep the files in the order by the detected tag
+  # files are not ordered within the individual frames -- this will be
+  # done by ScalarVolumePlugin later
+
+  mvNode.SetNumberOfFrames(int(ref.GetAttribute('MultiVolume.NumberOfFrames')))
+  mvNode.SetLabelName(ref.GetAttribute('MultiVolume.FrameIdentifyingDICOMTagUnits'))
+  mvNode.SetLabelArray(ref.GetLabelArray())
+
+  mvDisplayNode = slicer.mrmlScene.CreateNodeByClass('vtkMRMLMultiVolumeDisplayNode')
+  mvDisplayNode.SetReferenceCount(mvDisplayNode.GetReferenceCount()-1)
+  mvDisplayNode.SetScene(slicer.mrmlScene)
+  mvDisplayNode.SetDefaultColorMap()
+  slicer.mrmlScene.AddNode(mvDisplayNode)
+
+  mvNode.SetAndObserveDisplayNodeID(mvDisplayNode.GetID())
+  mvNode.SetName(name)
+  slicer.mrmlScene.AddNode(mvNode)
+
+  return mvNode
+
 '''
 Helper script to extract curves from a multivolume. Curves are selected based on
 the label image supplied. The output is a new multivolume where each label value
 is represented by a row of maxSamples patches of samples, each of size patchSize.
-For now, newMvName must exist, and the output will overwrite it.
 
-Input: multivolume, label volume with multiple labels, size of the phantom patch
-Output: multivolume with the samples of the curves defined by the labels
+Sample usage (as run from the Slicer python console, after loading multivolume that has name "mv", and creating a label image named "label" - update the names when you run it with different parameters - the output will be available in the "phantom" node):
+
+>>> execfile("<full path>/makePhantom.py")
+>>> makePhantom("mv","label",3,3,5,"phantom")
+
+Input: multivolume, label volume with multiple labels, number of the labels to consider, size of the phantom patch
+Output: multivolume with the samples of the curves defined by the labels.
+
+For each sample from the source multivolume, a square region will be created in the output multivolume of size patchSize. The output phantom image will have maxSamples columns and numLabels rows of such sampled patches.
 '''
 
 def makePhantom(mvName, labelName, numLabels, patchSize, maxSamples, newMvName):
   mv = slicer.util.getNode(mvName)
   lv = slicer.util.getNode(labelName)
-  nmv = slicer.util.getNode(newMvName)
 
-  '''
-  nmv = slicer.mrmlScene.CreateNodeByClass('vtkMRMLMultiVolumeNode')
-  nmv.SetReferenceCount(nmv.GetReferenceCount()-1)
-
-  mvNode = slicer.mrmlScene.CreateNodeByClass('vtkMRMLMultiVolumeNode')
-  mvNode.SetReferenceCount(mvNode.GetReferenceCount()-1)
-  mvNode.SetScene(slicer.mrmlScene)
-  mvNode.SetAttribute("MultiVolume.FrameLabels",mv.GetAttribute("MultiVolume.FrameLabels"))
-  mvNode.SetAttribute("MultiVolume.FrameIdentifyingDICOMTagName",mv.GetAttribute("MultiVolume.FrameIdentifyingDICOMTagName"))
-  mvNode.SetAttribute('MultiVolume.NumberOfFrames',mv.GetAttrubute("MultiVolume.NumberOfFrames"))
-  mvNode.SetAttribute('MultiVolume.FrameIdentifyingDICOMTagUnits',mv.GetAttrubute("MultiVolume.FrameIdentifyingDICOMTagUnits"))
-
-  mvNode.SetNumberOfFrames()
-  mvNode.SetLabelName(self.multiVolumeTagsUnits[frameTag])
-  mvNode.SetLabelArray(frameLabelsArray)
-  '''
+  nmv = createMultivolume(mv, newMvName)
+  nmv.SetName(newMvName)
 
   image = mv.GetImageData()
   extent = image.GetExtent()
@@ -69,7 +88,7 @@ def makePhantom(mvName, labelName, numLabels, patchSize, maxSamples, newMvName):
                 else:
                   print('Index exceeds size!')
             labelSampleId[label-1] = labelSampleId[label-1]+1
-  
+
   nmv.SetAndObserveImageData(newImage)
   print newImage
 
