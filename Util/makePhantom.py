@@ -6,6 +6,9 @@ def createMultivolume(ref, name):
   mvNode.SetAttribute("MultiVolume.FrameIdentifyingDICOMTagName",ref.GetAttribute("MultiVolume.FrameIdentifyingDICOMTagName"))
   mvNode.SetAttribute('MultiVolume.NumberOfFrames',ref.GetAttribute('MultiVolume.NumberOfFrames'))
   mvNode.SetAttribute('MultiVolume.FrameIdentifyingDICOMTagUnits',ref.GetAttribute('MultiVolume.FrameIdentifyingDICOMTagUnits'))
+  mvNode.SetAttribute('MultiVolume.DICOM.FlipAngle',ref.GetAttribute('MultiVolume.DICOM.FlipAngle'))
+  mvNode.SetAttribute('MultiVolume.DICOM.RepetitionTime',ref.GetAttribute('MultiVolume.DICOM.RepetitionTime'))
+  
   # keep the files in the order by the detected tag
   # files are not ordered within the individual frames -- this will be
   # done by ScalarVolumePlugin later
