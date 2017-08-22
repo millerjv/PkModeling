@@ -22,6 +22,8 @@
 # PkModeling dependencies - Projects should be TOPOLOGICALLY ordered
 #-----------------------------------------------------------------------------
 set(PkModeling_DEPENDENCIES
+  zlib
+  DCMTK
   ITK
   )
 if(PkModeling_BUILD_APPS)
