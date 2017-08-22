@@ -76,6 +76,12 @@ endif()
 
 include(CMakeDependentOption)
 
+option(PkModeling_BUILD_APPS "Build ${PROJECT_NAME} applications." ON)
+mark_as_superbuild(PkModeling_BUILD_APPS)
+
+#option(DCMQI_BUILD_DOC "Build ${PROJECT_NAME} documentation." ${build_doc_default})
+#mark_as_superbuild(DCMQI_BUILD_DOC)
+
 
 #-----------------------------------------------------------------------------
 # Standalone vs Slicer extension option
@@ -240,6 +246,19 @@ if(NOT Slicer_DIR)
 
 endif()
 
+#-----------------------------------------------------------------------------
+# Version information
+#
+# Add target extracting version information. The target configures
+# 'DCMQICPackOptions.cmake' and 'dcmqiVersionConfigure.h'
+#
+
+#message("---------")
+message(STATUS "Targets '${PkModeling_TARGETS}'")
+#message("---------")
+
+include(pkmodelingConfigureVersionTarget)
+add_dependencies(pkmodeling pkmodelingConfigureVersion)
 
 #-----------------------------------------------------------------------------
 # PkModelingConfig
@@ -315,48 +334,3 @@ else()
   set(CPACK_PROJECT_CONFIG_FILE "${PkModeling_CPACK_PROJECT_CONFIG_FILE}")
   include(CPack)
 endif()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
