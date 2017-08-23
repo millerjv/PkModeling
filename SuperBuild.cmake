@@ -26,6 +26,7 @@ set(PkModeling_DEPENDENCIES
   DCMTK
   ITK
   )
+
 if(PkModeling_BUILD_APPS)
   list(APPEND PkModeling_DEPENDENCIES
     SlicerExecutionModel

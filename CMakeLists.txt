@@ -220,6 +220,9 @@ endif()
 # Dependencies
 #
 
+find_package(SlicerExecutionModel REQUIRED)
+include(${SlicerExecutionModel_USE_FILE})
+
 find_package(ITK NO_MODULE REQUIRED)
 include(${ITK_USE_FILE})
 
@@ -256,81 +259,3 @@ endif()
 #message("---------")
 message(STATUS "Targets '${PkModeling_TARGETS}'")
 #message("---------")
-
-include(pkmodelingConfigureVersionTarget)
-add_dependencies(pkmodeling pkmodelingConfigureVersion)
-
-#-----------------------------------------------------------------------------
-# PkModelingConfig
-#
-
-if(NOT Slicer_DIR)
-
-  # Configure 'PkModelingConfig.cmake'
-  include(CMakePackageConfigHelpers)
-
-  # For a build tree
-  set(CONFIG_DIR_CONFIG ${CMAKE_BINARY_DIR})
-  set(DCMTK_DIR_CONFIG ${DCMTK_DIR})
-  set(SlicerExecutionModel_DIR_CONFIG ${SlicerExecutionModel_DIR})
-  set(${PROJECT_NAME}_CONFIG_CODE "####### Expanded from \@PkModeling_CONFIG_CODE\@ #######\n")
-  set(${PROJECT_NAME}_CONFIG_CODE "find_package(DCMTK NO_MODULE REQUIRED)\n")
-  set(${PROJECT_NAME}_CONFIG_CODE "${${PROJECT_NAME}_CONFIG_CODE}##################################################")
-  set(_config ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake)
-  configure_package_config_file(
-      CMake/${PROJECT_NAME}Config.cmake.in
-      ${_config}
-      INSTALL_DESTINATION ${CMAKE_BINARY_DIR}
-      PATH_VARS
-        CONFIG_DIR_CONFIG
-        DCMTK_DIR_CONFIG
-        SlicerExecutionModel_DIR_CONFIG
-      NO_CHECK_REQUIRED_COMPONENTS_MACRO
-  )
-
-endif()
-
-#-----------------------------------------------------------------------------
-# Packaging
-#
-
-if(DEFINED Slicer_DIR)
-  include(${Slicer_EXTENSION_CPACK})
-else()
-  set(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${CMAKE_BINARY_DIR};${PROJECT_NAME};RuntimeLibraries;/")
-  if(EXISTS "${DCMTK_DIR}/cmake_install.cmake")
-    set(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${DCMTK_DIR};DCMTK;shlib;/")
-  endif()
-  if(EXISTS "${ITK_DIR}/cmake_install.cmake")
-    set(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${ITK_DIR};ITK;RuntimeLibraries;/")
-  endif()
-  set(CPACK_PACKAGE_NAME "PkModeling")
-  set(CPACK_PACKAGE_VENDOR "Quantitative Image Informatics for Cancer Research (QIICR)")
-  set(CPACK_PACKAGE_VERSION_MAJOR ${PkModeling_VERSION_MAJOR})
-  set(CPACK_PACKAGE_VERSION_MINOR ${PkModeling_VERSION_MINOR})
-  set(CPACK_PACKAGE_VERSION_PATCH ${PkModeling_VERSION_PATCH})
-  if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-    set(CPACK_SYSTEM_NAME "mac")
-  elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-    set(CPACK_SYSTEM_NAME "linux")
-  elseif(CMAKE_SYSTEM_NAME MATCHES "Windows")
-    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-      set(CPACK_SYSTEM_NAME win64)
-    else()
-      set(CPACK_SYSTEM_NAME win32)
-    endif()
-  endif()
-  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${PkModeling_VERSION}-${CPACK_SYSTEM_NAME}")
-  set(CPACK_PACKAGE_DESCRIPTION_FILE ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
-  set(CPACK_PACKAGE_DESCRIPTION_SUMMARY ${EXTENSION_DESCRIPTION})
-  if(UNIX)
-    set(CPACK_GENERATOR "TGZ")
-  elseif(WIN32)
-    set(CPACK_GENERATOR "ZIP")
-  endif()
-  if(NOT DEFINED PkModeling_CPACK_PROJECT_CONFIG_FILE)
-    message(FATAL_ERROR "PkModeling_CPACK_PROJECT_CONFIG_FILE is not defined")
-  endif()
-  set(CPACK_PROJECT_CONFIG_FILE "${PkModeling_CPACK_PROJECT_CONFIG_FILE}")
-  include(CPack)
-endif()
