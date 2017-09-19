@@ -1,0 +1,17 @@
+@PACKAGE_INIT@
+
+set_and_check(DCMTK_DIR "@PACKAGE_DCMTK_DIR_CONFIG@")
+set_and_check(SlicerExecutionModel_DIR "@PACKAGE_SlicerExecutionModel_DIR_CONFIG@")
+set_and_check(PkModeling_CONFIG_DIR "@PACKAGE_CONFIG_DIR_CONFIG@")
+set_and_check(PkModeling_TARGETS "@PACKAGE_CONFIG_DIR_CONFIG@/PkModelingTargets.cmake")
+
+@PkModeling_CONFIG_CODE@
+
+if(NOT PkModeling_TARGETS_IMPORTED)
+  set(PkModeling_TARGETS_IMPORTED 1)
+  include(${PkModeling_TARGETS})
+endif()
+
+if(NOT PkModeling_FIND_QUIETLY)
+  message(STATUS "PkModeling_DIR set to ${PkModeling_DIR}")
+endif()

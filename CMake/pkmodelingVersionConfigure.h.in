@@ -1,0 +1,22 @@
+/*=auto=========================================================================
+
+ Portions (c) Copyright 2005 Brigham and Women's Hospital (BWH)
+ All Rights Reserved.
+
+ See COPYRIGHT.txt
+ or http://www.slicer.org/copyright/copyright.txt for details.
+
+ Program:   3D Reporting
+
+=========================================================================auto=*/
+
+#ifndef __PkModelingVersionConfigure_h
+#define __PkModelingVersionConfigure_h
+
+#define PkModeling_WC_REVISION "@PkModeling_WC_REVISION@"
+#define PkModeling_WC_URL "@PkModeling_WC_URL@"
+#define PkModeling_WC_TAG "@PkModeling_WC_TAG@"
+
+#define PkModeling_INFO "PkModeling repository URL: @PkModeling_WC_URL@ revision: @PkModeling_WC_REVISION@ tag: @PkModeling_WC_TAG@"
+
+#endif // __PkModelingVersionConfigure_h
