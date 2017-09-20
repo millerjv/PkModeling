@@ -106,7 +106,7 @@ endif()
 # Collect version information
 # --------------------------------------------------------------------------
 
-include(${PkModeling_CMAKE_DIR}/PkModelingVersion.cmake)
+include(${PkModeling_CMAKE_DIR}/pkmodelingVersion.cmake)
 
 # --------------------------------------------------------------------------
 # Sanity checks
@@ -147,4 +147,3 @@ configure_file(
   ${PkModeling_CPACK_PROJECT_CONFIG_FILE}
   @ONLY
   )
-
