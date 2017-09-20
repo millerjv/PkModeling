@@ -143,9 +143,9 @@ endforeach()
 #-----------------------------------------------------------------------------
 # PkModeling version number
 #
-set(PkModeling_VERSION_MAJOR 1)
+set(PkModeling_VERSION_MAJOR 2)
 set(PkModeling_VERSION_MINOR 0)
-set(PkModeling_VERSION_PATCH 5)
+set(PkModeling_VERSION_PATCH 0)
 set(PkModeling_VERSION
     "${PkModeling_VERSION_MAJOR}.${PkModeling_VERSION_MINOR}.${PkModeling_VERSION_PATCH}")
 
