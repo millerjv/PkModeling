@@ -75,6 +75,9 @@ script:
 # TEST
 - ctest .
 
+# PACKAGE
+- ninja package
+
 notifications:
   email:
     on_success: change # default: change
