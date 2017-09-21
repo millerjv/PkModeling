@@ -1,0 +1,62 @@
+branches:
+ only:
+ - continuous-integration
+version: 0.0.{build}
+os:
+  - Visual Studio 2013
+shallow_clone: false
+skip_tags: true
+clone_folder: c:\pkmodeling
+configuration:
+  - Release
+platform:
+  - x64
+#environment:
+#  GITHUB_TOKEN:
+#    secure: mnRPU2KJBMkkUa4fo4ebLpsEG/gYpcAy4/X2ihGiwZiPGpkyvF1ItFFRSlUGubvf
+#  APPVEYOR_API_TOKEN:
+#    secure: 3+wBc5SxNqx3XjsY3EZ7afvQbLAWWcw30SPGK7q+QPA=
+before_build:
+  # Display infos
+  - cmake --version
+  # Downloads
+  - ps: |
+        $client = new-object System.Net.WebClient;
+        $client.DownloadFile("https://github.com/qiicr/zlib-dcmqi/releases/download/zlib-dcmqi-1.2.3-VS12-Win64-Release-static/zlib-dcmqi.zip", "C:\zlib-dcmqi.zip")
+        $client.DownloadFile("https://github.com/QIICR/dcmtk-dcmqi/releases/download/DCMTK-dcmqi-3.6.2_20170718-VS12-Win64-Release-v0.0.16-static/DCMTK-dcmqi.zip", "C:\DCMTK-dcmqi.zip")
+        $client.DownloadFile("https://github.com/QIICR/ITK-dcmqi/releases/download/ITK-dcmqi-VS12-Win64-Release-v0.0.26-static/ITK-dcmqi.zip", "C:\ITK-dcmqi.zip")
+  # Extract
+  - |
+    7z x C:\zlib-dcmqi.zip  -oC:\zlib-install
+    7z x C:\DCMTK-dcmqi.zip -oC:\DCMTK-install
+    7z x C:\ITK-dcmqi.zip   -oC:\ITK-install
+  # Download SlicerExecutionModel source
+  - |
+    cd c:\
+    git clone https://github.com/michaelschwier/SlicerExecutionModel.git -b for_pkmodeling SlicerExecutionModel
+  # Download SlicerExecutionModel binaries
+  - ps: |
+        $client = new-object System.Net.WebClient;
+        $client.DownloadFile("https://github.com/michaelschwier/SlicerExecutionModel/releases/download/v0.0.1/SlicerExecutionModel-build.zip", "C:\SlicerExecutionModel-pkmodeling.zip")
+  - 7z x C:\SlicerExecutionModel-pkmodeling.zip -oC:\SlicerExecutionModel\SlicerExecutionModel-build
+  # Configure project
+  - |
+    mkdir c:\pkmodeling\pkmodeling-build
+    cd c:\pkmodeling\pkmodeling-build
+    cmake -G "Visual Studio 12 2013 Win64" -DITK_DIR:PATH=C:\ITK-install\lib\cmake\ITK-4.10 -DSlicerExecutionModel_DIR:PATH=C:\SlicerExecutionModel\SlicerExecutionModel-build -DDCMTK_DIR:PATH=C:\DCMTK-install\cmake -DZLIB_ROOT:PATH=c:\zlib-install -DZLIB_INCLUDE_DIR:PATH=c:\zlib-install\include -DZLIB_LIBRARY:FILEPATH=c:\zlib-install\lib\zlib.lib c:\pkmodeling
+    dir
+build_script:
+  - cmd: cmake --build . --config Release -- /m
+after_build:
+  - cmd: |
+         cd C:\pkmodeling\pkmodeling-build\pkmodeling-build\bin\Release
+         dir
+test_script:
+  - cmd: |
+         ECHO =========== TESTS ===========
+         cd C:\pkmodeling\pkmodeling-build\pkmodeling-build
+         ctest -C Release
+
+
+
+
