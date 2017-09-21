@@ -46,12 +46,12 @@
 # --------------------------------------------------------------------------
 
 # VersionConfigure.h
-set(_version_header_filepath_in "${PkModeling_CMAKE_DIR}/PkModelingVersionConfigure.h.in")
+set(_version_header_filepath_in "${PkModeling_CMAKE_DIR}/pkmodelingVersionConfigure.h.in")
 set(_version_header_relative_filepath "include/PkModeling/internal/VersionConfigure.h")
 set(_version_header_filepath_out "${PkModeling_BINARY_DIR}/${_version_header_relative_filepath}")
 
 # PkModelingCPackOptions.cmake
-set(_cpack_options_filename "PkModelingCPackOptions.cmake")
+set(_cpack_options_filename "pkmodelingCPackOptions.cmake")
 set(_cpack_options_in "${PkModeling_CMAKE_DIR}/${_cpack_options_filename}.in")
 set(PkModeling_CPACK_PROJECT_CONFIG_FILE "${PkModeling_BINARY_DIR}/${_cpack_options_filename}")
 
