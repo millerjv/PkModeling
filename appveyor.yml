@@ -1,7 +1,7 @@
 branches:
  only:
  - continuous-integration
-version: 0.0.{build}
+version: 2.0.{build}
 os:
   - Visual Studio 2013
 shallow_clone: false
@@ -54,6 +54,7 @@ after_build:
   - cmd: |
          cd C:\pkmodeling\pkmodeling-build\pkmodeling-build
          cmake --build . --config Release --target PACKAGE -- /m
+         dir
 test_script:
   - cmd: |
          ECHO =========== TESTS ===========
