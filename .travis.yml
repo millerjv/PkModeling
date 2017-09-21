@@ -1,0 +1,87 @@
+branches:
+ only:
+ - continuous-integration
+
+language: c++
+
+#os:
+#- osx
+#- linux
+
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      sudo: required
+      compiler: gcc
+    - os: osx
+      compiler: clang
+
+#env:
+#  global:
+#  - CTEST_MODEL=Experimental
+
+#compiler:
+#- clang
+#- gcc
+
+cache:
+  directories:
+  - $HOME/downloads
+
+before_script:
+# Use scikit-ci-addons to
+# * streamline installation of CMake
+# * install package required to automatically create or update GitHub releases
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo -H pip install -U --upgrade-strategy "only-if-needed" "scikit-ci-addons>=0.18.0" ; fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pip install -U "scikit-ci-addons>=0.18.0" ; fi
+- ci_addons travis/install_cmake 3.6.2
+
+# Install Ninja
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget --no-check-certificate https://github.com/ninja-build/ninja/releases/download/v1.7.2/ninja-linux.zip ; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then unzip ninja-linux.zip  ; fi
+
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then wget --no-check-certificate https://github.com/ninja-build/ninja/releases/download/v1.7.2/ninja-mac.zip ; fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then unzip ninja-mac.zip  ; fi
+
+- mkdir -p $HOME/bin/
+- cp ninja $HOME/bin/
+- export PATH="$HOME/bin/:$PATH"
+
+# Check Ninja
+- cd $HOME/bin/
+- pwd
+- ls -l -F
+# check cmake version
+- cmake --version
+
+# Prepare and goto build directory
+- mkdir -p $TRAVIS_BUILD_DIR/pkmodeling-build
+- cd $TRAVIS_BUILD_DIR/pkmodeling-build 
+
+script:
+# Use Ninja for building
+- cmake -G Ninja $TRAVIS_BUILD_DIR
+- ninja
+# ALTERNATIVE: use make for building
+#- cmake $TRAVIS_BUILD_DIR
+#- make
+
+# Check build output dir
+- cd $TRAVIS_BUILD_DIR/pkmodeling-build/pkmodeling-build
+- pwd
+- ls -l -F
+
+# TEST
+- ctest .
+
+notifications:
+  email:
+    on_success: change # default: change
+    on_failure: change # default: always
+
+
+
+
+
+
