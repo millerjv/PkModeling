@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.7)
+cmake_minimum_required(VERSION 3.5.0)
 
 if (NOT Slicer_SOURCE_DIR)
   set(EXTENSION_NAME PkModeling)
@@ -117,6 +117,7 @@ mark_as_advanced(PkModeling_SUPERBUILD)
 #-----------------------------------------------------------------------------
 # Output directories.
 #
+message(STATUS "---------- SETTING OUTPUT DIRECTORIES ----------")
 foreach(type LIBRARY RUNTIME ARCHIVE)
   # Make sure the directory exists
   if(DEFINED PkModeling_CMAKE_${type}_OUTPUT_DIRECTORY
@@ -138,7 +139,12 @@ foreach(type LIBRARY RUNTIME ARCHIVE)
     endif()
   endif()
   set(CMAKE_${type}_OUTPUT_DIRECTORY ${output_dir} CACHE INTERNAL "Single output directory for building all libraries.")
+  
+  message(STATUS "PkModeling_CMAKE_" ${type} "_OUTPUT_DIRECTORY:" ${PkModeling_CMAKE_${type}_OUTPUT_DIRECTORY})
+  message(STATUS "CMAKE_" ${type} "_OUTPUT_DIRECTORY:" ${CMAKE_${type}_OUTPUT_DIRECTORY})
+  
 endforeach()
+message(STATUS "------------------------------------------------")
 
 #-----------------------------------------------------------------------------
 # PkModeling version number
@@ -256,7 +262,7 @@ endif()
 # 'pkmodelingCPackOptions.cmake' and 'pkmodelingVersionConfigure.h'
 #
 include(pkmodelingConfigureVersionTarget)
-add_dependencies(PkModeling pkmodelingConfigureVersion)
+add_dependencies(PkModeling PkModelingConfigureVersion)
 
 
 #-----------------------------------------------------------------------------
