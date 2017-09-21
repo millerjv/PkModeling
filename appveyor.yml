@@ -51,6 +51,9 @@ after_build:
   - cmd: |
          cd C:\pkmodeling\pkmodeling-build\pkmodeling-build\bin\Release
          dir
+  - cmd: |
+         cd C:\pkmodeling\pkmodeling-build\pkmodeling-build
+         cmake --build . --config Release --target PACKAGE -- /m
 test_script:
   - cmd: |
          ECHO =========== TESTS ===========
