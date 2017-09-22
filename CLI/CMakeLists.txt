@@ -7,6 +7,14 @@ set(MODULE_INCLUDE_DIRECTORIES
   ${${MODULE_NAME}_SOURCE_DIR}/PkSolver
   )
 
+if(ITK_INSTALL_PREFIX)
+  message("ITK_INSTALL_PREFIX is " ${ITK_INSTALL_PREFIX})
+  list(APPEND MODULE_INCLUDE_DIRECTORIES
+    ${ITK_INSTALL_PREFIX}/include/vxl/core
+    ${ITK_INSTALL_PREFIX}/include/vxl/vcl
+    )
+endif()
+
 #-----------------------------------------------------------------------------
 set(MODULE_SRCS
   ${MODULE_NAME}.cxx
@@ -35,6 +43,10 @@ SEMMacroBuildCLI(
   INCLUDE_DIRECTORIES ${MODULE_INCLUDE_DIRECTORIES}
   ADDITIONAL_SRCS ${MODULE_SRCS}
   TARGET_LIBRARIES ${MODULE_TARGET_LIBRARIES}
+  RUNTIME_OUTPUT_DIRECTORY ${PkModeling_CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+  LIBRARY_OUTPUT_DIRECTORY ${PkModeling_CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+  ARCHIVE_OUTPUT_DIRECTORY ${PkModeling_CMAKE_ARCHIVE_OUTPUT_DIRECTORY}  
+  EXECUTABLE_ONLY
   )
 
 #-----------------------------------------------------------------------------

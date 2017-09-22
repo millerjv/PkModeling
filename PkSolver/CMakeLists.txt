@@ -4,9 +4,20 @@ set(LIBRARY_NAME PkSolver)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
+if(ITK_INSTALL_PREFIX)
+  message("ITK_INSTALL_PREFIX is " ${ITK_INSTALL_PREFIX})
+  list(APPEND ${LIBRARY_NAME}_INCLUDE_DIRS
+    ${ITK_INSTALL_PREFIX}/include/vxl/core
+    ${ITK_INSTALL_PREFIX}/include/vxl/vcl
+    )
+endif()
+
+include_directories(${${LIBRARY_NAME}_INCLUDE_DIRS})
+
 add_library(${LIBRARY_NAME} STATIC ${LIBRARY_NAME}.cxx ${LIBRARY_NAME}.h)
 target_link_libraries(${LIBRARY_NAME} ${ITK_LIBRARIES})
 if (CMAKE_SYSTEM MATCHES "Linux")
+  message("LINUX DETECTED: Setting compile flag -fPIC for " ${LIBRARY_NAME})
   set_target_properties(${LIBRARY_NAME} PROPERTIES COMPILE_FLAGS "-fPIC")
 endif ()
 

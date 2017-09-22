@@ -90,7 +90,7 @@ find_package(Git REQUIRED)
 set(msg "Checking if building a release")
 message(STATUS "${msg}")
 
-include(PkModelingFunctionExtractGitTagNames)
+include(pkmodelingFunctionExtractGitTagNames)
 PkModelingFunctionExtractGitTagNames(
   REF "HEAD"
   SOURCE_DIR ${PkModeling_SOURCE_DIR}
@@ -130,4 +130,3 @@ endif()
 
 set(PkModeling_VERSION_QUALIFIER "${_version_qualifier}")
 set(PkModeling_VERSION_IS_RELEASE ${is_release})
-

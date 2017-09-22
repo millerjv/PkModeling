@@ -3,7 +3,7 @@
 // STD includes
 #include <iostream>
 
-#ifdef WIN32
+#if defined(_WIN32) && !defined(MODULE_STATIC)
 #define MODULE_IMPORT __declspec(dllimport)
 #else
 #define MODULE_IMPORT

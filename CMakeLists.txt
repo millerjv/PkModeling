@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.7)
+cmake_minimum_required(VERSION 3.5.0)
 
 if (NOT Slicer_SOURCE_DIR)
   set(EXTENSION_NAME PkModeling)
@@ -28,7 +28,7 @@ include(ExternalProjectDependency)
 if(APPLE)
   # Note: By setting CMAKE_OSX_* variables before any enable_language() or project() calls,
   #       we ensure that the bitness will be properly detected.
-  include(PkModelingBlockSetCMakeOSXVariables)
+  include(pkmodelingBlockSetCMakeOSXVariables)
   mark_as_superbuild(
     VARS CMAKE_OSX_ARCHITECTURES:STRING CMAKE_OSX_SYSROOT:PATH CMAKE_OSX_DEPLOYMENT_TARGET:STRING
     ALL_PROJECTS
@@ -117,6 +117,7 @@ mark_as_advanced(PkModeling_SUPERBUILD)
 #-----------------------------------------------------------------------------
 # Output directories.
 #
+message(STATUS "---------- SETTING OUTPUT DIRECTORIES ----------")
 foreach(type LIBRARY RUNTIME ARCHIVE)
   # Make sure the directory exists
   if(DEFINED PkModeling_CMAKE_${type}_OUTPUT_DIRECTORY
@@ -138,7 +139,12 @@ foreach(type LIBRARY RUNTIME ARCHIVE)
     endif()
   endif()
   set(CMAKE_${type}_OUTPUT_DIRECTORY ${output_dir} CACHE INTERNAL "Single output directory for building all libraries.")
+
+  message(STATUS "PkModeling_CMAKE_" ${type} "_OUTPUT_DIRECTORY:" ${PkModeling_CMAKE_${type}_OUTPUT_DIRECTORY})
+  message(STATUS "CMAKE_" ${type} "_OUTPUT_DIRECTORY:" ${CMAKE_${type}_OUTPUT_DIRECTORY})
+
 endforeach()
+message(STATUS "------------------------------------------------")
 
 #-----------------------------------------------------------------------------
 # PkModeling version number
@@ -256,7 +262,7 @@ endif()
 # 'pkmodelingCPackOptions.cmake' and 'pkmodelingVersionConfigure.h'
 #
 include(pkmodelingConfigureVersionTarget)
-add_dependencies(PkModeling pkmodelingConfigureVersion)
+add_dependencies(PkModeling PkModelingConfigureVersion)
 
 
 #-----------------------------------------------------------------------------
@@ -277,7 +283,7 @@ if(NOT Slicer_DIR)
   set(${PROJECT_NAME}_CONFIG_CODE "${${PROJECT_NAME}_CONFIG_CODE}##################################################")
   set(_config ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake)
   configure_package_config_file(
-      CMake/${PROJECT_NAME}Config.cmake.in
+      CMake/pkmodelingConfig.cmake.in
       ${_config}
       INSTALL_DESTINATION ${CMAKE_BINARY_DIR}
       PATH_VARS
