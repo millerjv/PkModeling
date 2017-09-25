@@ -14,6 +14,9 @@ add_executable(${CLP}Test ${CLP}Test.cxx)
 target_link_libraries(${CLP}Test ${CLP}Lib ${SlicerExecutionModel_EXTRA_EXECUTABLE_TARGET_LIBRARIES})
 set_target_properties(${CLP}Test PROPERTIES COMPILE_FLAGS "-DMODULE_STATIC")
 set_target_properties(${CLP}Test PROPERTIES LABELS ${CLP})
+if(TARGET ITKFactoryRegistration)
+  target_compile_definitions(${CLP}Test PUBLIC HAS_ITK_FACTORY_REGISTRATION)
+endif()
 
 #-----------------------------------------------------------------------------
 set(testname ${CLP}TestHelp)

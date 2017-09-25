@@ -12,6 +12,7 @@ if (NOT Slicer_SOURCE_DIR)
   set(EXTENSION_ACKNOWLEDGEMENTS "This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149. Information on the National Centers for Biomedical Computing can be obtained from http://nihroadmap.nih.gov/bioinformatics . This work was also funded in part by the Quantitative Imaging Network (QIN) Grant U01CA151261.")
 endif()
 
+set(CMAKE_POSITION_INDEPENDENT_CODE 1)
 
 set(PkModeling_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
