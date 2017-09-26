@@ -1,21 +1,30 @@
-branches:
- only:
- - continuous-integration
+#branches:
+# only:
+# - continuous-integration
+
 version: 2.0.{build}
+
 os:
   - Visual Studio 2013
+
 shallow_clone: false
+
 skip_tags: true
+
 clone_folder: c:\pkmodeling
+
 configuration:
   - Release
+
 platform:
   - x64
+
 #environment:
 #  GITHUB_TOKEN:
 #    secure: mnRPU2KJBMkkUa4fo4ebLpsEG/gYpcAy4/X2ihGiwZiPGpkyvF1ItFFRSlUGubvf
 #  APPVEYOR_API_TOKEN:
 #    secure: 3+wBc5SxNqx3XjsY3EZ7afvQbLAWWcw30SPGK7q+QPA=
+
 before_build:
   # Display infos
   - cmake --version
@@ -45,8 +54,10 @@ before_build:
     cd c:\pkmodeling\pkmodeling-build
     cmake -G "Visual Studio 12 2013 Win64" -DITK_DIR:PATH=C:\ITK-install\lib\cmake\ITK-4.10 -DSlicerExecutionModel_DIR:PATH=C:\SlicerExecutionModel\SlicerExecutionModel-build -DDCMTK_DIR:PATH=C:\DCMTK-install\cmake -DZLIB_ROOT:PATH=c:\zlib-install -DZLIB_INCLUDE_DIR:PATH=c:\zlib-install\include -DZLIB_LIBRARY:FILEPATH=c:\zlib-install\lib\zlib.lib c:\pkmodeling
     dir
+
 build_script:
   - cmd: cmake --build . --config Release -- /m
+
 after_build:
   - cmd: |
          cd C:\pkmodeling\pkmodeling-build\pkmodeling-build\bin\Release
@@ -55,6 +66,7 @@ after_build:
          cd C:\pkmodeling\pkmodeling-build\pkmodeling-build
          cmake --build . --config Release --target PACKAGE -- /m
          dir
+
 test_script:
   - cmd: |
          ECHO =========== TESTS ===========

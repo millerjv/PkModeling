@@ -1,6 +1,6 @@
-branches:
- only:
- - continuous-integration
+#branches:
+# only:
+# - continuous-integration
 
 language: c++
 
