@@ -2,10 +2,10 @@ set(Launcher_Command ${Slicer_LAUNCH_COMMAND})
 
 set(TEMP ${PkModeling_BINARY_DIR}/Testing/Temporary)
 
-#set(DCEMRIDATA ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/DCEMRIData)
-#set(DUKEDATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/DukeData)
-#set(SYNDATA ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/SyntheticData)
-set(QINPROSTATE001 ${CMAKE_CURRENT_SOURCE_DIR}/../../../Data/SampledPhantoms/QINProstate001)
+#set(DCEMRIDATA ${CMAKE_SOURCE_DIR}/Data/DCEMRIData)
+#set(DUKEDATA_DIR ${CMAKE_SOURCE_DIR}/Data/DukeData)
+#set(SYNDATA ${CMAKE_SOURCE_DIR}/Data/SyntheticData)
+set(QINPROSTATE001 ${CMAKE_SOURCE_DIR}/Data/SampledPhantoms/QINProstate001)
 
 set(CLP ${MODULE_NAME})
 
@@ -19,18 +19,18 @@ if(TARGET ITKFactoryRegistration)
 endif()
 
 #-----------------------------------------------------------------------------
-set(testname ${CLP}TestHelp)
-add_test(NAME ${testname} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
+set(testName ${CLP}TestHelp)
+add_test(NAME ${testName} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
   ModuleEntryPoint --help
   )
-set_property(TEST ${testname} PROPERTY LABELS ${CLP})
+set_property(TEST ${testName} PROPERTY LABELS ${CLP})
 
 #-----------------------------------------------------------------------------
 if(QINPROSTATE001)
-  set(testname QINProstate001)
-  add_test(NAME ${testname} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
+  set(testName QINProstate001)
+  add_test(NAME ${testName} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
     --compare ${QINPROSTATE001}/Baseline/phantom-ktrans.nrrd
-    ${TEMP}/${testname}-ktrans.nrrd
+    ${TEMP}/${testName}-ktrans.nrrd
     ModuleEntryPoint        
                 --T1Tissue 1597
                 --T1Blood 1600
@@ -43,24 +43,32 @@ if(QINPROSTATE001)
                 --xTolerance 1e-5 
                 --epsilon 1e-9 
                 --maxIter 200 
-                --outputKtrans ${TEMP}/${testname}-ktrans.nrrd 
-                --outputVe ${TEMP}/${testname}-ve.nrrd
-                --outputMaxSlope ${TEMP}/${testname}-maxslope.nrrd
-                --outputAUC ${TEMP}/${testname}-auc.nrrd           
-                --outputBAT ${TEMP}/${testname}-bat.nrrd           
-                --fitted ${TEMP}/${testname}-fit.nrrd
-                --concentrations ${TEMP}/${testname}-conc.nrrd
-                --roiMask ${QINPROSTATE001}/Input/${testname}-phantom-ROI.nrrd
-                --aifMask ${QINPROSTATE001}/Input/${testname}-phantom-AIF.nrrd
-                ${QINPROSTATE001}/Input/${testname}-phantom.nrrd                   
+                --outputKtrans ${TEMP}/${testName}-ktrans.nrrd 
+                --outputVe ${TEMP}/${testName}-ve.nrrd
+                --outputMaxSlope ${TEMP}/${testName}-maxslope.nrrd
+                --outputAUC ${TEMP}/${testName}-auc.nrrd           
+                --outputBAT ${TEMP}/${testName}-bat.nrrd           
+                --fitted ${TEMP}/${testName}-fit.nrrd
+                --concentrations ${TEMP}/${testName}-conc.nrrd
+                --roiMask ${QINPROSTATE001}/Input/${testName}-phantom-ROI.nrrd
+                --aifMask ${QINPROSTATE001}/Input/${testName}-phantom-AIF.nrrd
+                ${QINPROSTATE001}/Input/${testName}-phantom.nrrd                   
                 )
-  set_property(TEST ${testname} PROPERTY LABELS ${CLP})
+  set_property(TEST ${testName} PROPERTY LABELS ${CLP})
 endif()
 
+
+#-----------------------------------------------------------------------------
+# Regression tests
+#-----------------------------------------------------------------------------
+include(RegressionTests.cmake)
+
+
+
 #-----------------------------------------------------------------------------
 #if(DUKEDATA_DIR_DIR)
-#  set(testname ${CLP}TestDukeSyntheticData)
-#  add_test(NAME ${testname} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
+#  set(testName ${CLP}TestDukeSyntheticData)
+#  add_test(NAME ${testName} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
 #    ModuleEntryPoint        
 #                --T1Tissue 1000
 #                --T1Blood 1440
@@ -74,14 +82,14 @@ endif()
 #                --outputMaxSlope ${TEMP}/maxSlopeVolumeSyn.nrrd
 #                --outputAUC ${TEMP}/AUCVolumeSyn.nrrd           
 #                )
-#  set_property(TEST ${testname} PROPERTY LABELS ${CLP})
+#  set_property(TEST ${testName} PROPERTY LABELS ${CLP})
 #endif()
 
 
 #-----------------------------------------------------------------------------
 #if(DUKEDATA_DIR_DIR)
-#  set(testname ${CLP}TestDukeSyntheticData)
-#  add_test(NAME ${testname} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
+#  set(testName ${CLP}TestDukeSyntheticData)
+#  add_test(NAME ${testName} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
 #    ModuleEntryPoint        
 #                --T1Tissue 1000
 #                --T1Blood 1440
@@ -95,12 +103,12 @@ endif()
 #                --outputMaxSlope ${TEMP}/maxSlopeVolumeSyn.nrrd
 #                --outputAUC ${TEMP}/AUCVolumeSyn.nrrd           
 #                )
-#  set_property(TEST ${testname} PROPERTY LABELS ${CLP})
+#  set_property(TEST ${testName} PROPERTY LABELS ${CLP})
 #endif()
 
 #-----------------------------------------------------------------------------
-# set(testname ${CLP}TestSmallVolumeOfDukeSyntheticData)
-# add_test(NAME ${testname} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
+# set(testName ${CLP}TestSmallVolumeOfDukeSyntheticData)
+# add_test(NAME ${testName} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
 #                 ModuleEntryPoint
 #                 --T1Tissue 1000
 #                 --T1Blood 1440
@@ -116,10 +124,10 @@ endif()
 #                 --outputMaxSlope ${TEMP}/maxSlopeVolumeSynSmallVolume.nrrd
 #                 --outputAUC ${TEMP}/AUCVolumeSynSmallVolume.nrrd   
 #   )
-# set_property(TEST ${testname} PROPERTY LABELS ${CLP})
+# set_property(TEST ${testName} PROPERTY LABELS ${CLP})
  
-# set(testname ${CLP}TestDukeSyntheticData)
-# add_test(NAME ${testname} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
+# set(testName ${CLP}TestDukeSyntheticData)
+# add_test(NAME ${testName} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
 #   ModuleEntryPoint        
 #                 --T1Tissue 1000
 #                 --T1Blood 1440
@@ -135,10 +143,10 @@ endif()
 #                 --outputMaxSlope ${TEMP}/maxSlopeVolumeSyn.nrrd
 #                 --outputAUC ${TEMP}/AUCVolumeSyn.nrrd           
 #   )
-# set_property(TEST ${testname} PROPERTY LABELS ${CLP})
+# set_property(TEST ${testName} PROPERTY LABELS ${CLP})
  
-# set(testname ${CLP}TestDCEMRIData)
-# add_test(NAME ${testname} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
+# set(testName ${CLP}TestDCEMRIData)
+# add_test(NAME ${testName} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
 #                 ModuleEntryPoint
 #                 --T1Tissue 1597
 #                 --T1Blood 1600
@@ -154,4 +162,4 @@ endif()
 #                 --outputMaxSlope ${TEMP}/maxSlopeVolume.nrrd
 #                 --outputAUC ${TEMP}/AUCVolume.nrrd             
 #   )
-# set_property(TEST ${testname} PROPERTY LABELS ${CLP})
+# set_property(TEST ${testName} PROPERTY LABELS ${CLP})
