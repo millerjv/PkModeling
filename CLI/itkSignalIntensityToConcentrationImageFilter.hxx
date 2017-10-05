@@ -168,6 +168,12 @@ void SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputI
          }
          oit.Set(outputVectorVoxel);
        }
+     else
+     {
+       outputVectorVoxel.SetSize(inputVectorVoxel.GetSize());
+       outputVectorVoxel.Fill(static_cast<typename OutputPixelType::ValueType>(0.0));
+       oit.Set(outputVectorVoxel);
+     }
 
     ++S0VolumeIter;
     ++inputVectorVolumeIter;

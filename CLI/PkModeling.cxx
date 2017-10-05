@@ -438,7 +438,6 @@ type Get##name(itk::MetaDataDictionary& dictionary)           \
     {
       quantifier->SetModelType(itk::LMCostFunction::TOFTS_2_PARAMETER);
     }
-    quantifier->SetMaskByRSquared(OutputRSquaredFileName.empty());
 
     itk::PluginFilterWatcher watchQuantifier(quantifier, "Quantifying", CLPProcessInformation, 19.0 / 20.0, 1.0 / 20.0);
     quantifier->Update();
