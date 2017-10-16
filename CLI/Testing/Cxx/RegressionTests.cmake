@@ -8,7 +8,7 @@ set(referenceDataBaseDir ${CMAKE_SOURCE_DIR}/Data/RegressionTests/QINProstate001
 set(testName QINProstate001_AllOutputsExceptFpv)
 set(tempOutDataBaseName ${TEMP}/${testName})
 add_test(NAME ${testName} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
-  --compareIntensityTolerance 1e-6
+  --compareIntensityTolerance 1e-5
   --compare ${referenceDataBaseDir}${testName}-conc.nrrd
   ${tempOutDataBaseName}-conc.nrrd
   --compare ${referenceDataBaseDir}${testName}-ktrans.nrrd
@@ -58,7 +58,7 @@ set_property(TEST ${testName} PROPERTY LABELS ${CLP})
 set(testName QINProstate001_AllOutputsInclFpv)
 set(tempOutDataBaseName ${TEMP}/${testName})
 add_test(NAME ${testName} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
-  --compareIntensityTolerance 1e-6
+  --compareIntensityTolerance 1e-5
   --compare ${referenceDataBaseDir}${testName}-conc.nrrd
   ${tempOutDataBaseName}-conc.nrrd
   --compare ${referenceDataBaseDir}${testName}-ktrans.nrrd
@@ -118,7 +118,7 @@ set(referenceDataBaseDir ${CMAKE_CURRENT_SOURCE_DIR}/../../../Data/RegressionTes
 set(testName QINBreast001_AllOutputsExceptFpv)
 set(tempOutDataBaseName ${TEMP}/${testName})
 add_test(NAME ${testName} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
-  --compareIntensityTolerance 1e-6
+  --compareIntensityTolerance 1e-5
   --compare ${referenceDataBaseDir}${testName}-conc.nrrd
   ${tempOutDataBaseName}-conc.nrrd
   --compare ${referenceDataBaseDir}${testName}-ktrans.nrrd
@@ -167,7 +167,7 @@ set_property(TEST ${testName} PROPERTY LABELS ${CLP})
 set(testName QINBreast001_ConstantBat)
 set(tempOutDataBaseName ${TEMP}/${testName})
 add_test(NAME ${testName} COMMAND ${Launcher_Command} $<TARGET_FILE:${CLP}Test>
-  --compareIntensityTolerance 1e-6
+  --compareIntensityTolerance 1e-5
   --compare ${referenceDataBaseDir}${testName}-conc.nrrd
   ${tempOutDataBaseName}-conc.nrrd
   --compare ${referenceDataBaseDir}${testName}-ktrans.nrrd
