@@ -35,19 +35,18 @@ namespace itk
     m_AIFBATIndex = 0;
     m_UsePopulationAIF = false;
     m_UsePrescribedAIF = false;
-    m_MaskByRSquared = true;
     m_ModelType = itk::LMCostFunction::TOFTS_2_PARAMETER;
     m_constantBAT = 0;
     m_BATCalculationMode = "PeakGradient";
     this->Superclass::SetNumberOfRequiredInputs(1);
-    this->Superclass::SetNthOutput(1, static_cast<TOutputImage*>(this->MakeOutput(1).GetPointer()));  // Ktrans
-    this->Superclass::SetNthOutput(2, static_cast<TOutputImage*>(this->MakeOutput(2).GetPointer()));  // Ve
+    this->Superclass::SetNthOutput(1, static_cast<TOutputImage*>(this->MakeOutput(1).GetPointer()));  // Ve
+    this->Superclass::SetNthOutput(2, static_cast<TOutputImage*>(this->MakeOutput(2).GetPointer()));  // FPV
     this->Superclass::SetNthOutput(3, static_cast<TOutputImage*>(this->MakeOutput(3).GetPointer()));  // Max slope
     this->Superclass::SetNthOutput(4, static_cast<TOutputImage*>(this->MakeOutput(4).GetPointer()));  // AUC
     this->Superclass::SetNthOutput(5, static_cast<TOutputImage*>(this->MakeOutput(5).GetPointer()));  // R^2
     this->Superclass::SetNthOutput(6, static_cast<TOutputImage*>(this->MakeOutput(6).GetPointer()));  // BAT
     this->Superclass::SetNthOutput(7, static_cast<VectorVolumeType*>(this->MakeOutput(7).GetPointer())); // fitted
-    this->Superclass::SetNthOutput(8, static_cast<TOutputImage*>(this->MakeOutput(8).GetPointer())); // fitted
+    this->Superclass::SetNthOutput(8, static_cast<TOutputImage*>(this->MakeOutput(8).GetPointer())); // diagnostics
   }
 
   template< class TInputImage, class TMaskImage, class TOutputImage >
@@ -522,31 +521,9 @@ namespace itk
             (area_under_curve(timeSize, &m_Timing[0], const_cast<float *>(shiftedVectorVoxel.GetDataPointer()), BATIndex, m_AUCTimeInterval)) / m_aifAUC;
         }
 
-        // Do we mask the output volumes by the R-squared value?
-        if (m_MaskByRSquared)
-        {
-          // If we were successful, save the estimated values, otherwise
-          // default to zero
-          if (success)
-          {
-            ktransVolumeIter.Set(static_cast<OutputVolumePixelType>(tempKtrans));
-            veVolumeIter.Set(static_cast<OutputVolumePixelType>(tempVe));
-            maxSlopeVolumeIter.Set(static_cast<OutputVolumePixelType>(tempMaxSlope));
-            aucVolumeIter.Set(static_cast<OutputVolumePixelType>(tempAUC));
-            if (m_ModelType == itk::LMCostFunction::TOFTS_3_PARAMETER)
-            {
-              fpvVolumeIter.Set(static_cast<OutputVolumePixelType>(tempFpv));
-            }
-          }
-          else
-          {
-            ktransVolumeIter.Set(static_cast<OutputVolumePixelType>(0));
-            veVolumeIter.Set(static_cast<OutputVolumePixelType>(0));
-            maxSlopeVolumeIter.Set(static_cast<OutputVolumePixelType>(0));
-            aucVolumeIter.Set(static_cast<OutputVolumePixelType>(0));
-          }
-        }
-        else
+        // If we were successful, save the estimated values, otherwise
+        // default to zero
+        if (success)
         {
           ktransVolumeIter.Set(static_cast<OutputVolumePixelType>(tempKtrans));
           veVolumeIter.Set(static_cast<OutputVolumePixelType>(tempVe));
@@ -556,6 +533,19 @@ namespace itk
           {
             fpvVolumeIter.Set(static_cast<OutputVolumePixelType>(tempFpv));
           }
+        }
+        else
+        {
+          ktransVolumeIter.Set(static_cast<OutputVolumePixelType>(0));
+          veVolumeIter.Set(static_cast<OutputVolumePixelType>(0));
+          maxSlopeVolumeIter.Set(static_cast<OutputVolumePixelType>(0));
+          aucVolumeIter.Set(static_cast<OutputVolumePixelType>(0));
+
+          batVolumeIter.Set(-1);
+          rsqVolumeIter.Set(0.0);
+          shiftedVectorVoxel.Fill(0.0);
+          fittedVolumeIter.Set(shiftedVectorVoxel);
+
         }
 
         // RSquared output volume is always written
@@ -567,6 +557,11 @@ namespace itk
         veVolumeIter.Set(static_cast<OutputVolumePixelType>(0));
         maxSlopeVolumeIter.Set(static_cast<OutputVolumePixelType>(0));
         aucVolumeIter.Set(static_cast<OutputVolumePixelType>(0));
+
+        batVolumeIter.Set(-1);
+        rsqVolumeIter.Set(0.0);
+        shiftedVectorVoxel.Fill(0.0);
+        fittedVolumeIter.Set(shiftedVectorVoxel);
       }
 
       ++ktransVolumeIter;
