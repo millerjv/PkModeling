@@ -34,7 +34,7 @@ before_script:
 # * streamline installation of CMake
 # * install package required to automatically create or update GitHub releases
 - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo -H pip install -U --upgrade-strategy "only-if-needed" "scikit-ci-addons>=0.18.0" ; fi
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pip install -U "scikit-ci-addons>=0.18.0" ; fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pip2 install -U "scikit-ci-addons>=0.18.0" ; fi
 - ci_addons travis/install_cmake 3.6.2
 
 # Install Ninja
