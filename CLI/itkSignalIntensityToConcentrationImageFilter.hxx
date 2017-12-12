@@ -7,8 +7,7 @@ namespace itk
 {
 
 template <class TInputImage, class TMaskImage, class TOutputImage>
-SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage,
-                                                    TOutputImage>::SignalIntensityToConcentrationImageFilter()
+SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::SignalIntensityToConcentrationImageFilter()
 {
   m_T1PreTissue = 0.0f;
   m_T1PreBlood = m_T1PreTissue;
@@ -19,15 +18,82 @@ SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage,
   this->SetNumberOfRequiredInputs(1);
 }
 
+
 template<class TInputImage, class TMaskImage, class TOutputImage>
 void SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::GenerateData()
 {
   const InputImageType* inputVectorVolume = this->GetInput();
 
+  OutputImageType* outputVolume = this->GetAllocatedOutVolume(inputVectorVolume);
+  InternalVolumePointerType S0Volume = this->GetS0Image(inputVectorVolume);
+  
+  InternalVolumeIterType S0VolumeIter(S0Volume, S0Volume->GetRequestedRegion());
+  S0VolumeIter.GoToBegin();
+  InputImageConstIterType inputVectorVolumeIter(inputVectorVolume, inputVectorVolume->GetRequestedRegion());
+  inputVectorVolumeIter.GoToBegin();
+  OutputIterType outVolumeIter(outputVolume, outputVolume->GetRequestedRegion());
+  outVolumeIter.GoToBegin();
+  T1PreValueIterator t1PreIter(this->GetROIMask(), this->GetAIFMask(), this->GetT1Map(), this->m_T1PreTissue, this->m_T1PreBlood);
+
+  float* concentrationVectorVoxelTemp = new float[(int)inputVectorVolume->GetNumberOfComponentsPerPixel()];
+  OutputPixelType outputVectorVoxel;
+
+  ProgressReporter progress(this, 0, outputVolume->GetRequestedRegion().GetNumberOfPixels());
+  
+  // Convert signal intensities to concentration values
+  while (!outVolumeIter.IsAtEnd())
+  {
+    InternalVectorVoxelType vectorVoxel = this->convertToInternalVectorVoxel(inputVectorVolumeIter.Get());
+    outputVectorVoxel.SetSize(vectorVoxel.GetSize());
+    float T1Pre = t1PreIter.Get();
+    if (T1Pre)
+    {
+      bool isConvert = convert_signal_to_concentration(inputVectorVolume->GetNumberOfComponentsPerPixel(),
+                                                       vectorVoxel.GetDataPointer(),
+                                                       T1Pre, m_TR, m_FA,
+                                                       concentrationVectorVoxelTemp,
+                                                       m_RGD_relaxivity,
+                                                       S0VolumeIter.Get(),
+                                                       m_S0GradThresh);
+
+      for (typename OutputPixelType::ElementIdentifier i = 0; i < outputVectorVoxel.GetSize(); ++i)
+      {
+        outputVectorVoxel[i] = static_cast<typename OutputPixelType::ValueType>(concentrationVectorVoxelTemp[i]);
+      }
+    }
+    else
+    {
+      outputVectorVoxel.Fill(static_cast<typename OutputPixelType::ValueType>(0.0));
+    }
+    outVolumeIter.Set(outputVectorVoxel);
+
+    ++S0VolumeIter;
+    ++inputVectorVolumeIter;
+    ++outVolumeIter;
+    ++t1PreIter;
+
+    progress.CompletedPixel();
+    }
+
+  delete [] concentrationVectorVoxelTemp;
+}
+
+
+template<class TInputImage, class TMaskImage, class TOutputImage>
+typename SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::OutputImageType*
+SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::GetAllocatedOutVolume(const InputImageType* inputVectorVolume)
+{
   OutputImageType* outputVolume = this->GetOutput();
   outputVolume->SetBufferedRegion(inputVectorVolume->GetBufferedRegion());
   outputVolume->Allocate();
-  // Get S0 Volume
+  return outputVolume;
+}
+
+
+template<class TInputImage, class TMaskImage, class TOutputImage>
+typename SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::InternalVolumePointerType
+SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::GetS0Image(const InputImageType* inputVectorVolume)
+{
   typedef SignalIntensityToS0ImageFilter<TInputImage, InternalVolumeType> S0VolumeFilterType;
   typename S0VolumeFilterType::Pointer S0VolumeFilter = S0VolumeFilterType::New();
   S0VolumeFilter->SetInput(inputVectorVolume);
@@ -36,158 +102,25 @@ void SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputI
   S0VolumeFilter->SetconstantBAT(m_constantBAT);
   S0VolumeFilter->Update();
   InternalVolumePointerType S0Volume = S0VolumeFilter->GetOutput();
-  
-  InternalVolumeIterType S0VolumeIter(S0Volume, S0Volume->GetRequestedRegion() );
-  InputImageConstIterType inputVectorVolumeIter(inputVectorVolume, 
-                                               inputVectorVolume->GetRequestedRegion());
-  OutputIterType oit(outputVolume,outputVolume->GetRequestedRegion());
-
-  InputMaskConstIterType aifMaskVolumeIter;
-  if (this->GetAIFMask())
-    {
-    aifMaskVolumeIter = InputMaskConstIterType(this->GetAIFMask(),this->GetAIFMask()->GetRequestedRegion() );
-    aifMaskVolumeIter.GoToBegin();
-    }
-
-  InputMaskConstIterType roiMaskVolumeIter;
-  if (this->GetROIMask())
-    {
-    roiMaskVolumeIter = InputMaskConstIterType(this->GetROIMask(),this->GetROIMask()->GetRequestedRegion() );
-    roiMaskVolumeIter.GoToBegin();
-    }
-
-  InputMaskConstIterType T1MapVolumeIter;
-  if (this->GetT1Map())
-    {
-    T1MapVolumeIter = InputMaskConstIterType(this->GetT1Map(),this->GetT1Map()->GetRequestedRegion() );
-    T1MapVolumeIter.GoToBegin();
-    }
-
-  S0VolumeIter.GoToBegin();
-  inputVectorVolumeIter.GoToBegin();
-  oit.GoToBegin();
-
-  float * concentrationVectorVoxelTemp =
-    new float[(int)inputVectorVolume->GetNumberOfComponentsPerPixel()];
-  bool                    isConvert;
-  InputPixelType inputVectorVoxel;
-  InternalVectorVoxelType vectorVoxel;
-  OutputPixelType outputVectorVoxel;
-
-  ProgressReporter progress(this, 0, outputVolume->GetRequestedRegion().GetNumberOfPixels());
-  
-  // Convert signal intensities to concentration values
-  while (!oit.IsAtEnd() )
-    {
-    inputVectorVoxel = inputVectorVolumeIter.Get();
-    vectorVoxel.SetSize(inputVectorVoxel.GetSize());
-    vectorVoxel.Fill(0.0);
-    vectorVoxel += inputVectorVoxel; // shorthand for a copy/cast
-
-    float T1Pre = m_T1PreTissue;
-
-    // if we have ROI, and T1Pre is set to tissue value, check if we need to skip this voxel
-    if( this->GetROIMask() && (this->GetROIMask()->GetBufferedRegion().GetSize()[0])!=0)
-      {
-      if(!roiMaskVolumeIter.Get())
-        {
-        T1Pre = 0;
-        }
-      ++roiMaskVolumeIter;
-      }
-
-    // if we have both ROI and T1 map, and T1Pre is set to T1 map result, check if we need to skip this voxel
-    if( this->GetROIMask() && this->GetT1Map() && (this->GetROIMask()->GetBufferedRegion().GetSize()[0])!=0)
-      {
-      if(!roiMaskVolumeIter.Get())
-        {
-        T1Pre = 0;
-        }
-      else 
-        {
-          {
-          T1Pre = T1MapVolumeIter.Get();
-          }
-        ++T1MapVolumeIter;
-        }   
-      ++roiMaskVolumeIter;
-      }
-    
-    // if we have an AIF mask, use blood T1Pre; even if this voxel was unselected by ROI,
-    // select it for AIF calculation if non-0
-    if( this->GetAIFMask() && (this->GetAIFMask()->GetBufferedRegion().GetSize()[0])!=0)
-      {
-      if(aifMaskVolumeIter.Get())
-        {
-        T1Pre = m_T1PreBlood;
-        }
-      ++aifMaskVolumeIter;
-      }
-
-    // if we have both an AIF mask and T1 map, use T1 map as T1Pre; even if this voxel was unselected by ROI,
-    // select it for AIF calculation if non-0
-    if( this->GetAIFMask() && this->GetT1Map() && (this->GetAIFMask()->GetBufferedRegion().GetSize()[0])!=0)
-      {
-      if(aifMaskVolumeIter.Get())
-        {
-          {
-          T1Pre = T1MapVolumeIter.Get();
-          }
-        ++T1MapVolumeIter;
-        }   
-      ++aifMaskVolumeIter;
-      }
-
-
-    // if we have T1 map, use T1 map as T1Pre
-    if( this->GetT1Map() && (this->GetT1Map()->GetBufferedRegion().GetSize()[0])!=0)
-      {
-        {
-        T1Pre = T1MapVolumeIter.Get();
-        }
-      ++T1MapVolumeIter;
-      }
-
-     if(T1Pre)
-       {
-       isConvert = convert_signal_to_concentration (inputVectorVolume->GetNumberOfComponentsPerPixel(),
-                                                     vectorVoxel.GetDataPointer(),
-                                                     T1Pre, m_TR, m_FA,
-                                                     concentrationVectorVoxelTemp,
-                                                     m_RGD_relaxivity,
-                                                     S0VolumeIter.Get(),
-                                                     m_S0GradThresh);
-
-       // copy the concentration vector to the output
-       outputVectorVoxel.SetSize(inputVectorVoxel.GetSize());
-       for (typename OutputPixelType::ElementIdentifier i = 0; 
-                     i < outputVectorVoxel.GetSize(); ++i)
-         {
-         outputVectorVoxel[i] 
-           = static_cast<typename OutputPixelType::ValueType>(concentrationVectorVoxelTemp[i]);
-         }
-         oit.Set(outputVectorVoxel);
-       }
-     else
-     {
-       outputVectorVoxel.SetSize(inputVectorVoxel.GetSize());
-       outputVectorVoxel.Fill(static_cast<typename OutputPixelType::ValueType>(0.0));
-       oit.Set(outputVectorVoxel);
-     }
-
-    ++S0VolumeIter;
-    ++inputVectorVolumeIter;
-    ++oit;
-    progress.CompletedPixel();
-    }
-
-  delete [] concentrationVectorVoxelTemp;
+  return S0Volume;
 }
 
 
+template<class TInputImage, class TMaskImage, class TOutputImage>
+typename SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::InternalVectorVoxelType
+SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::convertToInternalVectorVoxel(const InputPixelType& inputVectorVoxel)
+{
+  InternalVectorVoxelType vectorVoxel;
+  vectorVoxel.SetSize(inputVectorVoxel.GetSize());
+  vectorVoxel.Fill(0.0);
+  vectorVoxel += inputVectorVoxel; // shorthand for a copy/cast
+  return vectorVoxel;
+}
+
+
+
 template <class TInputImage, class TMaskImage, class TOutput>
-void SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutput>
-::PrintSelf( std::ostream& os, Indent indent ) const
+void SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutput>::PrintSelf( std::ostream& os, Indent indent ) const
 {
   Superclass::PrintSelf( os, indent );
   os << indent << "T1PreBlood: " << m_T1PreBlood << std::endl;
@@ -198,6 +131,98 @@ void SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutput>
   os << indent << "S0GradThresh: " << m_S0GradThresh << std::endl;
 }
 
-} // end namespace itk
 
+
+//==================== T1PreValueIterator internal helper class ====================
+
+template<class TInputImage, class TMaskImage, class TOutputImage>
+SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::T1PreValueIterator::T1PreValueIterator(const InputMaskType* roiMask,
+                                                                                                                         const InputMaskType* aifMask, 
+                                                                                                                         const InputMaskType* t1Map, 
+                                                                                                                         float t1PreTissue, 
+                                                                                                                         float t1PreBlood)
+{
+  this->m_T1PreTissue = t1PreTissue;
+  this->m_T1PreBlood = t1PreBlood;
+  this->roiMaskVolumeIter = this->getNewConstMaskIterOrNull(roiMask);
+  this->aifMaskVolumeIter = this->getNewConstMaskIterOrNull(aifMask);
+  this->T1MapVolumeIter = this->getNewConstMaskIterOrNull(t1Map);
+}
+
+
+template<class TInputImage, class TMaskImage, class TOutputImage>
+SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::T1PreValueIterator::~T1PreValueIterator()
+{
+  delete this->roiMaskVolumeIter;
+  delete this->aifMaskVolumeIter;
+  delete this->T1MapVolumeIter;
+}
+
+
+template<class TInputImage, class TMaskImage, class TOutputImage>
+float
+SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::T1PreValueIterator::Get()
+{
+  float T1Pre = T1MapVolumeIter ? T1MapVolumeIter->Get() : m_T1PreTissue;
+  if (aifMaskVolumeIter && aifMaskVolumeIter->Get()) {
+    T1Pre = T1MapVolumeIter ? T1MapVolumeIter->Get() : m_T1PreBlood;
+  }
+  else if (roiMaskVolumeIter && !roiMaskVolumeIter->Get()) {
+    T1Pre = 0;
+  }
+  return T1Pre;
+}
+
+
+template<class TInputImage, class TMaskImage, class TOutputImage>
+void
+SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::T1PreValueIterator::GoToBegin()
+{
+  if (this->roiMaskVolumeIter) {
+    this->roiMaskVolumeIter->GoToBegin();
+  }
+  if (aifMaskVolumeIter) {
+    this->aifMaskVolumeIter->GoToBegin();
+  }
+  if (T1MapVolumeIter) {
+    this->T1MapVolumeIter->GoToBegin();
+  }
+}
+
+
+template<class TInputImage, class TMaskImage, class TOutputImage>
+typename SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::T1PreValueIterator&
+SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::T1PreValueIterator::operator++()
+{
+  if (this->roiMaskVolumeIter) {
+    ++(*(this->roiMaskVolumeIter));
+  }
+  if (aifMaskVolumeIter) {
+    ++(*(this->aifMaskVolumeIter));
+  }
+  if (T1MapVolumeIter) {
+    ++(*(this->T1MapVolumeIter));
+  }
+  return *this;
+}
+
+
+template<class TInputImage, class TMaskImage, class TOutputImage>
+typename SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::InputMaskConstIterType*
+SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::T1PreValueIterator::getNewConstMaskIterOrNull(const InputMaskType* inMask)
+{
+  InputMaskConstIterType* maskVolumeIter = NULL;
+  if (inMask && (inMask->GetBufferedRegion().GetSize()[0] != 0))
+  {
+    maskVolumeIter = new InputMaskConstIterType(inMask, inMask->GetRequestedRegion());
+    maskVolumeIter->GoToBegin();
+  }
+  return maskVolumeIter;
+}
+
+
+
+
+
+} // end namespace itk
 #endif
