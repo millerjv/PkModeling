@@ -165,7 +165,7 @@ SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>
 {
   float T1Pre = T1MapVolumeIter ? T1MapVolumeIter->Get() : m_T1PreTissue;
   if (aifMaskVolumeIter && aifMaskVolumeIter->Get()) {
-    T1Pre = T1MapVolumeIter ? T1MapVolumeIter->Get() : m_T1PreBlood;
+    T1Pre = m_T1PreBlood;
   }
   else if (roiMaskVolumeIter && !roiMaskVolumeIter->Get()) {
     T1Pre = 0;
