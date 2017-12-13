@@ -313,7 +313,7 @@ set(testName DRO3min5secinf_AllOutputsExceptFpv_WithT1Map)
 set(tempOutDataBaseName ${TEMP}/${testName})
 set(referenceDataBaseName ${referenceDataBaseDir}DRO3min5secinf_AllOutputsExceptFpv)
 set_compareArgs(FALSE)
-set(paramsArgs --T1Tissue 1434
+set(paramsArgs --T1Tissue 1111
                --T1Blood 1600
                --T1Map ${inputDataBaseName}-T1Map.nrrd
                --relaxivity 0.0037
