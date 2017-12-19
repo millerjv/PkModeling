@@ -48,6 +48,7 @@
 #include "itkExtractImageFilter.h"
 #include "itkFloatingPointExceptions.h"
 #include "itkTestingComparisonImageFilter.h"
+#include "itkVectorIndexSelectionCastImageFilter.h"
 #include "itksys/SystemTools.hxx"
 #include "itkIntTypes.h"
 #ifdef HAS_ITK_FACTORY_REGISTRATION
@@ -92,6 +93,7 @@ int main(int ac, char *av[])
   double       intensityTolerance  = 0.0001;
   unsigned int numberOfPixelsTolerance = 0;
   unsigned int radiusTolerance = 0;
+  bool         expectFail = false;
 
   typedef std::pair<char *, char *> ComparePairType;
   std::vector<ComparePairType> compareList;
@@ -164,6 +166,12 @@ int main(int ac, char *av[])
         av += 2;
         ac -= 2;
         }
+      else if (strcmp(av[1], "--expectFail") == 0)
+        {
+        expectFail = true;
+        av += 1;
+        ac -= 1;
+        }
       else
         {
         testToRun = av[1];
@@ -209,7 +217,7 @@ int main(int ac, char *av[])
           }
 
         // if the best we can do still has errors, generate the error images
-        if( bestBaselineStatus )
+        if( bestBaselineStatus && !expectFail)
           {
           RegressionTestImage(testFilename,
                               bestBaseline.c_str(),
@@ -244,7 +252,12 @@ int main(int ac, char *av[])
       std::cerr << "ITK test driver caught an unknown exception!!!\n";
       result = -1;
       }
-    return result;
+    if (!expectFail) {
+      return result;
+      }
+    else {
+      return result > 0 ? 0 : 1;
+      }
     }
   PrintAvailableTests();
   std::cerr << "Failed: " << testToRun << ": No test registered with name " << testToRun << "\n";
@@ -263,9 +276,10 @@ int RegressionTestImage(const char *testImageFilename,
   // Use the factory mechanism to read the test and baseline files and convert
   // them to double
   typedef itk::Image<double, ITK_TEST_DIMENSION_MAX>        ImageType;
+  typedef itk::VectorImage<double, ITK_TEST_DIMENSION_MAX>  VectorImageType;
   typedef itk::Image<unsigned char, ITK_TEST_DIMENSION_MAX> OutputType;
   typedef itk::Image<unsigned char, 2>                      DiffOutputType;
-  typedef itk::ImageFileReader<ImageType>                   ReaderType;
+  typedef itk::ImageFileReader<VectorImageType>             ReaderType;
 
   // Read the baseline file
   ReaderType::Pointer baselineReader = ReaderType::New();
@@ -293,12 +307,12 @@ int RegressionTestImage(const char *testImageFilename,
     return 1000;
     }
 
-  // The sizes of the baseline and test image must match
-  ImageType::SizeType baselineSize;
-  baselineSize = baselineReader->GetOutput()->GetLargestPossibleRegion().GetSize();
-  ImageType::SizeType testSize;
-  testSize = testReader->GetOutput()->GetLargestPossibleRegion().GetSize();
+  VectorImageType::Pointer baslineVectorImage = baselineReader->GetOutput();
+  VectorImageType::Pointer testVectorImage = testReader->GetOutput();
 
+  // The sizes of the baseline and test image must match
+  VectorImageType::SizeType baselineSize = baslineVectorImage->GetLargestPossibleRegion().GetSize();
+  VectorImageType::SizeType testSize = testVectorImage->GetLargestPossibleRegion().GetSize();
   if( baselineSize != testSize )
     {
     std::cerr << "The size of the Baseline image and Test image do not match!" << std::endl;
@@ -309,16 +323,44 @@ int RegressionTestImage(const char *testImageFilename,
     return 1;
     }
 
-  // Now compare the two images
+  const unsigned int baselineNumberOfPixelComponents = baslineVectorImage->GetNumberOfComponentsPerPixel();
+  const unsigned int testNumberOfPixelComponents = testVectorImage->GetNumberOfComponentsPerPixel();
+  if (baselineNumberOfPixelComponents != testNumberOfPixelComponents)
+  {
+    std::cerr << "The number of components per pixel of the Baseline image and Test image do not match!" << std::endl;
+    std::cerr << "Baseline image: " << baselineImageFilename
+      << " has number of components " << baselineNumberOfPixelComponents << std::endl;
+    std::cerr << "Test image:     " << testImageFilename
+      << " has number of components " << testNumberOfPixelComponents << std::endl;
+    return 1;
+  }
+
+  // Setup the filter to select indiviual vector image components
+  typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, ImageType> IndexSelectionType;
+  IndexSelectionType::Pointer baselineIndexSelectionFilter = IndexSelectionType::New();
+  baselineIndexSelectionFilter->SetInput(baslineVectorImage);
+  IndexSelectionType::Pointer testIndexSelectionFilter = IndexSelectionType::New();
+  testIndexSelectionFilter->SetInput(testVectorImage);
+
+  // Basic setup of filter to compare two scalar images
   typedef itk::Testing::ComparisonImageFilter<ImageType, ImageType> DiffType;
   DiffType::Pointer diff = DiffType::New();
-  diff->SetValidInput( baselineReader->GetOutput() );
-  diff->SetTestInput( testReader->GetOutput() );
   diff->SetDifferenceThreshold(intensityTolerance);
   diff->SetToleranceRadius(radiusTolerance);
-  diff->UpdateLargestPossibleRegion();
+  
+  // Compare images going through each vector component and stopping as soon as the differences get too large.
+  itk::SizeValueType status = 0;
+  for (unsigned int idx = 0; (idx < baselineNumberOfPixelComponents) && (status <= numberOfPixelsTolerance); ++idx)
+  {
+    baselineIndexSelectionFilter->SetIndex(idx);
+    testIndexSelectionFilter->SetIndex(idx);
 
-  const itk::SizeValueType status = diff->GetNumberOfPixelsWithDifferences();
+    diff->SetValidInput(baselineIndexSelectionFilter->GetOutput());
+    diff->SetTestInput(testIndexSelectionFilter->GetOutput());
+    diff->UpdateLargestPossibleRegion();
+
+    status += diff->GetNumberOfPixelsWithDifferences();
+  }
 
   // if there are discrepencies, create an diff image
   if( ( status > numberOfPixelsTolerance ) && reportErrors )
@@ -402,7 +444,7 @@ int RegressionTestImage(const char *testImageFilename,
     baseName << testImageFilename << ".base.png";
     try
       {
-      rescale->SetInput( baselineReader->GetOutput() );
+      rescale->SetInput(baselineIndexSelectionFilter->GetOutput());
       rescale->Update();
       }
     catch( const std::exception & e )
@@ -437,7 +479,7 @@ int RegressionTestImage(const char *testImageFilename,
     testName << testImageFilename << ".test.png";
     try
       {
-      rescale->SetInput( testReader->GetOutput() );
+      rescale->SetInput(testIndexSelectionFilter->GetOutput());
       rescale->Update();
       }
     catch( const std::exception & e )
