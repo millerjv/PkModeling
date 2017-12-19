@@ -2,7 +2,7 @@
 # Convenience functions to get command snippets needed for most tests
 #-----------------------------------------------------------------------------
 function(set_compareArgs computeFpv)
-  set(compareArgs --compareIntensityTolerance 1e-5
+  set(compareArgs --compareIntensityTolerance 1e-4
                   --compare ${referenceDataBaseDir}${testName}-conc.nrrd
                   ${tempOutDataBaseName}-conc.nrrd
                   --compare ${referenceDataBaseDir}${testName}-ktrans.nrrd
