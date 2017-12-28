@@ -57,6 +57,10 @@ if(QINPROSTATE001)
   set_property(TEST ${testName} PROPERTY LABELS ${CLP})
 endif()
 
+#-----------------------------------------------------------------------------
+# Unit/Integration tests
+#-----------------------------------------------------------------------------
+include(ComparisonFilterTests.cmake)
 
 #-----------------------------------------------------------------------------
 # Regression tests
