@@ -31,7 +31,7 @@ namespace itk
    *
    * An second input, specifying the location of the arterial input
    * function, allows for the calculation to be adjusted for blood
-   * verses tissue.
+   * versus tissue.
    *
    * \note
    * This work is part of the National Alliance for Medical Image Computing
@@ -148,13 +148,18 @@ namespace itk
 
   protected:
     SignalIntensityToConcentrationImageFilter();
+
     virtual ~SignalIntensityToConcentrationImageFilter()
     {
     }
 
-    void PrintSelf(std::ostream& os, Indent indent) const;
-
     void GenerateData();
+    OutputImageType* GetAllocatedOutputVolume(const InputImageType* inputVectorVolume);
+    InternalVolumePointerType GetS0Image(const InputImageType* inputVectorVolume);
+    InternalVectorVoxelType convertToInternalVectorVoxel(const InputPixelType& inputVectorVoxel);
+
+
+    void PrintSelf(std::ostream& os, Indent indent) const;
 
   private:
     SignalIntensityToConcentrationImageFilter(const Self &); //
@@ -174,6 +179,33 @@ namespace itk
     float m_S0GradThresh;
     std::string m_BATCalculationMode;
     int m_constantBAT;
+
+    //! Private internal helper class to handle getting the correct T1Pre value.
+    //! Use it like an Iterator to walk through the voxel positions.
+    class T1PreValueMapper {
+    public:
+      //! Instantiate the Mapper by providing ROI mask, AIF mask, and/or T1 Map (all of which are optional and my be NULL if not available).
+      //! Also provide default constant Tissue and Blood value (these are required inputs).
+      T1PreValueMapper(const InputMaskType* roiMask, const InputMaskType* aifMask, const InputMaskType* t1Map, float t1PreTissue, float t1PreBlood);
+      virtual ~T1PreValueMapper();
+
+      //! Returns the T1Pre value for the current voxel position, based on the availability and validity of ROI/AIF mask and T1 Map at this position.
+      float Get();
+      void GoToBegin();
+      T1PreValueMapper& operator++();
+
+    protected:
+      InputMaskConstIterType* getNewConstMaskIterOrNull(const InputMaskType* inMask);
+
+    private:
+      InputMaskConstIterType* roiMaskVolumeIter;
+      InputMaskConstIterType* aifMaskVolumeIter;
+      InputMaskConstIterType* T1MapVolumeIter;
+      float m_T1PreTissue;
+      float m_T1PreBlood;
+
+    }; // end T1PreValueIterator class
+
   };
 
 }; // end namespace itk
