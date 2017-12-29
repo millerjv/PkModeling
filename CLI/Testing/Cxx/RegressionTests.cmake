@@ -3,7 +3,7 @@
 #-----------------------------------------------------------------------------
 function(set_compareArgs computeFpv)
   set(compareArgs --compareIntensityTolerance 1e-4
-                  --compare ${referenceDataBaseDir}-conc.nrrd
+                  --compare ${referenceDataBaseName}-conc.nrrd
                   ${tempOutDataBaseName}-conc.nrrd
                   --compare ${referenceDataBaseName}-ktrans.nrrd
                   ${tempOutDataBaseName}-ktrans.nrrd
