@@ -154,7 +154,7 @@ namespace itk
     }
 
     void GenerateData();
-    OutputImageType* GetAllocatedOutVolume(const InputImageType* inputVectorVolume);
+    OutputImageType* GetAllocatedOutputVolume(const InputImageType* inputVectorVolume);
     InternalVolumePointerType GetS0Image(const InputImageType* inputVectorVolume);
     InternalVectorVoxelType convertToInternalVectorVoxel(const InputPixelType& inputVectorVoxel);
 
@@ -181,15 +181,18 @@ namespace itk
     int m_constantBAT;
 
     //! Private internal helper class to handle getting the correct T1Pre value.
-    //! Any of the InputMaskType pointers may be NULL.
-    class T1PreValueIterator {
+    //! Use it like an Iterator to walk through the voxel positions.
+    class T1PreValueMapper {
     public:
-      T1PreValueIterator(const InputMaskType* roiMask, const InputMaskType* aifMask, const InputMaskType* t1Map, float t1PreTissue, float t1PreBlood);
-      virtual ~T1PreValueIterator();
+      //! Instantiate the Mapper by providing ROI mask, AIF mask, and/or T1 Map (all of which are optional and my be NULL if not available).
+      //! Also provide default constant Tissue and Blood value (these are required inputs).
+      T1PreValueMapper(const InputMaskType* roiMask, const InputMaskType* aifMask, const InputMaskType* t1Map, float t1PreTissue, float t1PreBlood);
+      virtual ~T1PreValueMapper();
 
+      //! Returns the T1Pre value for the current voxel position, based on the availability and validity of ROI/AIF mask and T1 Map at this position.
       float Get();
       void GoToBegin();
-      T1PreValueIterator& operator++();
+      T1PreValueMapper& operator++();
 
     protected:
       InputMaskConstIterType* getNewConstMaskIterOrNull(const InputMaskType* inMask);

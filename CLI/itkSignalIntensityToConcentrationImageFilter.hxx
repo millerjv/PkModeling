@@ -24,7 +24,7 @@ void SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputI
 {
   const InputImageType* inputVectorVolume = this->GetInput();
 
-  OutputImageType* outputVolume = this->GetAllocatedOutVolume(inputVectorVolume);
+  OutputImageType* outputVolume = this->GetAllocatedOutputVolume(inputVectorVolume);
   InternalVolumePointerType S0Volume = this->GetS0Image(inputVectorVolume);
   
   InternalVolumeIterType S0VolumeIter(S0Volume, S0Volume->GetRequestedRegion());
@@ -33,7 +33,7 @@ void SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputI
   inputVectorVolumeIter.GoToBegin();
   OutputIterType outVolumeIter(outputVolume, outputVolume->GetRequestedRegion());
   outVolumeIter.GoToBegin();
-  T1PreValueIterator t1PreIter(this->GetROIMask(), this->GetAIFMask(), this->GetT1Map(), this->m_T1PreTissue, this->m_T1PreBlood);
+  T1PreValueMapper t1PreMapper(this->GetROIMask(), this->GetAIFMask(), this->GetT1Map(), this->m_T1PreTissue, this->m_T1PreBlood);
 
   float* concentrationVectorVoxelTemp = new float[(int)inputVectorVolume->GetNumberOfComponentsPerPixel()];
   OutputPixelType outputVectorVoxel;
@@ -45,7 +45,7 @@ void SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputI
   {
     InternalVectorVoxelType vectorVoxel = this->convertToInternalVectorVoxel(inputVectorVolumeIter.Get());
     outputVectorVoxel.SetSize(vectorVoxel.GetSize());
-    float T1Pre = t1PreIter.Get();
+    float T1Pre = t1PreMapper.Get();
     if (T1Pre)
     {
       bool isConvert = convert_signal_to_concentration(inputVectorVolume->GetNumberOfComponentsPerPixel(),
@@ -70,7 +70,7 @@ void SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputI
     ++S0VolumeIter;
     ++inputVectorVolumeIter;
     ++outVolumeIter;
-    ++t1PreIter;
+    ++t1PreMapper;
 
     progress.CompletedPixel();
     }
@@ -81,7 +81,7 @@ void SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputI
 
 template<class TInputImage, class TMaskImage, class TOutputImage>
 typename SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::OutputImageType*
-SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::GetAllocatedOutVolume(const InputImageType* inputVectorVolume)
+SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::GetAllocatedOutputVolume(const InputImageType* inputVectorVolume)
 {
   OutputImageType* outputVolume = this->GetOutput();
   outputVolume->SetBufferedRegion(inputVectorVolume->GetBufferedRegion());
@@ -136,11 +136,11 @@ void SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutput>
 //==================== T1PreValueIterator internal helper class ====================
 
 template<class TInputImage, class TMaskImage, class TOutputImage>
-SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::T1PreValueIterator::T1PreValueIterator(const InputMaskType* roiMask,
-                                                                                                                         const InputMaskType* aifMask, 
-                                                                                                                         const InputMaskType* t1Map, 
-                                                                                                                         float t1PreTissue, 
-                                                                                                                         float t1PreBlood)
+SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::T1PreValueMapper::T1PreValueMapper(const InputMaskType* roiMask,
+                                                                                                                     const InputMaskType* aifMask, 
+                                                                                                                     const InputMaskType* t1Map, 
+                                                                                                                     float t1PreTissue, 
+                                                                                                                     float t1PreBlood)
 {
   this->m_T1PreTissue = t1PreTissue;
   this->m_T1PreBlood = t1PreBlood;
@@ -151,7 +151,7 @@ SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>
 
 
 template<class TInputImage, class TMaskImage, class TOutputImage>
-SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::T1PreValueIterator::~T1PreValueIterator()
+SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::T1PreValueMapper::~T1PreValueMapper()
 {
   delete this->roiMaskVolumeIter;
   delete this->aifMaskVolumeIter;
@@ -161,7 +161,7 @@ SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>
 
 template<class TInputImage, class TMaskImage, class TOutputImage>
 float
-SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::T1PreValueIterator::Get()
+SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::T1PreValueMapper::Get()
 {
   float T1Pre = T1MapVolumeIter ? T1MapVolumeIter->Get() : m_T1PreTissue;
   if (aifMaskVolumeIter && aifMaskVolumeIter->Get()) {
@@ -176,7 +176,7 @@ SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>
 
 template<class TInputImage, class TMaskImage, class TOutputImage>
 void
-SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::T1PreValueIterator::GoToBegin()
+SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::T1PreValueMapper::GoToBegin()
 {
   if (this->roiMaskVolumeIter) {
     this->roiMaskVolumeIter->GoToBegin();
@@ -191,8 +191,8 @@ SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>
 
 
 template<class TInputImage, class TMaskImage, class TOutputImage>
-typename SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::T1PreValueIterator&
-SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::T1PreValueIterator::operator++()
+typename SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::T1PreValueMapper&
+SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::T1PreValueMapper::operator++()
 {
   if (this->roiMaskVolumeIter) {
     ++(*(this->roiMaskVolumeIter));
@@ -209,7 +209,7 @@ SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>
 
 template<class TInputImage, class TMaskImage, class TOutputImage>
 typename SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::InputMaskConstIterType*
-SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::T1PreValueIterator::getNewConstMaskIterOrNull(const InputMaskType* inMask)
+SignalIntensityToConcentrationImageFilter<TInputImage, TMaskImage, TOutputImage>::T1PreValueMapper::getNewConstMaskIterOrNull(const InputMaskType* inMask)
 {
   InputMaskConstIterType* maskVolumeIter = NULL;
   if (inMask && (inMask->GetBufferedRegion().GetSize()[0] != 0))
